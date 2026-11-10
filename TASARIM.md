@@ -9,28 +9,28 @@ Platformlar: **PC (tarayıcıda HTML + Windows .exe)** ve **Android (APK)**. Mot
 ---
 
 ## 1. Zaman sistemi
-- [ ] Simülasyonun 1 adımı = **1 ay**. 12 ay = 1 yıl. Hedef süre **5000 yıl (60.000 ay)**.
-- [ ] Ekranda tarih gösterilsin: `Yıl 1247, 5. ay (İlkbahar)`.
-- [ ] Hız ayarları: ⏸ Duraklat · 1x (1 ay/sn) · 5x · 20x · 100x · 500x. 500x'te 5000 yıl yaklaşık 2 dakikada geçer. Hızlı modda birimlerin ayrıntılı hareketi yerine toplu hesap yapılsın ki oyun takılmasın.
+- ✅ Simülasyonun 1 adımı = **1 ay**. 12 ay = 1 yıl. Hedef süre **5000 yıl (60.000 ay)**.
+- ✅ Ekranda tarih gösterilsin: `Yıl 1247, 5. ay (İlkbahar)`.
+- ✅ Hız ayarları: ⏸ Duraklat · 1x (1 ay/sn) · 5x · 20x · 100x · 500x. 500x'te 5000 yıl yaklaşık 2 dakikada geçer. Hızlı modda birimlerin ayrıntılı hareketi yerine toplu hesap yapılsın ki oyun takılmasın.
 - [ ] Mevsimler (İlkbahar, Yaz, Sonbahar, Kış): ekin, göç, salgın ve savaşı etkilesin. Kışın kuzeyde kar, güneyde kuraklık olsun.
-- [ ] Çağlar: Taş → Tunç → Demir → Orta Çağ → Barut → Sanayi → (Uzaylı teknolojisi). Her ırk ve krallık kendi hızında ilerler.
-- [ ] **Tarih kaydı (Kronik):** krallıkların kuruluşu ve yıkılışı, savaşlar, ünlü kişiler, afetler, ilk icatlar. Bunlar oyunda okunabilir bir zaman çizelgesi olarak tutulsun.
+- ✅ Çağlar: Taş → Tunç → Demir → Orta Çağ → Barut → Sanayi → (Uzaylı teknolojisi). Her ırk ve krallık kendi hızında ilerler.
+- ✅ **Tarih kaydı (Kronik):** krallıkların kuruluşu ve yıkılışı, savaşlar, ünlü kişiler, afetler, ilk icatlar. Bunlar oyunda okunabilir bir zaman çizelgesi olarak tutulsun.
 
 ## 2. Irklar
 Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahları ve doğuştan gelen özellik olasılıkları var.
 
 | Irk | Ömür | Üreme | Güçlü yanı | Zayıf yanı | Sevdiği arazi |
 |---|---|---|---|---|---|
-| [ ] **İnsan** | 70 yıl | Hızlı | Dengeli; ticaret, teknolojide hızlı ilerleme | Özel bir üstünlüğü yok | Ova, kıyı |
-| [ ] **Elf** | 600 yıl | Çok yavaş | Okçuluk, büyü, ormanla uyum, bilgelik | Az nüfus; ormansız yerde zorlanır | Orman |
-| [ ] **Ork** | 45 yıl | Çok hızlı | Güç, saldırganlık, kalabalık ordular | Düşük zekâ, iç kavga, zayıf diplomasi | Bozkır, çorak |
-| [ ] **Cüce** | 300 yıl | Yavaş | Madencilik, demircilik, sağlam kaleler | Yavaş hareket; denizcilikte kötü | Dağ, yeraltı |
-| [ ] **Dev** | 400 yıl | Çok çok yavaş | Muazzam güç ve can; tek başına ordu | Çok yemek ister, sayıca çok az, yavaş | Dağ, tundra |
-| [ ] **Goblin** | 30 yıl | Aşırı hızlı | Kurnazlık, gizlilik, yağma | Zayıf, korkak, kısa ömür | Mağara, bataklık |
-| [ ] **Kertenkele Halkı** | 120 yıl | Yumurtayla, orta | Yüzme, zehir bağışıklığı, sıcağa dayanım | Soğukta yavaşlar, kışın uyuşur | Bataklık, çöl |
-| [ ] **Uzaylılar** | ? | Klonlama | Lazer silahlar, kalkan, gelişmiş teknoloji | Dünyanın hastalıklarına karşı zayıf | Gökten gelir (bkz. 9) |
+| ✅ **İnsan** | 70 yıl | Hızlı | Dengeli; ticaret, teknolojide hızlı ilerleme | Özel bir üstünlüğü yok | Ova, kıyı |
+| ✅ **Elf** | 600 yıl | Çok yavaş | Okçuluk, büyü, ormanla uyum, bilgelik | Az nüfus; ormansız yerde zorlanır | Orman |
+| ✅ **Ork** | 45 yıl | Çok hızlı | Güç, saldırganlık, kalabalık ordular | Düşük zekâ, iç kavga, zayıf diplomasi | Bozkır, çorak |
+| ✅ **Cüce** | 300 yıl | Yavaş | Madencilik, demircilik, sağlam kaleler | Yavaş hareket; denizcilikte kötü | Dağ, yeraltı |
+| ✅ **Dev** | 400 yıl | Çok çok yavaş | Muazzam güç ve can; tek başına ordu | Çok yemek ister, sayıca çok az, yavaş | Dağ, tundra |
+| ✅ **Goblin** | 30 yıl | Aşırı hızlı | Kurnazlık, gizlilik, yağma | Zayıf, korkak, kısa ömür | Mağara, bataklık |
+| ✅ **Kertenkele Halkı** | 120 yıl | Yumurtayla, orta | Yüzme, zehir bağışıklığı, sıcağa dayanım | Soğukta yavaşlar, kışın uyuşur | Bataklık, çöl |
+| ✅ **Uzaylılar** | ? | Klonlama | Lazer silahlar, kalkan, gelişmiş teknoloji | Dünyanın hastalıklarına karşı zayıf | Gökten gelir (bkz. 9) |
 
-- [ ] Irklar arası ilişki tablosu: Elf ile Cüce birbirini sevmez, Ork herkese düşmandır, İnsan herkesle ticaret yapar. Bu tablo savaş ve ittifak olasılığını etkiler.
+- ✅ Irklar arası ilişki tablosu: Elf ile Cüce birbirini sevmez, Ork herkese düşmandır, İnsan herkesle ticaret yapar. Bu tablo savaş ve ittifak olasılığını etkiler.
 - [ ] Melez doğum (İnsan + Elf = Yarı Elf vb.): her iki ebeveynin ırk özelliklerinden karışım.
 
 ## 3. Hayvanlar ve ekosistem
@@ -44,28 +44,28 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 - [ ] Hayvanlar da özellik taşır ve özelliklerini yavrularına aktarır.
 
 ## 4. Canlı özellikleri (100 adet) — `veri/ozellikler.json`
-- [ ] Her canlının 0–5 özelliği olur. Bir kısmı doğuştan gelir (ırk olasılıkları + ebeveynlerden kalıtım), bir kısmı hayat boyunca kazanılır (ör. savaştan sağ çıkan "Cesur" olabilir).
-- [ ] Tanrı paneli: oyuncu herhangi bir canlıya dokunup listeden özellik **ekleyebilir veya silebilir**. "Yerleştirme fırçası" ile yeni konan canlılara önceden seçilmiş özellikler verilebilir.
-- [ ] Zıt özellikler bir arada olamaz (Aptal + Dahi gibi). Liste JSON dosyasındaki `zit` alanında.
+- ✅ Her canlının 0–5 özelliği olur. Bir kısmı doğuştan gelir (ırk olasılıkları + ebeveynlerden kalıtım), bir kısmı hayat boyunca kazanılır (ör. savaştan sağ çıkan "Cesur" olabilir).
+- ✅ Tanrı paneli: oyuncu herhangi bir canlıya dokunup listeden özellik **ekleyebilir veya silebilir**. "Yerleştirme fırçası" ile yeni konan canlılara önceden seçilmiş özellikler verilebilir.
+- ✅ Zıt özellikler bir arada olamaz (Aptal + Dahi gibi). Liste JSON dosyasındaki `zit` alanında.
 - [ ] Etkiler gerçekten oyunu değiştirmeli:
   - Zeki/Dahi bir kral ülkenin teknolojisini hızlandırır. Aptal kral kötü kararlar verir: gereksiz savaş açar, hazineyi boşa harcar.
   - Çalışkan halk daha çok üretir; Tembel halkın ambarı boş kalır.
   - Hızlı asker önce varır, Korkak asker savaşta kaçar, Hain general düşmana geçer.
   - Doğurgan bir köy hızla büyür, Kısır bir soy tükenir.
   - Güçlü Kalıtım taşıyan bir soy, yüzyıllar içinde özelliklerini yayarak "dahi bir hanedan" ya da "devler soyu" oluşturur.
-- [ ] Nadirlik: ★ yaygın → ★★★★★ efsanevi. Efsanevi özellikler (Dahi, Ölümsüz, Kahraman) kendiliğinden çok nadir doğar.
-- [ ] Canlı bilgi kartı: adı, ırkı, yaşı, ebeveynleri, çocukları, özellikleri, mesleği, öldürdüğü düşman sayısı, krallığı. Ünlü canlılar kroniğe girer.
+- ✅ Nadirlik: ★ yaygın → ★★★★★ efsanevi. Efsanevi özellikler (Dahi, Ölümsüz, Kahraman) kendiliğinden çok nadir doğar.
+- ✅ Canlı bilgi kartı: adı, ırkı, yaşı, ebeveynleri, çocukları, özellikleri, mesleği, öldürdüğü düşman sayısı, krallığı. Ünlü canlılar kroniğe girer.
 
 ## 5. Üreme ve nüfus
 - [ ] Yetişkinlik yaşı, gebelik süresi ve çocuk sayısı ırka ve özelliklere göre değişir.
 - [ ] Eş bulma; Karizmatik/İtici gibi özellikler buna etki eder. Aileler ve soy ağacı tutulur.
-- [ ] Kalıtım: her özellik ebeveynden %30 olasılıkla geçer (Güçlü Kalıtım bu oranı artırır). %2 mutasyon olasılığı yeni bir özellik getirir.
-- [ ] Ölüm nedenleri: yaşlılık, açlık, hastalık, savaş, afet, hayvan saldırısı, kaza. İstatistikleri tutulur.
+- ✅ Kalıtım: her özellik ebeveynden %30 olasılıkla geçer (Güçlü Kalıtım bu oranı artırır). %2 mutasyon olasılığı yeni bir özellik getirir.
+- ✅ Ölüm nedenleri: yaşlılık, açlık, hastalık, savaş, afet, hayvan saldırısı, kaza. İstatistikleri tutulur.
 - [ ] Nüfus grafiği: ırk ve krallık bazında, yıllara göre.
 
 ## 6. Ekonomi: kaynaklar ve altın
 - [ ] Kaynaklar: yiyecek, odun, taş, demir, **altın**, gümüş, değerli taş, yün, at.
-- [ ] Altın madenleri haritada sabit yerlerde bulunur; o topraklar için savaş çıkar.
+- ✅ Altın madenleri haritada sabit yerlerde bulunur; o topraklar için savaş çıkar.
 - [ ] Altının kullanımı: bina, silah, paralı asker, rüşvet ve diplomasi, kralın sarayı. Vergi sistemi; yüksek vergi isyana yol açar.
 - [ ] Ticaret yolları (karadan ve denizden), pazar binaları, tüccar kervanları. Haydutlar kervan soyar.
 - [ ] Kıtlık, enflasyon (çok altın çıkarılırsa), ekonomik çöküş.
@@ -76,51 +76,51 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 - [ ] **Orta Çağ:** taş ev, taş sur, gözetleme kulesi, kale, tapınak, kütüphane, pazar, liman, tersane, saray.
 - [ ] **Barut ve sonrası:** top dökümhanesi, fabrika, demiryolu, üniversite.
 - [ ] Irka özel binalar: Elf ağaç evleri, Cüce dağ kaleleri, Ork savaş totemleri, Dev taş halkaları, Goblin yeraltı tünelleri.
-- [ ] Şehirler büyür: köy → kasaba → şehir → başkent. Yıkılan şehirler harabe olarak kalır.
+- ✅ Şehirler büyür: köy → kasaba → şehir → başkent. Yıkılan şehirler harabe olarak kalır.
 
 ## 8. Silahlar, ordular ve savaş
 - [ ] Çağa göre silahlar: sopa → taş balta → mızrak → tunç kılıç → demir kılıç / yay → çelik kılıç, arbalet, mancınık → tüfek, top → (uzaylı lazer silahı).
 - [ ] Zırhlar: deri → tunç → zincir → plaka.
 - [ ] Ordu birimleri: piyade, okçu, atlı, kuşatma makinesi, gemi. Generaller özelliklerine göre savaşır (Stratejist, Korkak...).
-- [ ] Savaş sebepleri: toprak, altın, din, intikam, ırk düşmanlığı, Kana Susamış bir kral.
+- ✅ Savaş sebepleri: toprak, altın, din, intikam, ırk düşmanlığı, Kana Susamış bir kral.
 - [ ] Kuşatmalar, barış antlaşmaları, ittifaklar, haraç, iç savaş, isyan, darbe.
 
 ## 9. Uzaylılar
-- [ ] Belli bir yıldan sonra (ör. 2000. yıl) ya da tanrı tetiklerse **UFO istilası** olur: gökten gemiler iner, lazerle saldırır, insan kaçırır.
-- [ ] Uzaylılar dünyada bir üs kurabilir. Bir krallık onları yenerse **uzaylı teknolojisini ele geçirir** ve çağ atlar.
-- [ ] Kaçırılıp geri dönen canlılarda "Uzaylı Geni" özelliği belirebilir.
+- ✅ Belli bir yıldan sonra (ör. 2000. yıl) ya da tanrı tetiklerse **UFO istilası** olur: gökten gemiler iner, lazerle saldırır, insan kaçırır.
+- ✅ Uzaylılar dünyada bir üs kurabilir. Bir krallık onları yenerse **uzaylı teknolojisini ele geçirir** ve çağ atlar.
+- ✅ Kaçırılıp geri dönen canlılarda "Uzaylı Geni" özelliği belirebilir.
 
 ## 10. Doğal afetler
 Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla, mevsime ve araziye göre) ya da **tanrı tarafından** (güçler menüsünden, haritada istenen yere).
 
 | Afet | Kendiliğinden ne zaman | Etkisi |
 |---|---|---|
-| [ ] Deprem | Fay hatları ve dağ kenarlarında | Binalar yıkılır, arazi yarılır |
-| [ ] Volkan | Volkanik dağlarda | Lav akar, kül ekinleri öldürür, yeni kara oluşur |
-| [ ] Tsunami | Depremden sonra kıyılarda | Kıyı şehirlerini yutar |
+| ✅ Deprem | Fay hatları ve dağ kenarlarında | Binalar yıkılır, arazi yarılır |
+| ✅ Volkan | Volkanik dağlarda | Lav akar, kül ekinleri öldürür, yeni kara oluşur |
+| ✅ Tsunami | Depremden sonra kıyılarda | Kıyı şehirlerini yutar |
 | [ ] Sel | Uzun yağmurlardan sonra nehir kenarlarında | Tarlalar ve evler sular altında kalır |
-| [ ] Kuraklık | Yaz mevsiminde, çöl kenarında | Kıtlık, göç |
-| [ ] Kasırga / hortum | Yazın açık ovada | Yolundaki her şeyi savurur |
-| [ ] Orman yangını | Kuraklık ve yıldırım | Yayılır; söndürmek için yağmur gerekir |
-| [ ] Kara kış | Rastgele soğuk yıllar | Donma, hayvan ölümleri |
-| [ ] Salgın / veba | Kalabalık ve pis şehirlerde | Yayılır; Şifacı ve Hastalığa Bağışık canlılar yavaşlatır |
-| [ ] Çekirge istilası | Sıcak yıllarda | Ekinleri yer |
-| [ ] Meteor | Çok nadir | Krater, yangın; bazen nadir maden bırakır |
-| [ ] Yıldırım fırtınası | Yaz yağmurlarında | Yangın çıkarır, canlı öldürür |
+| ✅ Kuraklık | Yaz mevsiminde, çöl kenarında | Kıtlık, göç |
+| ✅ Kasırga / hortum | Yazın açık ovada | Yolundaki her şeyi savurur |
+| ✅ Orman yangını | Kuraklık ve yıldırım | Yayılır; söndürmek için yağmur gerekir |
+| ✅ Kara kış | Rastgele soğuk yıllar | Donma, hayvan ölümleri |
+| ✅ Salgın / veba | Kalabalık ve pis şehirlerde | Yayılır; Şifacı ve Hastalığa Bağışık canlılar yavaşlatır |
+| ✅ Çekirge istilası | Sıcak yıllarda | Ekinleri yer |
+| ✅ Meteor | Çok nadir | Krater, yangın; bazen nadir maden bırakır |
+| ✅ Yıldırım fırtınası | Yaz yağmurlarında | Yangın çıkarır, canlı öldürür |
 
 - [ ] Kâhin özelliği taşıyan canlılar afeti önceden sezer ve halkını kaçırır.
 - [ ] Afet sonrası: göç, yeniden inşa, din etkisi ("tanrılar kızdı").
 
 ## 11. Tanrı güçleri (oyuncu araçları)
 - [ ] **Arazi:** kara yükselt/alçalt, su, dağ, orman, çöl, kar, lav, nehir çiz.
-- [ ] **Canlı koy:** her ırk, her hayvan, efsanevi yaratıklar. Yanında seçilen özellik fırçası kullanılır.
+- ✅ **Canlı koy:** her ırk, her hayvan, efsanevi yaratıklar. Yanında seçilen özellik fırçası kullanılır.
 - [ ] **Afetler:** yukarıdaki tablonun tamamı.
 - [ ] **Kutsama / lanet:** bir şehre bolluk, bir krallığa kıtlık. Tek canlıya özellik ver veya al.
 - [ ] **Müdahale:** iki krallığa savaş ilan ettir, barış yaptır, kral değiştir, isyan çıkar.
 - [ ] **Bilgi araçları:** krallık haritası, ırk haritası, nüfus/altın/teknoloji grafikleri, kronik.
 
 ## 12. Din ve kültür
-- [ ] Krallıklar kendi dinlerini kurar (doğa, ateş, ata, güneş). Din savaşları, misyonerler (Hatip, Rahip özellikleri).
+- ✅ Krallıklar kendi dinlerini kurar (doğa, ateş, ata, güneş). Din savaşları, misyonerler (Hatip, Rahip özellikleri).
 - [ ] Kültür: krallık adı, bayrak rengi, şehir adları ırka göre üretilir (Elf adları yumuşak, Ork adları sert).
 
 ## 13. Dünya ve harita
@@ -130,8 +130,8 @@ Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla,
 
 ## 14. Teknik hedefler
 - [ ] 60 FPS; orta seviye telefonda 5.000+, PC'de 20.000+ canlı.
-- [ ] Kayıt/yükleme (birden çok yuva). Eski kayıtlar yeni sürümlerde de açılsın.
-- [ ] Türkçe arayüz, dokunmatik ve fare desteği, PC klavye kısayolları.
+- ✅ Kayıt/yükleme (birden çok yuva). Eski kayıtlar yeni sürümlerde de açılsın.
+- ✅ Türkçe arayüz, dokunmatik ve fare desteği, PC klavye kısayolları.
 - [ ] Ses: ortam sesleri, afet sesleri, çağa göre değişen müzik (yalnızca ücretsiz kaynaklar).
 
 ---
@@ -241,3 +241,22 @@ Etkiler yüzde değişimdir: `+30` = %30 artış. Asıl veri `veri/ozellikler.js
 | 98 | Kana Susamış | Özel | olumsuz | ★★★★ | saldiri +40, savas_istegi +70, diplomasi -50 |
 | 99 | Kahraman | Özel | olumlu | ★★★★★ | cesaret +50, yakin_dovus +30, moral_ordu +40 |
 | 100 | Uzaylı Geni | Özel | karma | ★★★★★ | teknoloji +40, mutasyon +30, diplomasi -15 |
+
+---
+
+## Gece eklentileri
+Gece geliştirmelerinde ortaya çıkan, tasarıma eklenen fikirler (✅ = oyunda var).
+
+### 2026-11-10
+- ✅ **Nüfus sınırı yok (varsayılan Sınırsız):** Menüden Sınırsız / 1000 / 2500 / 5000 / 10000 / 20000 / 50000 seçilebilir. Irk başına %45 sınırı kaldırıldı. Büyüme artık doğal sınırlara (yiyecek, köy kapasitesi, çağ tavanı) dayanıyor.
+- ✅ **Başlangıç seçimi:** Yeni dünya menüsünde "Rastgele canlılar / Boş dünya".
+- ✅ **Canlı sil (Güçler):** fırça boyutlu silgi; fırça 1–12 karo, ekranda kırmızı çember önizlemesi.
+- ✅ **Köy kademeleri:** Köy (0+) → Kasaba (40+) → Şehir (100+) → Büyük şehir (180+). Köy kapasitesine çağ tavanı (40 + çağ×25, saray +40, başkent ×1.5); taşan halk göç edip yeni köy kurar.
+- ✅ **Din:** tapınaklı köyler inanç kurar (Doğa, Ateş, Ata, Güneş, Ay, Deniz, Dağ, Yıldız; ırka göre eğilim). Din komşu krallıklara yayılır (hükümdarın din_yayma etkisi: Hatip, Rahip). Aynı din savaşı azaltır (×0.5), farklı din artırır (×1.6) ve savaş sebebi olur.
+- ✅ **İttifaklar:** dost ırklar ve aynı dinden krallıklar ittifak kurar; savaşta müttefikler katılır (savunanın müttefiki %70, saldıranın %40). Tanrı gücü "İttifak kur".
+- ✅ **Savaş sebepleri ve savaş yorgunluğu:** kana susamış hükümdar, altın hırsı, din, ırk düşmanlığı, altın, toprak, tanrının kışkırtması. Uzayan ve kayıp verdiren savaşlar barışa yaklaşır.
+- ✅ **Bölgesel kara kış:** kara kış yalnızca kuzey kuşağında ve kar/dağda öldürür; güney yalnızca verim kaybı yaşar. Kışın haritanın kuzeyi karla örtülür.
+- ✅ **Ev arazisi üstünlüğü:** savunan canlı ırkının sevdiği araziyse %25 az hasar alır (elf ormanda, cüce dağda).
+- ✅ **Ekosistem:** yok olmaya yüz tutan yabani türlere dışarıdan küçük sürüler göç eder; köyler azalmış türleri avlamaz ve yalnızca ambar bir yıldan azsa avlanır.
+- ✅ **Krallık haritası:** Gözlem sekmesinde, toprakları ve sınırları gösteren katman.
+- Fikir: haraç ve vasal krallıklar; iç savaş/isyan (yüksek vergi, Hırslı vali); din savaşlarına "kutsal savaş" kronik başlığı; köy kademesine göre taş sur ve kale binası; nüfus grafiği; sel afeti.

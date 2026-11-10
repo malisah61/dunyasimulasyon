@@ -14,6 +14,21 @@ var ara_deger := true
 var secili := -1
 var gorunur := Rect2()
 var son_guncelleme := 0
+var krallik_harita := false   # krallık toprakları renkli gösterilsin mi
+var toprak_doku: ImageTexture
+var toprak_zaman := -100000
+var imlec := Vector2(-1, -1)  # fırça önizlemesi (dünya karosu), -1 = yok
+var imlec_r := 0.0
+var imlec_renk := Color(1, 1, 1, 0.7)
+# tür başına önbellek (her karede sözlük aramasını önler)
+var tur_renk := PackedColorArray()
+var tur_ten := PackedColorArray()
+var tur_boy := PackedFloat32Array()
+var tur_yet := PackedInt32Array()
+var tur_kod := PackedByteArray()   # 0 diğer, 1 elf, 2 ork, 3 cüce, 4 dev, 5 goblin, 6 kertenkele, 7 uzaylı
+const SAKAL := Color("8a6a4a")
+const GOLGE := Color(0, 0, 0, 0.28)
+const TAC := Color("ffd23a")
 
 var B_RENK := [
 	Color("1b3f75"), Color("2e6fb0"), Color("e3d39a"), Color("6fb24a"), Color("3f8a35"),
@@ -33,6 +48,14 @@ func _ready() -> void:
 
 func baglan(s) -> void:
 	sim = s
+	tur_renk.clear(); tur_ten.clear(); tur_boy.clear(); tur_yet.clear(); tur_kod.clear()
+	var kodlar := {"elf": 1, "ork": 2, "cuce": 3, "dev": 4, "goblin": 5, "kertenkele": 6, "uzayli": 7}
+	for t in sim.turler:
+		tur_renk.append(t["renk_c"])
+		tur_ten.append(t["ten_c"])
+		tur_boy.append(float(t["boy"]))
+		tur_yet.append(int(t["yetiskin"]) * 12)
+		tur_kod.append(int(kodlar.get(t["id"], 0)))
 	resim = Image.create(sim.gen * KARO, sim.yuk * KARO, false, Image.FORMAT_RGB8)
 	_hepsini_ciz()
 	doku = ImageTexture.create_from_image(resim)
@@ -214,53 +237,235 @@ func _draw() -> void:
 	gorunur = Rect2(ust_sol / KARO, (alt_sag - ust_sol) / KARO).grow(2)
 	var olcek: float = tr.get_scale().x
 	var detay := olcek >= 1.6
+	if krallik_harita:
+		_krallik_toprak()
+	_mevsim_ortu()
 	var a := alfa if ara_deger else 1.0
 	var gx := gorunur.position.x
 	var gy := gorunur.position.y
 	var gx2 := gorunur.end.x
 	var gy2 := gorunur.end.y
+	var c_var: PackedByteArray = sim.c_var
+	var c_x: PackedFloat32Array = sim.c_x
+	var c_y: PackedFloat32Array = sim.c_y
+	var c_tur: PackedByteArray = sim.c_tur
+	var t_irk: PackedByteArray = sim.t_irk
+	var t_ucan: PackedByteArray = sim.t_ucan
+	if not detay:
+		# uzak görünüm: her canlı tek nokta; tek çizim çağrısı (draw_multiline_colors) ile toplu çizilir
+		var noktalar := PackedVector2Array()
+		var renkler := PackedColorArray()
+		for i in sim.ust:
+			if c_var[i] == 0:
+				continue
+			var x: float = c_x[i]
+			var y: float = c_y[i]
+			if x < gx or x > gx2 or y < gy or y > gy2:
+				continue
+			var px := x * KARO
+			var py := y * KARO
+			noktalar.append(Vector2(px - 1.5, py))
+			noktalar.append(Vector2(px + 1.5, py))
+			renkler.append(tur_renk[c_tur[i]])
+		if noktalar.size() > 0:
+			draw_multiline_colors(noktalar, renkler, 3.0)
+		_secili_ciz()
+		_efektleri_ciz()
+		return
+	var zaman := Time.get_ticks_msec()
+	var kral := {}
+	var cag_kr := {}
+	for id in sim.kralliklar:
+		var kr: Dictionary = sim.kralliklar[id]
+		if kr["kral"] >= 0 and kr["kral_uid"] != 0:
+			kral[kr["kral"]] = true
 	for i in sim.ust:
-		if sim.c_var[i] == 0:
+		if c_var[i] == 0:
 			continue
-		var x: float = sim.c_x[i]
-		var y: float = sim.c_y[i]
+		var x: float = c_x[i]
+		var y: float = c_y[i]
 		if x < gx or x > gx2 or y < gy or y > gy2:
 			continue
+		var hareketli: bool = x != sim.c_ox[i] or y != sim.c_oy[i]
 		if a < 1.0:
 			x = lerpf(sim.c_ox[i], x, a)
 			y = lerpf(sim.c_oy[i], y, a)
-		var t: Dictionary = sim.turler[sim.c_tur[i]]
+		var tur: int = c_tur[i]
 		var px := x * KARO
 		var py := y * KARO
-		var boy: float = t["boy"]
-		var renk: Color = t["renk_c"]
-		if not detay:
-			draw_rect(Rect2(px - 1.5, py - 1.5, 3, 3), renk)
-			continue
-		var ten: Color = t["ten_c"]
-		if sim.t_irk[sim.c_tur[i]] == 1:
-			var yt: bool = sim.c_yas[i] >= int(t["yetiskin"]) * 12
+		var boy: float = tur_boy[tur]
+		var renk: Color = tur_renk[tur]
+		var ten: Color = tur_ten[tur]
+		if t_irk[tur] == 1:
+			var yt: bool = sim.c_yas[i] >= tur_yet[tur]
 			var s := boy * (1.0 if yt else 0.65)
-			var gov := renk
-			if sim.c_durum[i] == SimS.D_ASKER:
-				gov = renk.darkened(0.35)
-			draw_rect(Rect2(px - 1.0 * s, py - 1.0 * s, 2.0 * s, 3.0 * s), gov)
+			var durum: int = sim.c_durum[i]
+			var asker := durum == SimS.D_ASKER
+			var gov := renk.darkened(0.35) if asker else renk
+			# gölge
+			draw_rect(Rect2(px - 1.2 * s, py + 1.6 * s, 2.4 * s, 0.7 * s), GOLGE)
+			# yürürken bacaklar sırayla
+			var adim_f := 0.0
+			if hareketli:
+				adim_f = 0.5 * s if ((zaman / 140 + i) % 2 == 0) else -0.5 * s
+			draw_rect(Rect2(px - 0.9 * s, py + 1.0 * s, 0.7 * s, 0.9 * s + adim_f), gov.darkened(0.3))
+			draw_rect(Rect2(px + 0.2 * s, py + 1.0 * s, 0.7 * s, 0.9 * s - adim_f), gov.darkened(0.3))
+			draw_rect(Rect2(px - 1.0 * s, py - 1.0 * s, 2.0 * s, 2.2 * s), gov)
 			draw_rect(Rect2(px - 0.8 * s, py - 2.8 * s, 1.6 * s, 1.8 * s), ten)
-			if sim.c_durum[i] == SimS.D_ASKER and detay:
-				draw_line(Vector2(px + 1.2 * s, py - 2.5 * s), Vector2(px + 1.2 * s, py + 1.5 * s), Color("d0d0d8"), 0.5)
-		elif sim.t_ucan[sim.c_tur[i]] == 1:
-			var kanat := sin(Time.get_ticks_msec() * 0.008 + i) * 2.0 * boy
+			match tur_kod[tur]:
+				1:  # elf: sivri kulak
+					draw_rect(Rect2(px - 1.2 * s, py - 2.5 * s, 0.4 * s, 0.6 * s), ten)
+					draw_rect(Rect2(px + 0.8 * s, py - 2.5 * s, 0.4 * s, 0.6 * s), ten)
+				2:  # ork: diş
+					draw_rect(Rect2(px - 0.5 * s, py - 1.3 * s, 0.3 * s, 0.4 * s), Color.WHITE)
+					draw_rect(Rect2(px + 0.2 * s, py - 1.3 * s, 0.3 * s, 0.4 * s), Color.WHITE)
+				3:  # cüce: sakal
+					draw_rect(Rect2(px - 0.8 * s, py - 1.6 * s, 1.6 * s, 1.2 * s), SAKAL)
+				5:  # goblin: büyük kulak
+					draw_rect(Rect2(px - 1.5 * s, py - 2.6 * s, 0.7 * s, 0.5 * s), ten)
+					draw_rect(Rect2(px + 0.8 * s, py - 2.6 * s, 0.7 * s, 0.5 * s), ten)
+				6:  # kertenkele: kuyruk
+					draw_line(Vector2(px + 0.8 * s, py + 1.2 * s), Vector2(px + 2.2 * s, py + 1.8 * s), renk, 0.6 * s)
+				7:  # uzaylı: anten
+					draw_line(Vector2(px - 0.4 * s, py - 2.8 * s), Vector2(px - 0.8 * s, py - 3.8 * s), ten, 0.3 * s)
+					draw_line(Vector2(px + 0.4 * s, py - 2.8 * s), Vector2(px + 0.8 * s, py - 3.8 * s), ten, 0.3 * s)
+			if kral.has(i):
+				draw_rect(Rect2(px - 0.8 * s, py - 3.4 * s, 1.6 * s, 0.6 * s), TAC)
+				draw_rect(Rect2(px - 0.8 * s, py - 3.8 * s, 0.4 * s, 0.4 * s), TAC)
+				draw_rect(Rect2(px + 0.4 * s, py - 3.8 * s, 0.4 * s, 0.4 * s), TAC)
+			if asker:
+				# silah çağa göre: mızrak → kılıç → tüfek → lazer
+				var cag: int = 0
+				var kid: int = sim.c_koy[i]
+				if cag_kr.has(kid):
+					cag = cag_kr[kid]
+				else:
+					var v = sim.koyler.get(kid)
+					cag = v["cag"] if v != null else 0
+					cag_kr[kid] = cag
+				var el := Vector2(px + 1.2 * s, py)
+				if cag <= 1:
+					draw_line(el + Vector2(0, -2.8 * s), el + Vector2(0, 1.5 * s), Color("8a6030"), 0.4 * s)
+					draw_rect(Rect2(el.x - 0.3 * s, el.y - 3.4 * s, 0.6 * s, 0.7 * s), Color("b0b0b8"))
+				elif cag <= 3:
+					draw_line(el + Vector2(0, -2.4 * s), el + Vector2(0, 0.6 * s), Color("dfe4ea"), 0.5 * s)
+					draw_line(el + Vector2(-0.6 * s, 0.2 * s), el + Vector2(0.6 * s, 0.2 * s), Color("8a6030"), 0.4 * s)
+				elif cag <= 5:
+					draw_line(el + Vector2(-0.4 * s, -1.6 * s), el + Vector2(0.8 * s, 0.8 * s), Color("303038"), 0.5 * s)
+				else:
+					draw_line(el + Vector2(-0.4 * s, -1.6 * s), el + Vector2(0.8 * s, 0.8 * s), Color("80ffb0"), 0.5 * s)
+		elif t_ucan[tur] == 1:
+			var kanat := sin(zaman * 0.008 + i) * 2.0 * boy
+			draw_rect(Rect2(px - 1.5 * boy, py + 3.0 * boy, 3.0 * boy, 0.8 * boy), GOLGE)
 			draw_rect(Rect2(px - 2.0 * boy, py - 1.0 * boy, 4.0 * boy, 2.0 * boy), renk)
 			draw_line(Vector2(px - 1.5 * boy, py - 0.5 * boy), Vector2(px - 4.0 * boy, py - 1.0 * boy - kanat), renk.lightened(0.2), 1.2)
 			draw_line(Vector2(px + 1.5 * boy, py - 0.5 * boy), Vector2(px + 4.0 * boy, py - 1.0 * boy - kanat), renk.lightened(0.2), 1.2)
 			draw_rect(Rect2(px + 1.6 * boy, py - 1.6 * boy, 1.4 * boy, 1.2 * boy), ten)
 		else:
+			draw_rect(Rect2(px - 1.6 * boy, py + 1.0 * boy, 3.2 * boy, 0.6 * boy), GOLGE)
+			var bacak := 0.0
+			if hareketli:
+				bacak = 0.4 * boy if ((zaman / 160 + i) % 2 == 0) else 0.0
+			draw_rect(Rect2(px - 1.3 * boy, py + 0.8 * boy, 0.6 * boy, 0.7 * boy - bacak), renk.darkened(0.3))
+			draw_rect(Rect2(px + 0.7 * boy, py + 0.8 * boy, 0.6 * boy, 0.3 * boy + bacak), renk.darkened(0.3))
 			draw_rect(Rect2(px - 1.6 * boy, py - 1.0 * boy, 3.2 * boy, 2.0 * boy), renk)
 			draw_rect(Rect2(px + 1.0 * boy, py - 1.6 * boy, 1.2 * boy, 1.2 * boy), ten)
+	_secili_ciz()
+	_efektleri_ciz()
+
+
+func _secili_ciz() -> void:
 	if secili >= 0 and sim.c_var[secili] == 1:
 		var p := Vector2(sim.c_x[secili], sim.c_y[secili]) * KARO
 		draw_arc(p + Vector2(0, -1), 5.0, 0, TAU, 20, Color(1, 1, 0.3), 0.8)
-	_efektleri_ciz()
+	if imlec.x >= 0.0 and imlec_r > 0.0:
+		draw_arc(imlec * KARO, imlec_r * KARO, 0, TAU, 40, imlec_renk, 1.0 / maxf(0.2, get_canvas_transform().get_scale().x) * 2.0)
+
+
+## Krallık haritası: her kara karosu en yakın köyün krallığına boyanır, sınırlar koyu çizilir.
+## Doku saniyede bir yeniden hesaplanır (her karede değil).
+func _krallik_toprak() -> void:
+	var simdi := Time.get_ticks_msec()
+	if toprak_doku == null or simdi - toprak_zaman > 1000:
+		toprak_zaman = simdi
+		_toprak_hesapla()
+	draw_texture_rect(toprak_doku, Rect2(0, 0, sim.gen * KARO, sim.yuk * KARO), false)
+
+
+func _toprak_hesapla() -> void:
+	var gen: int = sim.gen
+	var yuk: int = sim.yuk
+	var n := gen * yuk
+	var sahip := PackedInt32Array()
+	sahip.resize(n)
+	sahip.fill(-1)
+	var mesafe := PackedInt32Array()
+	mesafe.resize(n)
+	mesafe.fill(1 << 30)
+	var dokunulan := PackedInt32Array()
+	var biyom: PackedByteArray = sim.biyom
+	var renkler := {}
+	for id in sim.koyler:
+		var v: Dictionary = sim.koyler[id]
+		var kid: int = v["krallik"]
+		var kr = sim.kralliklar.get(kid)
+		if kr == null:
+			continue
+		if not renkler.has(kid):
+			renkler[kid] = Color(kr["renk"])
+		var r: int = int(v["yaricap"]) + 3
+		var vx: int = v["x"]
+		var vy: int = v["y"]
+		for oy in range(-r, r + 1):
+			var yy := vy + oy
+			if yy < 0 or yy >= yuk:
+				continue
+			for ox in range(-r, r + 1):
+				var xx := vx + ox
+				var d2 := ox * ox + oy * oy
+				if xx < 0 or xx >= gen or d2 > r * r:
+					continue
+				var k := yy * gen + xx
+				if biyom[k] <= SimS.B_SIG or d2 >= mesafe[k]:
+					continue
+				if sahip[k] < 0:
+					dokunulan.append(k)
+				mesafe[k] = d2
+				sahip[k] = kid
+	var veri := PackedByteArray()
+	veri.resize(n * 4)
+	for k in dokunulan:
+		var kid := sahip[k]
+		var c: Color = renkler[kid]
+		var x := k % gen
+		var sinir := (x == 0 or sahip[k - 1] != kid) or (x == gen - 1 or sahip[k + 1] != kid) or (k < gen or sahip[k - gen] != kid) or (k >= n - gen or sahip[k + gen] != kid)
+		veri[k * 4] = int(c.r * 255)
+		veri[k * 4 + 1] = int(c.g * 255)
+		veri[k * 4 + 2] = int(c.b * 255)
+		veri[k * 4 + 3] = 210 if sinir else 85
+	var img := Image.create_from_data(gen, yuk, false, Image.FORMAT_RGBA8, veri)
+	if toprak_doku == null or toprak_doku.get_width() != gen or toprak_doku.get_height() != yuk:
+		toprak_doku = ImageTexture.create_from_image(img)
+	else:
+		toprak_doku.update(img)
+
+
+## Mevsim örtüsü: kışın kuzey kuşağı karla örtülür (yumuşak geçişli), kara kışta tüm dünya soğur.
+func _mevsim_ortu() -> void:
+	var ay: int = sim.ay % 12
+	var kis := ay == 11 or ay <= 1
+	var gen_px: float = sim.gen * KARO
+	var yuk_px: float = sim.yuk * KARO
+	if kis or sim.kis_ay > 0:
+		var bant: float = yuk_px * (0.28 if sim.kis_ay == 0 else 0.42)
+		var ust := Color(0.95, 0.97, 1.0, 0.38)
+		var alt := Color(0.95, 0.97, 1.0, 0.0)
+		draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(gen_px, 0), Vector2(gen_px, bant), Vector2(0, bant)]),
+			PackedColorArray([ust, ust, alt, alt]))
+	if sim.kis_ay > 0:
+		draw_rect(Rect2(0, 0, gen_px, yuk_px), Color(0.6, 0.75, 1.0, 0.10))
+	if sim.kuraklik_ay > 0:
+		draw_rect(Rect2(0, 0, gen_px, yuk_px), Color(1.0, 0.75, 0.3, 0.08))
 
 
 func _efektleri_ciz() -> void:
@@ -293,6 +498,9 @@ func _efektleri_ciz() -> void:
 					draw_line(q, q + Vector2(-1, 3), Color(0.6, 0.8, 1, 0.8), 0.6)
 			7:
 				draw_line(p - Vector2(0, 30), p, Color(0.5, 1, 0.6, 0.7), 4.0)
+			8:
+				# tanrı silgisi: kırmızı halka söner
+				draw_arc(p, float(e[4]) * KARO, 0, TAU, 40, Color(1, 0.3, 0.25, 0.25 * e[3]), 2.0)
 	for h in sim.hortumlar:
 		var p := Vector2(h[0], h[1]) * KARO
 		for n in 5:
