@@ -9,17 +9,22 @@ ERROR: Condition "status < 0" is true. Returning: ERR_CANT_OPEN
 WARNING: All audio drivers failed, falling back to the dummy driver.
      at: initialize (servers/audio_server.cpp:247)
 
-ERROR: The object does not have any 'meta' values with the key 'veri'.
-   at: get_meta (core/object/object.cpp:1013)
 ONIZLEME basladi
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/01_baslangic.png
-ONIZLEME 150 yil: 2379 ms, nufus=5000 koy=81 krallik=19
+ONIZLEME 150 yil: 841 ms, nufus=4856 koy=85 krallik=6
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02_150_yil.png
+ONIZLEME FPS uzak: 12.5 ms/kare (80 FPS), canli=5158
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02b_krallik_haritasi.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/03_koy_yakin.png
+ONIZLEME FPS yakin: 14.8 ms/kare (68 FPS), canli=5161
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/04_canli_karti.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/05_ozellikler.png
-kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/06_afetler.png
-kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/07_kronik.png
-kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/08_istatistik.png
-kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/09_menu.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/06_canli_sil.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/07_afetler.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/08_sehir_bilgisi.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/09_kronik.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/10_istatistik.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/11_menu.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/12_bos_dunya.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/13_bos_dunya_yakin.png
 ONIZLEME bitti
