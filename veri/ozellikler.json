@@ -1,0 +1,1376 @@
+{
+ "aciklama": "Canlı özellikleri. Etkiler yüzde değişimdir (+30 = %30 artış). 'zit' listesindekiler aynı canlıda birlikte olamaz.",
+ "ozellikler": [
+  {
+   "id": 1,
+   "ad": "Aptal",
+   "kategori": "Zihin",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "zeka": -40,
+    "ogrenme": -30,
+    "calisma": 5
+   },
+   "zit": [
+    "Zeki",
+    "Dahi",
+    "Bilge"
+   ]
+  },
+  {
+   "id": 2,
+   "ad": "Zeki",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "zeka": 25,
+    "ogrenme": 20
+   },
+   "zit": [
+    "Aptal"
+   ]
+  },
+  {
+   "id": 3,
+   "ad": "Dahi",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 5,
+   "etkiler": {
+    "zeka": 60,
+    "ogrenme": 50,
+    "teknoloji": 40,
+    "moral": -5
+   },
+   "zit": [
+    "Aptal",
+    "Saf"
+   ]
+  },
+  {
+   "id": 4,
+   "ad": "Bilge",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 4,
+   "etkiler": {
+    "zeka": 30,
+    "diplomasi": 25,
+    "karar": 30
+   },
+   "zit": [
+    "Aptal",
+    "Sabırsız"
+   ]
+  },
+  {
+   "id": 5,
+   "ad": "Saf",
+   "kategori": "Zihin",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "zeka": -15,
+    "diplomasi": -10,
+    "aldatilma": 40
+   },
+   "zit": [
+    "Kurnaz",
+    "Dahi"
+   ]
+  },
+  {
+   "id": 6,
+   "ad": "Kurnaz",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "zeka": 15,
+    "ticaret": 20,
+    "casusluk": 30
+   },
+   "zit": [
+    "Saf",
+    "Dürüst"
+   ]
+  },
+  {
+   "id": 7,
+   "ad": "Unutkan",
+   "kategori": "Zihin",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "ogrenme": -25,
+    "calisma": -10
+   },
+   "zit": [
+    "Hafızalı"
+   ]
+  },
+  {
+   "id": 8,
+   "ad": "Meraklı",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "kesif": 30,
+    "ogrenme": 15,
+    "tehlike": 10
+   },
+   "zit": []
+  },
+  {
+   "id": 9,
+   "ad": "Yaratıcı",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "teknoloji": 20,
+    "kultur": 25
+   },
+   "zit": []
+  },
+  {
+   "id": 10,
+   "ad": "Mucit",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 4,
+   "etkiler": {
+    "teknoloji": 45,
+    "silah_yapim": 20
+   },
+   "zit": []
+  },
+  {
+   "id": 11,
+   "ad": "Deli",
+   "kategori": "Zihin",
+   "tur": "karma",
+   "nadirlik": 3,
+   "etkiler": {
+    "zeka": -10,
+    "cesaret": 40,
+    "karar": -40,
+    "teknoloji": 10
+   },
+   "zit": [
+    "Bilge"
+   ]
+  },
+  {
+   "id": 12,
+   "ad": "Odaklı",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "calisma": 15,
+    "ogrenme": 10
+   },
+   "zit": [
+    "Dalgın"
+   ]
+  },
+  {
+   "id": 13,
+   "ad": "Dalgın",
+   "kategori": "Zihin",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "calisma": -15,
+    "kaza": 20
+   },
+   "zit": [
+    "Odaklı"
+   ]
+  },
+  {
+   "id": 14,
+   "ad": "Stratejist",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 4,
+   "etkiler": {
+    "savas_taktik": 45,
+    "liderlik": 15
+   },
+   "zit": []
+  },
+  {
+   "id": 15,
+   "ad": "Hafızalı",
+   "kategori": "Zihin",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "ogrenme": 25,
+    "kultur": 10
+   },
+   "zit": [
+    "Unutkan"
+   ]
+  },
+  {
+   "id": 16,
+   "ad": "Güçlü",
+   "kategori": "Beden",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "guc": 30,
+    "insaat": 15,
+    "madencilik": 15
+   },
+   "zit": [
+    "Zayıf"
+   ]
+  },
+  {
+   "id": 17,
+   "ad": "Zayıf",
+   "kategori": "Beden",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "guc": -30,
+    "can": -10
+   },
+   "zit": [
+    "Güçlü",
+    "Dev Cüsseli"
+   ]
+  },
+  {
+   "id": 18,
+   "ad": "Hızlı",
+   "kategori": "Beden",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "hiz": 30,
+    "kacis": 25
+   },
+   "zit": [
+    "Yavaş"
+   ]
+  },
+  {
+   "id": 19,
+   "ad": "Yavaş",
+   "kategori": "Beden",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "hiz": -30
+   },
+   "zit": [
+    "Hızlı",
+    "Çevik"
+   ]
+  },
+  {
+   "id": 20,
+   "ad": "Dev Cüsseli",
+   "kategori": "Beden",
+   "tur": "karma",
+   "nadirlik": 4,
+   "etkiler": {
+    "guc": 50,
+    "can": 40,
+    "hiz": -15,
+    "yemek": 60
+   },
+   "zit": [
+    "Zayıf",
+    "Ufak Tefek"
+   ]
+  },
+  {
+   "id": 21,
+   "ad": "Ufak Tefek",
+   "kategori": "Beden",
+   "tur": "karma",
+   "nadirlik": 3,
+   "etkiler": {
+    "guc": -15,
+    "gizlilik": 30,
+    "yemek": -30
+   },
+   "zit": [
+    "Dev Cüsseli"
+   ]
+  },
+  {
+   "id": 22,
+   "ad": "Dayanıklı",
+   "kategori": "Beden",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "can": 30,
+    "hastalik_direnci": 15
+   },
+   "zit": [
+    "Hastalıklı"
+   ]
+  },
+  {
+   "id": 23,
+   "ad": "Hastalıklı",
+   "kategori": "Beden",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "can": -25,
+    "omur": -20,
+    "hastalik_direnci": -40
+   },
+   "zit": [
+    "Dayanıklı",
+    "Sağlıklı Soy"
+   ]
+  },
+  {
+   "id": 24,
+   "ad": "Çevik",
+   "kategori": "Beden",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "hiz": 15,
+    "kacinma": 30,
+    "okculuk": 10
+   },
+   "zit": [
+    "Sakar",
+    "Yavaş"
+   ]
+  },
+  {
+   "id": 25,
+   "ad": "Sakar",
+   "kategori": "Beden",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "kaza": 30,
+    "kacinma": -20,
+    "zanaat": -15
+   },
+   "zit": [
+    "Çevik"
+   ]
+  },
+  {
+   "id": 26,
+   "ad": "Uzun Ömürlü",
+   "kategori": "Beden",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "omur": 50
+   },
+   "zit": [
+    "Kısa Ömürlü"
+   ]
+  },
+  {
+   "id": 27,
+   "ad": "Kısa Ömürlü",
+   "kategori": "Beden",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "omur": -40,
+    "dogurganlik": 10
+   },
+   "zit": [
+    "Uzun Ömürlü",
+    "Ölümsüz"
+   ]
+  },
+  {
+   "id": 28,
+   "ad": "Zayıf Gözlü",
+   "kategori": "Beden",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "gorus": -40,
+    "okculuk": -30
+   },
+   "zit": [
+    "Keskin Göz"
+   ]
+  },
+  {
+   "id": 29,
+   "ad": "Keskin Göz",
+   "kategori": "Beden",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "gorus": 35,
+    "okculuk": 30,
+    "avcilik": 15
+   },
+   "zit": [
+    "Zayıf Gözlü"
+   ]
+  },
+  {
+   "id": 30,
+   "ad": "Yenilenen",
+   "kategori": "Beden",
+   "tur": "olumlu",
+   "nadirlik": 4,
+   "etkiler": {
+    "iyilesme": 60,
+    "can": 10
+   },
+   "zit": []
+  },
+  {
+   "id": 31,
+   "ad": "Çalışkan",
+   "kategori": "Karakter",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "calisma": 35,
+    "uretim": 25
+   },
+   "zit": [
+    "Tembel"
+   ]
+  },
+  {
+   "id": 32,
+   "ad": "Tembel",
+   "kategori": "Karakter",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "calisma": -35,
+    "uretim": -25,
+    "moral": 5
+   },
+   "zit": [
+    "Çalışkan",
+    "Hırslı"
+   ]
+  },
+  {
+   "id": 33,
+   "ad": "Cesur",
+   "kategori": "Karakter",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "cesaret": 35,
+    "moral": 10
+   },
+   "zit": [
+    "Korkak"
+   ]
+  },
+  {
+   "id": 34,
+   "ad": "Korkak",
+   "kategori": "Karakter",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "cesaret": -40,
+    "kacis": 20,
+    "hayatta_kalma": 10
+   },
+   "zit": [
+    "Cesur",
+    "Kahraman"
+   ]
+  },
+  {
+   "id": 35,
+   "ad": "Saldırgan",
+   "kategori": "Karakter",
+   "tur": "karma",
+   "nadirlik": 2,
+   "etkiler": {
+    "saldiri": 25,
+    "savas_istegi": 40,
+    "diplomasi": -20
+   },
+   "zit": [
+    "Barışçıl",
+    "Merhametli"
+   ]
+  },
+  {
+   "id": 36,
+   "ad": "Barışçıl",
+   "kategori": "Karakter",
+   "tur": "karma",
+   "nadirlik": 2,
+   "etkiler": {
+    "savas_istegi": -40,
+    "diplomasi": 20,
+    "saldiri": -10
+   },
+   "zit": [
+    "Saldırgan",
+    "Kana Susamış"
+   ]
+  },
+  {
+   "id": 37,
+   "ad": "Açgözlü",
+   "kategori": "Karakter",
+   "tur": "karma",
+   "nadirlik": 2,
+   "etkiler": {
+    "altin_toplama": 30,
+    "ihanet": 15,
+    "diplomasi": -10
+   },
+   "zit": [
+    "Cömert",
+    "Kanaatkâr"
+   ]
+  },
+  {
+   "id": 38,
+   "ad": "Cömert",
+   "kategori": "Karakter",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "diplomasi": 20,
+    "moral_cevre": 15,
+    "altin_toplama": -15
+   },
+   "zit": [
+    "Açgözlü"
+   ]
+  },
+  {
+   "id": 39,
+   "ad": "Sadık",
+   "kategori": "Karakter",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "sadakat": 40
+   },
+   "zit": [
+    "Hain"
+   ]
+  },
+  {
+   "id": 40,
+   "ad": "Hain",
+   "kategori": "Karakter",
+   "tur": "olumsuz",
+   "nadirlik": 3,
+   "etkiler": {
+    "sadakat": -50,
+    "ihanet": 50,
+    "casusluk": 15
+   },
+   "zit": [
+    "Sadık"
+   ]
+  },
+  {
+   "id": 41,
+   "ad": "Kibirli",
+   "kategori": "Karakter",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "diplomasi": -25,
+    "liderlik": 5,
+    "moral": 10
+   },
+   "zit": [
+    "Alçakgönüllü"
+   ]
+  },
+  {
+   "id": 42,
+   "ad": "Alçakgönüllü",
+   "kategori": "Karakter",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "diplomasi": 15,
+    "sadakat": 10
+   },
+   "zit": [
+    "Kibirli"
+   ]
+  },
+  {
+   "id": 43,
+   "ad": "Sabırlı",
+   "kategori": "Karakter",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "kusatma": 25,
+    "karar": 10
+   },
+   "zit": [
+    "Sabırsız"
+   ]
+  },
+  {
+   "id": 44,
+   "ad": "Sabırsız",
+   "kategori": "Karakter",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "karar": -20,
+    "hiz": 5
+   },
+   "zit": [
+    "Sabırlı",
+    "Bilge"
+   ]
+  },
+  {
+   "id": 45,
+   "ad": "Neşeli",
+   "kategori": "Karakter",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "moral": 25,
+    "moral_cevre": 10
+   },
+   "zit": [
+    "Karamsar"
+   ]
+  },
+  {
+   "id": 46,
+   "ad": "Karamsar",
+   "kategori": "Karakter",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "moral": -25,
+    "dogurganlik": -10
+   },
+   "zit": [
+    "Neşeli"
+   ]
+  },
+  {
+   "id": 47,
+   "ad": "Hırslı",
+   "kategori": "Karakter",
+   "tur": "karma",
+   "nadirlik": 3,
+   "etkiler": {
+    "liderlik": 20,
+    "darbe": 30,
+    "calisma": 15
+   },
+   "zit": [
+    "Kanaatkâr",
+    "Tembel"
+   ]
+  },
+  {
+   "id": 48,
+   "ad": "Kanaatkâr",
+   "kategori": "Karakter",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "moral": 15,
+    "yemek": -15,
+    "darbe": -30
+   },
+   "zit": [
+    "Hırslı",
+    "Açgözlü"
+   ]
+  },
+  {
+   "id": 49,
+   "ad": "Kıskanç",
+   "kategori": "Karakter",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "kavga": 30,
+    "diplomasi": -15
+   },
+   "zit": []
+  },
+  {
+   "id": 50,
+   "ad": "Merhametli",
+   "kategori": "Karakter",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "sifa": 15,
+    "esir_serbest": 40,
+    "saldiri": -10
+   },
+   "zit": [
+    "Saldırgan",
+    "Kana Susamış"
+   ]
+  },
+  {
+   "id": 51,
+   "ad": "Karizmatik",
+   "kategori": "Sosyal",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "liderlik": 30,
+    "diplomasi": 25,
+    "es_bulma": 30
+   },
+   "zit": [
+    "İtici"
+   ]
+  },
+  {
+   "id": 52,
+   "ad": "İtici",
+   "kategori": "Sosyal",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "es_bulma": -40,
+    "diplomasi": -25
+   },
+   "zit": [
+    "Karizmatik"
+   ]
+  },
+  {
+   "id": 53,
+   "ad": "Diplomat",
+   "kategori": "Sosyal",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "diplomasi": 45,
+    "ittifak": 30
+   },
+   "zit": []
+  },
+  {
+   "id": 54,
+   "ad": "Lider",
+   "kategori": "Sosyal",
+   "tur": "olumlu",
+   "nadirlik": 4,
+   "etkiler": {
+    "liderlik": 50,
+    "kral_olma": 40
+   },
+   "zit": [
+    "Yalnız Kurt"
+   ]
+  },
+  {
+   "id": 55,
+   "ad": "Yalnız Kurt",
+   "kategori": "Sosyal",
+   "tur": "karma",
+   "nadirlik": 2,
+   "etkiler": {
+    "hayatta_kalma": 25,
+    "es_bulma": -25,
+    "kesif": 15
+   },
+   "zit": [
+    "Lider",
+    "Kalabalık Sever"
+   ]
+  },
+  {
+   "id": 56,
+   "ad": "Kalabalık Sever",
+   "kategori": "Sosyal",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "moral_sehir": 20,
+    "dogurganlik": 10
+   },
+   "zit": [
+    "Yalnız Kurt"
+   ]
+  },
+  {
+   "id": 57,
+   "ad": "Hatip",
+   "kategori": "Sosyal",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "din_yayma": 35,
+    "isyan_cikarma": 25,
+    "liderlik": 15
+   },
+   "zit": []
+  },
+  {
+   "id": 58,
+   "ad": "Yalancı",
+   "kategori": "Sosyal",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "casusluk": 20,
+    "diplomasi": -20,
+    "sadakat": -10
+   },
+   "zit": [
+    "Dürüst"
+   ]
+  },
+  {
+   "id": 59,
+   "ad": "Dürüst",
+   "kategori": "Sosyal",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "diplomasi": 15,
+    "ticaret": 10,
+    "casusluk": -20
+   },
+   "zit": [
+    "Yalancı",
+    "Kurnaz"
+   ]
+  },
+  {
+   "id": 60,
+   "ad": "Arabulucu",
+   "kategori": "Sosyal",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "baris_yapma": 45,
+    "diplomasi": 20
+   },
+   "zit": []
+  },
+  {
+   "id": 61,
+   "ad": "Doğurgan",
+   "kategori": "Üreme",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "dogurganlik": 45
+   },
+   "zit": [
+    "Kısır"
+   ]
+  },
+  {
+   "id": 62,
+   "ad": "Kısır",
+   "kategori": "Üreme",
+   "tur": "olumsuz",
+   "nadirlik": 2,
+   "etkiler": {
+    "dogurganlik": -100
+   },
+   "zit": [
+    "Doğurgan",
+    "İkiz Doğurur"
+   ]
+  },
+  {
+   "id": 63,
+   "ad": "İkiz Doğurur",
+   "kategori": "Üreme",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "ikiz_sansi": 50
+   },
+   "zit": [
+    "Kısır"
+   ]
+  },
+  {
+   "id": 64,
+   "ad": "Güçlü Kalıtım",
+   "kategori": "Üreme",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "ozellik_aktarma": 40
+   },
+   "zit": []
+  },
+  {
+   "id": 65,
+   "ad": "Mutant",
+   "kategori": "Üreme",
+   "tur": "karma",
+   "nadirlik": 4,
+   "etkiler": {
+    "mutasyon": 60,
+    "can": -5
+   },
+   "zit": []
+  },
+  {
+   "id": 66,
+   "ad": "Sağlıklı Soy",
+   "kategori": "Üreme",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "cocuk_olumu": -50,
+    "hastalik_direnci": 15
+   },
+   "zit": [
+    "Hastalıklı"
+   ]
+  },
+  {
+   "id": 67,
+   "ad": "Erken Olgun",
+   "kategori": "Üreme",
+   "tur": "karma",
+   "nadirlik": 2,
+   "etkiler": {
+    "yetiskinlik_yasi": -30,
+    "omur": -10
+   },
+   "zit": [
+    "Geç Olgun"
+   ]
+  },
+  {
+   "id": 68,
+   "ad": "Geç Olgun",
+   "kategori": "Üreme",
+   "tur": "karma",
+   "nadirlik": 2,
+   "etkiler": {
+    "yetiskinlik_yasi": 40,
+    "ogrenme": 15
+   },
+   "zit": [
+    "Erken Olgun"
+   ]
+  },
+  {
+   "id": 69,
+   "ad": "Usta Çiftçi",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "tarim": 50
+   },
+   "zit": []
+  },
+  {
+   "id": 70,
+   "ad": "Usta Avcı",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "avcilik": 50,
+    "okculuk": 10
+   },
+   "zit": []
+  },
+  {
+   "id": 71,
+   "ad": "Usta Madenci",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "madencilik": 50
+   },
+   "zit": []
+  },
+  {
+   "id": 72,
+   "ad": "Usta Demirci",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "silah_yapim": 45,
+    "zirh_yapim": 45
+   },
+   "zit": []
+  },
+  {
+   "id": 73,
+   "ad": "Usta İnşaatçı",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "insaat": 50
+   },
+   "zit": []
+  },
+  {
+   "id": 74,
+   "ad": "Tüccar",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "ticaret": 45,
+    "altin_toplama": 20
+   },
+   "zit": []
+  },
+  {
+   "id": 75,
+   "ad": "Denizci",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "denizcilik": 50,
+    "kesif": 15
+   },
+   "zit": []
+  },
+  {
+   "id": 76,
+   "ad": "Şifacı",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "sifa": 50,
+    "salgin_direnci_cevre": 20
+   },
+   "zit": []
+  },
+  {
+   "id": 77,
+   "ad": "Simyacı",
+   "kategori": "Yetenek",
+   "tur": "karma",
+   "nadirlik": 4,
+   "etkiler": {
+    "iksir": 50,
+    "teknoloji": 15,
+    "kaza": 10
+   },
+   "zit": []
+  },
+  {
+   "id": 78,
+   "ad": "Okçu",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "okculuk": 45
+   },
+   "zit": []
+  },
+  {
+   "id": 79,
+   "ad": "Kılıç Ustası",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "yakin_dovus": 45
+   },
+   "zit": []
+  },
+  {
+   "id": 80,
+   "ad": "Atlı",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "binicilik": 50,
+    "hiz_savas": 20
+   },
+   "zit": []
+  },
+  {
+   "id": 81,
+   "ad": "Büyü Yetenekli",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 5,
+   "etkiler": {
+    "buyu": 60
+   },
+   "zit": []
+  },
+  {
+   "id": 82,
+   "ad": "Rahip",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "din_yayma": 40,
+    "moral_sehir": 15
+   },
+   "zit": []
+  },
+  {
+   "id": 83,
+   "ad": "Kâşif",
+   "kategori": "Yetenek",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "kesif": 50,
+    "yerlesim_kurma": 20
+   },
+   "zit": []
+  },
+  {
+   "id": 84,
+   "ad": "Soğuğa Dayanıklı",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "soguk_direnci": 60
+   },
+   "zit": []
+  },
+  {
+   "id": 85,
+   "ad": "Sıcağa Dayanıklı",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "sicak_direnci": 60
+   },
+   "zit": []
+  },
+  {
+   "id": 86,
+   "ad": "Yüzücü",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "yuzme": 60,
+    "bogulma": -60
+   },
+   "zit": []
+  },
+  {
+   "id": 87,
+   "ad": "Gece Görüşü",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "gece_savas": 40,
+    "gorus": 10
+   },
+   "zit": []
+  },
+  {
+   "id": 88,
+   "ad": "Zehre Bağışık",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 4,
+   "etkiler": {
+    "zehir_direnci": 90
+   },
+   "zit": []
+  },
+  {
+   "id": 89,
+   "ad": "Hastalığa Bağışık",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 4,
+   "etkiler": {
+    "hastalik_direnci": 80
+   },
+   "zit": [
+    "Hastalıklı"
+   ]
+  },
+  {
+   "id": 90,
+   "ad": "Ateşe Dayanıklı",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 4,
+   "etkiler": {
+    "ates_direnci": 70
+   },
+   "zit": []
+  },
+  {
+   "id": 91,
+   "ad": "Doğa Dostu",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "orman_uyumu": 40,
+    "hayvan_saldiri": -40
+   },
+   "zit": []
+  },
+  {
+   "id": 92,
+   "ad": "Hayvan Terbiyecisi",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 3,
+   "etkiler": {
+    "evcillestirme": 60
+   },
+   "zit": []
+  },
+  {
+   "id": 93,
+   "ad": "Dağlı",
+   "kategori": "Doğa",
+   "tur": "olumlu",
+   "nadirlik": 2,
+   "etkiler": {
+    "dag_hareket": 50,
+    "madencilik": 10
+   },
+   "zit": []
+  },
+  {
+   "id": 94,
+   "ad": "Kutsanmış",
+   "kategori": "Özel",
+   "tur": "olumlu",
+   "nadirlik": 5,
+   "etkiler": {
+    "sans": 40,
+    "moral": 20,
+    "can": 15
+   },
+   "zit": [
+    "Lanetli"
+   ]
+  },
+  {
+   "id": 95,
+   "ad": "Lanetli",
+   "kategori": "Özel",
+   "tur": "olumsuz",
+   "nadirlik": 4,
+   "etkiler": {
+    "sans": -40,
+    "kaza": 30,
+    "moral_cevre": -15
+   },
+   "zit": [
+    "Kutsanmış"
+   ]
+  },
+  {
+   "id": 96,
+   "ad": "Ölümsüz",
+   "kategori": "Özel",
+   "tur": "olumlu",
+   "nadirlik": 5,
+   "etkiler": {
+    "omur": 10000,
+    "dogurganlik": -60
+   },
+   "zit": [
+    "Kısa Ömürlü"
+   ]
+  },
+  {
+   "id": 97,
+   "ad": "Kâhin",
+   "kategori": "Özel",
+   "tur": "olumlu",
+   "nadirlik": 5,
+   "etkiler": {
+    "afet_onsezi": 70,
+    "diplomasi": 10
+   },
+   "zit": []
+  },
+  {
+   "id": 98,
+   "ad": "Kana Susamış",
+   "kategori": "Özel",
+   "tur": "olumsuz",
+   "nadirlik": 4,
+   "etkiler": {
+    "saldiri": 40,
+    "savas_istegi": 70,
+    "diplomasi": -50
+   },
+   "zit": [
+    "Barışçıl",
+    "Merhametli"
+   ]
+  },
+  {
+   "id": 99,
+   "ad": "Kahraman",
+   "kategori": "Özel",
+   "tur": "olumlu",
+   "nadirlik": 5,
+   "etkiler": {
+    "cesaret": 50,
+    "yakin_dovus": 30,
+    "moral_ordu": 40
+   },
+   "zit": [
+    "Korkak"
+   ]
+  },
+  {
+   "id": 100,
+   "ad": "Uzaylı Geni",
+   "kategori": "Özel",
+   "tur": "karma",
+   "nadirlik": 5,
+   "etkiler": {
+    "teknoloji": 40,
+    "mutasyon": 30,
+    "diplomasi": -15
+   },
+   "zit": []
+  }
+ ]
+}
