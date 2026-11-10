@@ -1,0 +1,136 @@
+name: Derle (Web + Windows + Android)
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["onizleme/**", "**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: derle
+  cancel-in-progress: true
+
+jobs:
+  derle:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Android ayarlarını hazırla
+        run: |
+          export HOME=/root
+          SDK="${ANDROID_HOME:-/usr/lib/android-sdk}"
+          keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android \
+            -keystore /root/ci-debug.keystore -storepass android \
+            -dname "CN=Android Debug,O=Android,C=US" -validity 9999
+          mkdir -p /root/.config/godot
+          for f in /root/.config/godot/editor_settings-4.tres /root/.config/godot/editor_settings-4.3.tres; do
+            if [ ! -f "$f" ]; then printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\n' > "$f"; fi
+            sed -i '/^export\/android\/\(android_sdk_path\|debug_keystore\|debug_keystore_user\|debug_keystore_pass\)/d' "$f"
+            {
+              echo "export/android/android_sdk_path = \"$SDK\""
+              echo 'export/android/debug_keystore = "/root/ci-debug.keystore"'
+              echo 'export/android/debug_keystore_user = "androiddebugkey"'
+              echo 'export/android/debug_keystore_pass = "android"'
+            } >> "$f"
+          done
+
+      - name: Projeyi içe aktar
+        run: |
+          export HOME=/root
+          godot --headless --editor --quit || true
+
+      - name: Doğrulama (300 yıllık hızlı simülasyon)
+        run: |
+          export HOME=/root
+          godot --headless -s betikler/dogrulama.gd -- yil=300 | tee dogrulama.txt
+          grep -q "DOGRULAMA bitti" dogrulama.txt
+          ! grep -q "SCRIPT ERROR" dogrulama.txt
+
+      - name: Web
+        run: |
+          export HOME=/root
+          mkdir -p build/web
+          godot --headless --export-release "Web" build/web/index.html
+          test -f build/web/index.html
+          cd build/web && zip -qr ../DunyaKutusu-Web.zip .
+
+      - name: Windows
+        run: |
+          export HOME=/root
+          mkdir -p build/windows
+          godot --headless --export-release "Windows" build/windows/DunyaKutusu.exe
+          test -f build/windows/DunyaKutusu.exe
+          cd build/windows && zip -qr ../DunyaKutusu-Windows.zip .
+
+      - name: Android
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/ci-debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          export HOME=/root
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/lib/android-sdk}"
+          mkdir -p build/android
+          godot --headless --export-debug "Android" build/android/DunyaKutusu.apk
+          test -f build/android/DunyaKutusu.apk
+          cp build/android/DunyaKutusu.apk build/DunyaKutusu.apk
+
+      - name: Yayınla (son-surum)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: son-surum
+          name: Dünya Kutusu (son sürüm)
+          body: |
+            Telefon: DunyaKutusu.apk dosyasına dokunup kur.
+            PC: tarayıcıda oyna → https://malisah61.github.io/dunyasimulasyon/  ya da DunyaKutusu-Windows.zip dosyasını indir, aç, DunyaKutusu.exe'yi çalıştır.
+          make_latest: true
+          files: |
+            build/DunyaKutusu.apk
+            build/DunyaKutusu-Windows.zip
+            build/DunyaKutusu-Web.zip
+
+      - name: Web dosyalarını Pages için hazırla
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  pages:
+    needs: derle
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.dagit.outputs.page_url }}
+    steps:
+      - id: dagit
+        uses: actions/deploy-pages@v4
+
+  onizleme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Godot ve sanal ekran
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri > /dev/null
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip && mv Godot_v4.3-stable_linux.x86_64 godot && rm *.zip
+      - name: Ekran görüntüleri
+        run: |
+          ./godot --headless --editor --quit || true
+          rm -rf onizleme && mkdir -p onizleme
+          timeout 600 xvfb-run -a -s "-screen 0 1280x720x24" ./godot --rendering-driver opengl3 --resolution 1280x720 -- onizleme klasor=$PWD/onizleme 2>&1 | grep -v ALSA | tee onizleme/calisma.txt
+          grep -q "ONIZLEME bitti" onizleme/calisma.txt
+      - name: Depoya yaz
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add onizleme
+          git commit -m "Önizleme ekran görüntüleri [skip ci]" || exit 0
+          git pull --rebase -q && git push
