@@ -11,9 +11,9 @@ WARNING: All audio drivers failed, falling back to the dummy driver.
 
 ONIZLEME basladi
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/01_baslangic.png
-ONIZLEME 150 yil: 1534 ms, nufus=2400 koy=56 krallik=21
+ONIZLEME 150 yil: 1300 ms, nufus=3809 koy=77 krallik=13
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02_150_yil.png
-ONIZLEME FPS uzak: 27.9 ms/kare (36 FPS), canli=2936
+ONIZLEME FPS uzak: 28.5 ms/kare (35 FPS), canli=4293
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02b_krallik_haritasi.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02c_huzur_haritasi.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02d_irk_haritasi.png
@@ -25,6 +25,9 @@ kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/22b_sonbahar_ya
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/16_savas_uzak.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/17_kusatma.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18_asker_yakin.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18e_general_yakin.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18f_general_isareti.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18g_general_karti.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18d_mancinik_atli.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18b_tufekli_askerler.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18c_lazerli_askerler.png
@@ -38,7 +41,7 @@ kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/27_kutsama_lane
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/27b_kutsanmis_koy.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/28_kopekler_hayvanlar.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/03_koy_yakin.png
-ONIZLEME FPS yakin: 34.2 ms/kare (29 FPS), canli=2923
+ONIZLEME FPS yakin: 27.5 ms/kare (36 FPS), canli=4298
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/03b_orta_uzaklik.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/03c_binalar_yakin.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/04_canli_karti.png
