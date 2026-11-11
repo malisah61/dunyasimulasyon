@@ -1,11 +1,10 @@
 # Sample workflow for building and deploying a Jekyll site to GitHub Pages
 name: Deploy Jekyll with GitHub Pages dependencies preinstalled
 
+# NOT (gece geliştiricisi): Bu iş her push'ta README'yi site olarak yayınlayıp oyunun web sürümünün
+# (derle.yml → pages) üstüne yazabiliyordu; ikisi aynı anda çalışınca hangisi son biterse o görünüyordu.
+# Bu yüzden yalnızca elle çalıştırılacak şekilde bırakıldı. Oyunun sayfasını derle.yml yayınlar.
 on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 

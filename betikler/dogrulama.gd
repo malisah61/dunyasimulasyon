@@ -84,7 +84,7 @@ func _init() -> void:
 		if float(s.koyler[id].get("huzur", 70.0)) < 30.0:
 			huzursuz += 1
 		kale += int(s.koyler[id]["b"][s.Y_KALE])
-	var olay := {"İSYAN": 0, "BARIŞ ANTLAŞMASI": 0, "TİCARET": 0, "SEL": 0, "SAVAŞ:": 0, "saray": 0, "kale ile": 0}
+	var olay := {"İSYAN": 0, "BARIŞ ANTLAŞMASI": 0, "TİCARET": 0, "SEL": 0, "SAVAŞ:": 0, "saray yaptırdı": 0, "kale ile": 0, "DARBE": 0, "darbe girişimi": 0, "BİRLEŞME": 0, "İÇ SAVAŞ BİTTİ": 0, "BAĞIMSIZLIK": 0, "satın aldı": 0, "kâhini": 0}
 	for k in s.kronik:
 		for anahtar in olay:
 			if (k[1] as String).contains(anahtar):
@@ -94,6 +94,18 @@ func _init() -> void:
 	print("OLAYLAR (kronikte kalan): ", olay)
 	print("EKOSISTEM: ", s.ekosistem_durumu(), " gecmis ornek=", s.nufus_gecmis.size())
 	print("PERFORMANS: %d yil %d ms (%.1f yil/sn), en yavas yil %d ms, en yuksek canli %d (sinir %s)" % [yil, sure, yil * 1000.0 / maxi(1, sure), azami_ms, azami_nufus, "yok" if sinir <= 0 else str(sinir)])
+	var ou: PackedInt64Array = s.olc_us
+	print("DAGILIM (ms): canli yillik %d, hareket %d, koy %d, krallik %d, afet+diger %d | en yavas tek ay %.1f ms" % [ou[0] / 1000, ou[1] / 1000, ou[2] / 1000, ou[3] / 1000, ou[4] / 1000, ou[5] / 1000.0])
+	# hız kademelerinde bir ayın (tick) süresi: 20x (adım 1), 100x (adım 4), 500x (adım 12)
+	for ad in [1, 4, 12]:
+		s.hareket_adim = ad
+		s.olc_us = PackedInt64Array([0, 0, 0, 0, 0, 0])
+		var tb := Time.get_ticks_usec()
+		for a in 48:
+			s.tick()
+		var gec := (Time.get_ticks_usec() - tb) / 48000.0
+		print("TICK adim=%d: ort %.2f ms/ay, en yavas %.1f ms (canli %d) | yillik %.2f hareket %.2f koy %.2f krallik %.2f diger %.2f" % [ad, gec, s.olc_us[5] / 1000.0, s.ust - s.bos.size(), s.olc_us[0] / 48000.0, s.olc_us[1] / 48000.0, s.olc_us[2] / 48000.0, s.olc_us[3] / 48000.0, s.olc_us[4] / 48000.0])
+	s.hareket_adim = adim
 	var ok: bool = s.kaydet("user://dogrulama.kayit")
 	var s2 = SimS.new()
 	var ok2: bool = s2.yukle("user://dogrulama.kayit")

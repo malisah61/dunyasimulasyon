@@ -47,7 +47,7 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 - ✅ Her canlının 0–5 özelliği olur. Bir kısmı doğuştan gelir (ırk olasılıkları + ebeveynlerden kalıtım), bir kısmı hayat boyunca kazanılır (ör. savaştan sağ çıkan "Cesur" olabilir).
 - ✅ Tanrı paneli: oyuncu herhangi bir canlıya dokunup listeden özellik **ekleyebilir veya silebilir**. "Yerleştirme fırçası" ile yeni konan canlılara önceden seçilmiş özellikler verilebilir.
 - ✅ Zıt özellikler bir arada olamaz (Aptal + Dahi gibi). Liste JSON dosyasındaki `zit` alanında.
-- [ ] Etkiler gerçekten oyunu değiştirmeli:
+- [ ] Etkiler gerçekten oyunu değiştirmeli: *(Gece 3: saldırı, yakın dövüş, okçuluk, kaçınma, afet önsezisi, şifa, ihanet ve darbe etkileri artık simülasyonda işliyor.)*
   - Zeki/Dahi bir kral ülkenin teknolojisini hızlandırır. Aptal kral kötü kararlar verir: gereksiz savaş açar, hazineyi boşa harcar.
   - Çalışkan halk daha çok üretir; Tembel halkın ambarı boş kalır.
   - Hızlı asker önce varır, Korkak asker savaşta kaçar, Hain general düşmana geçer.
@@ -66,7 +66,7 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 ## 6. Ekonomi: kaynaklar ve altın
 - [ ] Kaynaklar: yiyecek, odun, taş, demir, **altın**, gümüş, değerli taş, yün, at.
 - ✅ Altın madenleri haritada sabit yerlerde bulunur; o topraklar için savaş çıkar.
-- ✅ Altının kullanımı: bina, silah, paralı asker, rüşvet ve diplomasi, kralın sarayı. Vergi sistemi; yüksek vergi isyana yol açar. (Rüşvet/diplomasi henüz yok.)
+- ✅ Altının kullanımı: bina, silah, paralı asker, rüşvet ve diplomasi, kralın sarayı. Vergi sistemi; yüksek vergi isyana yol açar. (Gece 3: savaşı kaybeden taraf altınla barışı satın alabiliyor.)
 - [ ] Ticaret yolları (karadan ve denizden), pazar binaları, tüccar kervanları. Haydutlar kervan soyar.
 - [ ] Kıtlık, enflasyon (çok altın çıkarılırsa), ekonomik çöküş.
 
@@ -75,15 +75,15 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 - [ ] **Tunç / Demir:** ev, ambar, tarla, değirmen, maden, demirhane, ahır, kışla, ahşap sur.
 - [ ] **Orta Çağ:** taş ev, taş sur, gözetleme kulesi, kale, tapınak, kütüphane, pazar, liman, tersane, saray.
 - [ ] **Barut ve sonrası:** top dökümhanesi, fabrika, demiryolu, üniversite.
-- [ ] Irka özel binalar: Elf ağaç evleri, Cüce dağ kaleleri, Ork savaş totemleri, Dev taş halkaları, Goblin yeraltı tünelleri.
+- [ ] Irka özel binalar: Elf ağaç evleri, Cüce dağ kaleleri, Ork savaş totemleri, Dev taş halkaları, Goblin yeraltı tünelleri. *(Gece 3: evler ırka göre farklı çiziliyor — elf ağaç evi, ork çadırı, cüce taş evi, goblin kulübesi, kertenkele kamış evi, dev taş halkası, uzaylı kubbesi; işlev farkı henüz yok.)*
 - ✅ Şehirler büyür: köy → kasaba → şehir → başkent. Yıkılan şehirler harabe olarak kalır.
 
 ## 8. Silahlar, ordular ve savaş
-- [ ] Çağa göre silahlar: sopa → taş balta → mızrak → tunç kılıç → demir kılıç / yay → çelik kılıç, arbalet, mancınık → tüfek, top → (uzaylı lazer silahı).
-- [ ] Zırhlar: deri → tunç → zincir → plaka.
-- [ ] Ordu birimleri: piyade, okçu, atlı, kuşatma makinesi, gemi. Generaller özelliklerine göre savaşır (Stratejist, Korkak...).
+- [ ] Çağa göre silahlar: sopa → taş balta → mızrak → tunç kılıç → demir kılıç / yay → çelik kılıç, arbalet, mancınık → tüfek, top → (uzaylı lazer silahı). *(Gece 3: askerin elinde çağa göre sopa, mızrak, kılıç/yay, çelik kılıç/arbalet, tüfek, lazer çiziliyor; okçu ve tüfekliler uzaktan vuruyor. Taş balta, mancınık ve top henüz yok.)*
+- [ ] Zırhlar: deri → tunç → zincir → plaka. *(Gece 3: görsel olarak göğüslük, miğfer ve kalkan çağa göre; ayrı zırh değeri henüz yok.)*
+- [ ] Ordu birimleri: piyade, okçu, atlı, kuşatma makinesi, gemi. Generaller özelliklerine göre savaşır (Stratejist, Korkak...). *(Gece 3: piyade, okçu, tüfekli, lazerli ve sancaktar var; atlı, kuşatma makinesi, gemi ve general henüz yok.)*
 - ✅ Savaş sebepleri: toprak, altın, din, intikam, ırk düşmanlığı, Kana Susamış bir kral.
-- [ ] Kuşatmalar, barış antlaşmaları, ittifaklar, haraç, iç savaş, isyan, darbe.
+- ✅ Kuşatmalar, barış antlaşmaları, ittifaklar, haraç, iç savaş, isyan, darbe.
 
 ## 9. Uzaylılar
 - ✅ Belli bir yıldan sonra (ör. 2000. yıl) ya da tanrı tetiklerse **UFO istilası** olur: gökten gemiler iner, lazerle saldırır, insan kaçırır.
@@ -108,7 +108,7 @@ Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla,
 | ✅ Meteor | Çok nadir | Krater, yangın; bazen nadir maden bırakır |
 | ✅ Yıldırım fırtınası | Yaz yağmurlarında | Yangın çıkarır, canlı öldürür |
 
-- [ ] Kâhin özelliği taşıyan canlılar afeti önceden sezer ve halkını kaçırır.
+- ✅ Kâhin özelliği taşıyan canlılar afeti önceden sezer ve halkını kaçırır.
 - [ ] Afet sonrası: göç, yeniden inşa, din etkisi ("tanrılar kızdı").
 
 ## 11. Tanrı güçleri (oyuncu araçları)
@@ -116,8 +116,8 @@ Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla,
 - ✅ **Canlı koy:** her ırk, her hayvan, efsanevi yaratıklar. Yanında seçilen özellik fırçası kullanılır.
 - [ ] **Afetler:** yukarıdaki tablonun tamamı.
 - [ ] **Kutsama / lanet:** bir şehre bolluk, bir krallığa kıtlık. Tek canlıya özellik ver veya al.
-- [ ] **Müdahale:** iki krallığa savaş ilan ettir, barış yaptır, kral değiştir, isyan çıkar.
-- [ ] **Bilgi araçları:** krallık haritası, ırk haritası, nüfus/altın/teknoloji grafikleri, kronik.
+- ✅ **Müdahale:** iki krallığa savaş ilan ettir, barış yaptır, kral değiştir (Darbe yaptır), isyan çıkar.
+- [ ] **Bilgi araçları:** krallık haritası, ırk haritası, nüfus/altın/teknoloji grafikleri, kronik. *(Krallık haritası, ırk haritası, huzur haritası, savaşlar paneli, nüfus grafiği ve kronik var; altın/teknoloji grafikleri henüz yok.)*
 
 ## 12. Din ve kültür
 - ✅ Krallıklar kendi dinlerini kurar (doğa, ateş, ata, güneş). Din savaşları, misyonerler (Hatip, Rahip özellikleri).
@@ -132,7 +132,7 @@ Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla,
 - [ ] 60 FPS; orta seviye telefonda 5.000+, PC'de 20.000+ canlı.
 - ✅ Kayıt/yükleme (birden çok yuva). Eski kayıtlar yeni sürümlerde de açılsın.
 - ✅ Türkçe arayüz, dokunmatik ve fare desteği, PC klavye kısayolları.
-- [ ] Ses: ortam sesleri, afet sesleri, çağa göre değişen müzik (yalnızca ücretsiz kaynaklar).
+- [ ] Ses: ortam sesleri, afet sesleri, çağa göre değişen müzik (yalnızca ücretsiz kaynaklar). *(Gece 3: kodla üretilen ortam sesi, afet sesleri, savaş borusu, isyan davulu, bildirim çanı var; müzik henüz yok.)*
 
 ---
 
@@ -276,3 +276,22 @@ Gece geliştirmelerinde ortaya çıkan, tasarıma eklenen fikirler (✅ = oyunda
 - ✅ **Nüfus grafiği** (İstatistik).
 - Fikir: haydutlar kervan soyar; deniz ticareti (liman); darbe (Hırslı general); rüşvet ile savaş durdurma; krallık bazında nüfus/altın grafikleri; isyancılar kazanırsa eski krallığın başkentini alıp hanedan değiştirme; nehirler (sel için gerçek nehir kenarları).
 
+### 2026-11-11 (Gece 3)
+- ✅ **Asker birimleri ve menzilli savaş:** piyade (sopa → mızrak → kılıç → çelik kılıç), okçu (Demir Çağı'ndan itibaren her üç askerden biri; Okçu/Keskin Göz özelliklileri her çağda; Orta Çağ'da arbalet), tüfekli (Barut ve Sanayi), lazerli (Uzay). Menzilliler 4–5 karodan vurur, karşılık almaz; okçuluk özelliği hasarı artırır.
+- ✅ **Savaşta özellikler:** Saldırgan/Kana Susamış ve yakın dövüş ustaları daha sert vurur; Çevik canlı darbeden sıyrılır; usta savaşçılar kuşatmayı hızlandırır.
+- ✅ **Savaşın görünürlüğü:** askerler krallık renginde giyinir, kalkan/miğfer/göğüslük çağa göre; her dokuz askerden biri sancaktar. Çarpışmada kıvılcım, uçan ok, namlu alevi ve duman, lazer ışını, ölüm izi. Kuşatılan köyde ateş ve duman, üstünde çapraz kılıç simgesi; sefere çıkan köyden hedefe kesik ok. Savaş ilan edilen başkentte atan kırmızı işaret. Simgeler her uzaklıkta aynı boyda.
+- ✅ **Savaşlar paneli** (Gözlem → ⚔ Savaşlar): süren savaşlar, süre, skor, sebep, kuşatılan köyler; satıra dokununca cepheye gider. Üst çubukta süren savaş sayısı.
+- ✅ **Darbe:** başkentteki hain/hırslı soylu (Hain, darbe eğilimli özellikler) zayıf, sevilmeyen ya da savaş kaybeden hükümdarı devirmeyi dener. Başarırsa tahta geçer (eski hükümdar öldürülür ya da sürülür, halkın huzuru sarsılır); başaramazsa idam edilir. Aynı krallıkta 15 yılda en çok bir girişim. Tanrı gücü: **Darbe yaptır**.
+- ✅ **İç savaşın sonu:** isyancı krallık yenilirse köyleri eski krallığa döner (yeniden birleşme); kazanırsa bağımsızlığı tanınır.
+- ✅ **Barışı satın alma:** savaşı kaybeden taraf hazinesinden altın ödeyerek barış yapabilir (hükümdarın diplomasi/ticaret yeteneği olasılığı artırır).
+- ✅ **Gönüllü katılma:** tek köylü, küçük ve yaşlı bir krallık, müttefiki ya da dindaşı olan aynı ırktan büyük komşusuna hanedan evliliğiyle katılabilir.
+- ✅ **Kâhin önsezisi:** köyünde Kâhin yaşayan halk deprem, volkan, meteor, tsunami, hortum ve selden önce kaçar (ölümler ~dörtte bire iner); kroniğe yazılır.
+- ✅ **Şifacı:** köyünde Şifacı olan halk salgında daha az ölür.
+- ✅ **Irk haritası** (Gözlem): her bölge orada yaşayan ırkın rengiyle.
+- ✅ **Uzaktan krallık sınırları:** harita uzaktan bakılırken krallık renkleri ve sınırlar hafifçe görünür (Menü → Uzaktan sınırlar ile kapatılabilir).
+- ✅ **Ayrıntılı binalar:** yakından bakınca binalar 8x8 piksel çizilir (kapı, pencere, çatı, baca, bayrak); çatılar krallık renginde. Evler çağa (kulübe → ev → taş ev) ve ırka göre değişir.
+- ✅ **Canlı görünümü:** saç (yaşlılarda ağarır, kadınlarda uzun), kişiye göre giysi tonu, kuşak, göz; askerde donanım.
+- ✅ **Ses:** dosyasız, kodla üretilen sesler — rüzgâr ve kuş ortam sesi, gök gürültüsü, sarsıntı, su, savaş borusu, isyan/darbe davulu, bildirim çanı, dokunma. Menü → Ses.
+- ✅ **Bahar selleri gerçekten oluyor:** önce 300 yılda hiç kendiliğinden sel olmuyordu (rastgele tek köy deneniyordu); artık kıyı köyü aranıyor (300 yılda ~10 sel).
+- ✅ **Gerçek hız göstergesi:** istenen hıza yetişilemiyorsa üst çubukta ulaşılan hız yazılır.
+- Fikir (sonraki geceler): simülasyonu ayrı iş parçacığında çalıştırmak (PC/Android; tarayıcıda yedek yol), atlı birlikler ve mancınık, generaller, vasallık, altın/teknoloji grafikleri, çağa göre müzik, ejderhanın kendiliğinden doğması ve ejderha avcısı kahramanlar, binaların ırka göre işlev farkı.

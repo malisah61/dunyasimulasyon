@@ -15,7 +15,7 @@ const CAG_SILAH := [1.0, 1.3, 1.7, 2.2, 3.2, 4.5, 7.0]
 const SILAH_AD := ["Sopa ve taş balta", "Tunç mızrak", "Demir kılıç ve yay", "Çelik kılıç ve arbalet", "Tüfek ve top", "Makineli tüfek", "Lazer silahı"]
 const MEVSIM_AD := ["Kış", "Kış", "İlkbahar", "İlkbahar", "İlkbahar", "Yaz", "Yaz", "Yaz", "Sonbahar", "Sonbahar", "Sonbahar", "Kış"]
 const MAX_OZL := 5
-const KAYIT_SURUMU := 3
+const KAYIT_SURUMU := 4
 const YAGMACI := ["ork", "goblin", "dev", "uzayli"]
 const KADEME_AD := ["Köy", "Kasaba", "Şehir", "Büyük şehir"]
 const KADEME_ESIK := [0, 40, 100, 180]
@@ -41,6 +41,7 @@ var t_uretim := PackedFloat32Array()   # bir yetişkinin iş gücü çarpanı (D
 var t_yetiskin := PackedInt32Array()   # yetişkinlik yaşı (ay)
 var t_dogur := PackedFloat32Array()
 var t_soguga := PackedByteArray()      # soğuktan ölmez (Dev)
+var t_zirh := PackedFloat32Array()     # ok ve mermiye karşı doğal zırh çarpanı (Cüce zırhı, Dev derisi; 1 = yok)
 # sık kullanılan özellik id'leri (sözlük aramasını azaltmak için)
 var oz_soguk := 0
 var oz_mutant := 0
@@ -64,6 +65,10 @@ var maden := PackedByteArray()        # 0 yok, 1 altın, 2 demir
 var kita := PackedInt32Array()
 var yer := PackedInt32Array()         # karodaki son canlı (yuva+1)
 var kita_kirli := true
+var _kita_is := PackedInt32Array()    # kıta etiketleri: aylara yayılan yeniden hesap (çalışma dizisi)
+var _kita_yigin := PackedInt32Array()
+var _kita_k0 := -1                    # -1 = hesap sürmüyor
+var _kita_etiket := 0
 var ay := 0
 var rng := RandomNumberGenerator.new()
 
@@ -103,6 +108,10 @@ var s_omur := PackedFloat32Array()
 var s_cesaret := PackedFloat32Array()
 var s_canmax := PackedFloat32Array()
 var s_lider := PackedFloat32Array()    # liderlik + kral olma (yıllık aday seçimi için önbellek)
+var s_vurus := PackedFloat32Array()    # yakın dövüş hasar çarpanı (Saldırgan, Kılıç Ustası...)
+var s_okcu := PackedFloat32Array()     # okçuluk (0.25 ve üstü: doğuştan okçu; menzilli hasarı artırır)
+var s_kacin := PackedFloat32Array()    # darbeden sıyrılma olasılığı (Çevik...)
+var c_bit := PackedByteArray()         # 1 kâhin (afet önsezisi), 2 hain/darbeci, 4 şifacı
 var sayim := PackedInt32Array()       # tür başına canlı sayısı
 var irk_nufus := 0
 
@@ -122,6 +131,11 @@ var kv_yet := PackedInt32Array()
 var kv_aday := PackedInt32Array()
 var kv_puan := PackedFloat32Array()
 var kv_erkek := PackedInt32Array()
+var kv_cag := PackedByteArray()       # köyün çağı (askerin silahı için hızlı okuma)
+var kv_kahin := PackedInt32Array()    # köyde en son kâhin görülen ay (afet önsezisi)
+var kv_hain := PackedInt32Array()     # köydeki darbeci/hain yetişkin (canlı yuvası, -1 yok)
+var kv_sifa := PackedInt32Array()     # köyde en son şifacı görülen ay (salgını hafifletir)
+var _onsezi := false                  # süren afette halk önceden uyarıldı mı
 var _kk_ay := -1                      # krallık → köy listesi önbelleğinin ayı (-1 = bayat)
 var _kk: Dictionary = {}
 var kronik: Array = []                # [ay, metin, önem]
@@ -148,9 +162,13 @@ var ufo_geldi := false
 # ---- ayarlar / çizim için ----
 var nufus_siniri := 0                # 0 = sınırsız
 var hareket_adim := 1
+const DILIM := 8                     # yayık harekette bir ay kaç dilime bölünür
+var yayik := false                   # hareket karelere yayılsın mı (ekran, 1x–5x hızda açar)
+var dilim_no := 8                    # bu ay işlenen dilim sayısı (DILIM = hepsi bitti)
 var degisen := PackedInt32Array()     # çizimde yenilenecek karolar
 var hepsi_degisti := true
 var efektler: Array = []              # [tip, x, y, süre]
+var olc_us := PackedInt64Array([0, 0, 0, 0, 0, 0])   # ölçüm (µs): yıllık, hareket, köy, krallık, afet+diğer, en yavaş tick
 
 
 func _init() -> void:
@@ -214,6 +232,7 @@ func _veri_yukle() -> void:
 		t_yetiskin.append(int(t["yetiskin"]) * 12)
 		t_dogur.append(float(t["dogur"]))
 		t_soguga.append(1 if t["id"] == "dev" else 0)
+		t_zirh.append(float(t.get("zirh", 1.0)))
 	sayim.resize(turler.size())
 	t_kap.resize(turler.size())
 
@@ -292,6 +311,7 @@ func dunya_uret(g: int, y: int, th: int) -> void:
 
 
 func _kita_hesapla() -> void:
+	_kita_k0 = -1
 	kita.fill(0)
 	var etiket := 0
 	var yigin := PackedInt32Array()
@@ -315,6 +335,76 @@ func _kita_hesapla() -> void:
 			if k < n - gen and kita[k + gen] == 0 and _kara(biyom[k + gen]):
 				kita[k + gen] = etiket; yigin.append(k + gen)
 	kita_kirli = false
+
+
+## Kıta etiketlerini birkaç aya yayarak yeniden hesaplar (tek seferde ~15–60 ms'lik takılma yapıyordu).
+## Bitene kadar eski etiketler kullanılır.
+func _kita_adim(butce: int) -> void:
+	var n := gen * yuk
+	if _kita_k0 < 0:
+		_kita_is.resize(n)
+		_kita_is.fill(0)
+		_kita_yigin.clear()
+		_kita_k0 = 0
+		_kita_etiket = 0
+		kita_kirli = false
+	var islem := 0
+	while true:
+		while _kita_yigin.size() > 0:
+			var k := _kita_yigin[_kita_yigin.size() - 1]
+			_kita_yigin.resize(_kita_yigin.size() - 1)
+			var x := k % gen
+			var b := 0
+			if x > 0 and _kita_is[k - 1] == 0:
+				b = biyom[k - 1]
+				if b >= B_KUM and b != B_LAV:
+					_kita_is[k - 1] = _kita_etiket; _kita_yigin.append(k - 1)
+			if x < gen - 1 and _kita_is[k + 1] == 0:
+				b = biyom[k + 1]
+				if b >= B_KUM and b != B_LAV:
+					_kita_is[k + 1] = _kita_etiket; _kita_yigin.append(k + 1)
+			if k >= gen and _kita_is[k - gen] == 0:
+				b = biyom[k - gen]
+				if b >= B_KUM and b != B_LAV:
+					_kita_is[k - gen] = _kita_etiket; _kita_yigin.append(k - gen)
+			if k < n - gen and _kita_is[k + gen] == 0:
+				b = biyom[k + gen]
+				if b >= B_KUM and b != B_LAV:
+					_kita_is[k + gen] = _kita_etiket; _kita_yigin.append(k + gen)
+			islem += 1
+			if islem >= butce:
+				return
+		while _kita_k0 < n and (_kita_is[_kita_k0] != 0 or biyom[_kita_k0] < B_KUM or biyom[_kita_k0] == B_LAV):
+			_kita_k0 += 1
+			islem += 1
+			if islem >= butce * 3:
+				return
+		if _kita_k0 >= n:
+			kita = _kita_is.duplicate()
+			_kita_k0 = -1
+			return
+		_kita_etiket += 1
+		_kita_is[_kita_k0] = _kita_etiket
+		_kita_yigin.append(_kita_k0)
+
+
+## Tek bir karo karaya dönüştü (lav soğudu): komşusunun kıta etiketini alır; tüm haritayı yeniden etiketlemek gerekmez.
+## İki ayrı kıtayı birleştiriyorsa tam hesap istenir.
+func _kita_kara_oldu(k: int) -> void:
+	var etk := 0
+	var x := k % gen
+	for kom in [k - 1 if x > 0 else -1, k + 1 if x < gen - 1 else -1, k - gen, k + gen]:
+		if kom < 0 or kom >= gen * yuk:
+			continue
+		var e := kita[kom]
+		if e == 0:
+			continue
+		if etk == 0:
+			etk = e
+		elif etk != e:
+			kita_kirli = true
+			return
+	kita[k] = etk if etk != 0 else 1000000 + k
 
 
 func _kara(b: int) -> bool:
@@ -373,7 +463,7 @@ func _canli_sifirla(n: int) -> void:
 
 func _boyutla(n: int) -> void:
 	kap = n
-	for a in [c_var, c_tur, c_cins, c_durum, c_x, c_y, c_ox, c_oy, c_hx, c_hy, c_yas, c_can, c_sans, c_koy, c_uid, c_anne, c_baba, c_oldurme, c_cocuk, c_ad, s_guc, s_hiz, s_zeka, s_is, s_dogur, s_omur, s_cesaret, s_canmax, s_lider]:
+	for a in [c_var, c_tur, c_cins, c_durum, c_x, c_y, c_ox, c_oy, c_hx, c_hy, c_yas, c_can, c_sans, c_koy, c_uid, c_anne, c_baba, c_oldurme, c_cocuk, c_ad, s_guc, s_hiz, s_zeka, s_is, s_dogur, s_omur, s_cesaret, s_canmax, s_lider, s_vurus, s_okcu, s_kacin, c_bit]:
 		a.resize(n)
 	c_ozl.resize(n * MAX_OZL)
 	c_tok.resize(n)
@@ -526,7 +616,29 @@ func stat_hesapla(i: int) -> void:
 	s_dogur[i] = maxf(0.0, 1.0 + dg / 100.0)
 	s_omur[i] = float(t["omur"]) * 12.0 * maxf(0.3, 1.0 + om / 100.0) * c_sans[i]
 	s_cesaret[i] = cs / 100.0
-	s_lider[i] = etki(i, "liderlik") + etki(i, "kral_olma")
+	# özellik etkileri tek geçişte toplanır (savaş, önsezi, ihanet, şifa)
+	var lider := 0.0; var vurus := 0.0; var okcu := 0.0; var kacin := 0.0
+	var bit := 0
+	for n in MAX_OZL:
+		var id2 := c_ozl[i * MAX_OZL + n]
+		if id2 == 0:
+			continue
+		var e: Dictionary = ozellikler[id2]["etkiler"]
+		lider += float(e.get("liderlik", 0)) + float(e.get("kral_olma", 0))
+		vurus += float(e.get("saldiri", 0)) + float(e.get("yakin_dovus", 0))
+		okcu += float(e.get("okculuk", 0))
+		kacin += float(e.get("kacinma", 0))
+		if e.has("afet_onsezi"):
+			bit |= 1
+		if float(e.get("darbe", 0)) > 0.0 or float(e.get("ihanet", 0)) >= 40.0:
+			bit |= 2
+		if float(e.get("sifa", 0)) > 0.0:
+			bit |= 4
+	s_lider[i] = lider
+	s_vurus[i] = maxf(0.4, 1.0 + vurus / 100.0)
+	s_okcu[i] = okcu / 100.0
+	s_kacin[i] = clampf(kacin / 100.0, 0.0, 0.6)
+	c_bit[i] = bit
 	if c_can[i] > s_canmax[i]:
 		c_can[i] = s_canmax[i]
 
@@ -579,28 +691,39 @@ func oldur(i: int, sebep: String) -> void:
 
 # ============================================================ ANA DÖNGÜ
 func tick() -> void:
+	if dilim_no < DILIM:
+		dilim_ilerlet(DILIM)
 	ay += 1
 	var adim := hareket_adim
 	var a := ay
+	var t0 := Time.get_ticks_usec()
 	# Her canlı yılda bir "yıllık" işlenir: (i + ay) % 12 == 0 olanlar. Adımlı döngü, tüm diziyi taramaktan çok daha hızlı.
 	for i in range((12 - a % 12) % 12, ust, 12):
 		if c_var[i] == 1:
 			_yillik(i)
+	var t1 := Time.get_ticks_usec()
 	# Hızlı modda (adim > 1) her canlı adim ayda bir, adim kat yol alır (toplu hareket).
-	for i in range((adim - a % adim) % adim, ust, adim):
-		if c_var[i] == 1:
-			_hareket(i, adim)
+	# Yavaş hızda (yayik) hareket bu ayın içine dilim dilim yayılır: ekran her karede `dilim_ilerlet` çağırır.
+	if yayik and adim == 1:
+		dilim_no = 0
+	else:
+		for i in range((adim - a % adim) % adim, ust, adim):
+			if c_var[i] == 1:
+				_hareket(i, adim)
+	var t2 := Time.get_ticks_usec()
 	for id in koyler.keys():
 		if (id + a) % 12 == 0 and koyler.has(id):
 			_koy_yillik(koyler[id])
+	var t3 := Time.get_ticks_usec()
 	for id in kralliklar.keys():
 		if (id * 5 + a) % 12 == 0 and kralliklar.has(id):
 			_krallik_yillik(kralliklar[id])
+	var t4 := Time.get_ticks_usec()
 	_afet_tick()
 	_rastgele_karolar()
+	if _kita_k0 >= 0 or (kita_kirli and a % 12 == 0):
+		_kita_adim(maxi(3000, gen * yuk / 14))
 	if a % 12 == 0:
-		if kita_kirli:
-			_kita_hesapla()
 		_ekosistem_yillik()
 	if a % 60 == 0:
 		_gecmis_kaydet()
@@ -610,6 +733,24 @@ func tick() -> void:
 		efektler[n][3] -= 1
 		if efektler[n][3] <= 0:
 			efektler.remove_at(n)
+	var t5 := Time.get_ticks_usec()
+	olc_us[0] += t1 - t0; olc_us[1] += t2 - t1; olc_us[2] += t3 - t2; olc_us[3] += t4 - t3; olc_us[4] += t5 - t4
+	if t5 - t0 > olc_us[5]:
+		olc_us[5] = t5 - t0
+
+
+## Yayık hareket: bu ayın hareketinden `hedef`. dilime kadar olanları işler (her canlı ayda bir kez, i % DILIM sırasıyla).
+## Böylece 10 bin canlının hareketi tek karede (takılma) değil, ay boyunca karelere bölünerek yapılır.
+func dilim_ilerlet(hedef: int) -> void:
+	if hedef > DILIM:
+		hedef = DILIM
+	var t0 := Time.get_ticks_usec()
+	while dilim_no < hedef:
+		for i in range(dilim_no, ust, DILIM):
+			if c_var[i] == 1:
+				_hareket(i, 1)
+		dilim_no += 1
+	olc_us[1] += Time.get_ticks_usec() - t0
 
 
 ## 5 yılda bir tür sayılarını saklar (nüfus grafiği). Çok uzarsa seyreltilir.
@@ -701,6 +842,36 @@ func kademe(v: Dictionary) -> int:
 	return int(v.get("kademe", 0))
 
 
+## Türkçe ünlü uyumu: iyelik ekli ada yönelme eki ("Krallığı'na", "Çetesi'ne", "Sürüsü'ne").
+static func yonelme(ad: String) -> String:
+	for n in range(ad.length() - 1, -1, -1):
+		var ch := ad[n]
+		if ch in "aıouAIOU":
+			return ad + "'na"
+		if ch in "eiöüEİÖÜ":
+			return ad + "'ne"
+	return ad + "'na"
+
+
+## Belirtme eki, özel ad için ("Permar'ı", "Glimvex'i", "Zog'u", "Mür'ü").
+static func belirtme(ad: String) -> String:
+	var ek := "i"
+	var son_unlu := ""
+	for n in range(ad.length() - 1, -1, -1):
+		var ch := ad[n].to_lower()
+		if ch in "aıoueiöü":
+			son_unlu = ch
+			break
+	if son_unlu in "aı" and son_unlu != "":
+		ek = "ı"
+	elif son_unlu in "ou" and son_unlu != "":
+		ek = "u"
+	elif son_unlu in "öü" and son_unlu != "":
+		ek = "ü"
+	var sonu := ad[ad.length() - 1].to_lower() if ad.length() > 0 else ""
+	return ad + "'" + ("y" if sonu != "" and sonu in "aıoueiöü" else "") + ek
+
+
 func tarih_yazi() -> String:
 	return "Yıl %d, %d. ay (%s)" % [yil(), ay % 12 + 1, MEVSIM_AD[ay % 12]]
 
@@ -753,7 +924,8 @@ func _yillik(i: int) -> void:
 		return
 	if bay & 2:
 		var direnc := clampf(etki(i, "hastalik_direnci") / 100.0, -0.5, 0.95)
-		if rng.randf() < 0.20 * (1.0 - direnc):
+		# köyde şifacı varsa salgın daha az öldürür
+		if rng.randf() < (0.11 if kv_sifa[vid] > ay - 14 else 0.20) * (1.0 - direnc):
 			oldur(i, "salgın")
 			return
 	if c_durum[i] == D_KAC:
@@ -770,6 +942,14 @@ func _yillik(i: int) -> void:
 		kv_aday[vid] = i
 	if c_cins[i] == 1:
 		kv_erkek[vid] = i
+	var bit := c_bit[i]
+	if bit != 0:
+		if bit & 1:
+			kv_kahin[vid] = ay
+		if bit & 2:
+			kv_hain[vid] = i
+		if bit & 4:
+			kv_sifa[vid] = ay
 	# göç
 	if bay & 8:
 		var v: Dictionary = koyler[vid]
@@ -919,6 +1099,34 @@ func _yakin_canli(i: int, r: int) -> int:
 	return -1
 
 
+## Menzil içindeki ilk düşman ırk üyesi (okçu ve tüfekliler için).
+func _yakin_dusman(i: int, r: int) -> int:
+	var x0 := int(c_x[i])
+	var y0 := int(c_y[i])
+	var ki := _krallik_no(i)
+	if ki < 0:
+		return -1
+	var savas: Dictionary = kralliklar[ki]["savas"]
+	if savas.is_empty():
+		return -1
+	# hız: karolar birer atlanarak taranır (kaydırma her çağrıda değişir); kalabalık cephede yine hedef bulunur
+	var kay := (i + ay / 2) & 1
+	for oy in range(-r + kay, r + 1, 2):
+		var yy := y0 + oy
+		if yy < 0 or yy >= yuk:
+			continue
+		for ox in range(-r + kay, r + 1, 2):
+			var xx := x0 + ox
+			if xx < 0 or xx >= gen:
+				continue
+			var j := yer[yy * gen + xx] - 1
+			if j >= 0 and j != i and c_var[j] == 1 and t_irk[c_tur[j]] == 1 and absf(c_x[j] - c_x[i]) <= r + 1 and absf(c_y[j] - c_y[i]) <= r + 1:
+				var kj := _krallik_no(j)
+				if kj >= 0 and savas.has(kj):
+					return j
+	return -1
+
+
 # ============================================================ CANLI: HAREKET
 func _hareket(i: int, carp: int) -> void:
 	var x := c_x[i]
@@ -965,9 +1173,21 @@ func _hareket(i: int, carp: int) -> void:
 			oldur(i, "yangın")
 			return
 	if (c_durum[i] == D_ASKER or t_avci[tur] == 1) and (i + ay) % 2 == 0:
-		var j := _yakin_av(i, 2) if t_irk[tur] == 0 else _yakin_canli(i, 2)
-		if j >= 0 and _dusman(i, j):
-			_vur(i, j)
+		if t_irk[tur] == 0:
+			var j := _yakin_av(i, 2)
+			if j >= 0 and _dusman(i, j):
+				_vur(i, j)
+		else:
+			var j := _yakin_canli(i, 2)
+			if j >= 0 and _dusman(i, j):
+				_vur(i, j)
+			elif (i + ay) % 4 == 0 or hareket_adim > 2:
+				# okçu, tüfekli ve lazerli askerler uzaktan vurur (yakın dövüşün yarı sıklığında)
+				var br := birim(i)
+				if br > 0:
+					j = _yakin_dusman(i, 4 if br == 1 else 5)
+					if j >= 0:
+						_vur(i, j, br)
 
 
 func _yeni_hedef(i: int) -> void:
@@ -1045,34 +1265,79 @@ func _silah(i: int) -> float:
 	return v["silah"]
 
 
-func _vur(i: int, j: int) -> void:
+func _vur(i: int, j: int, uzak := 0) -> void:
+	var irk_i := t_irk[c_tur[i]] == 1
+	var irk_j := t_irk[c_tur[j]] == 1
+	# sıyrılma: çevik canlı darbeden kaçar
+	if s_kacin[j] > 0.0 and rng.randf() < s_kacin[j]:
+		return
 	var hasar := s_guc[i] * _silah(i) * rng.randf_range(0.6, 1.4)
+	if uzak > 0:
+		# menzilli atış: okçuluk hasarı artırır; karşılık yok
+		hasar *= 0.55 + s_okcu[i] + (0.25 if uzak >= 2 else 0.0)
+		if uzak < 3:
+			hasar *= t_zirh[c_tur[j]]   # cüce zırhı ve dev derisi oku/mermiyi keser (lazeri kesmez)
+		_efekt([11 + uzak, c_x[i], c_y[i], 2, c_x[j], c_y[j]])
+	else:
+		hasar *= s_vurus[i]
+		if irk_i and irk_j:
+			_efekt([16, (c_x[i] + c_x[j]) * 0.5, (c_y[i] + c_y[j]) * 0.5, 2])
+		else:
+			_efekt([0, c_x[j], c_y[j], 2])
 	# ev arazisi üstünlüğü: savunan, ırkının sevdiği arazideyse (elf ormanda, cüce dağda) daha az hasar alır
-	if t_irk[c_tur[j]] == 1:
+	if irk_j:
 		var kj := int(c_y[j]) * gen + int(c_x[j])
 		if kj >= 0 and kj < biyom.size() and (turler[c_tur[j]]["biyom"] as PackedInt32Array).has(biyom[kj]):
 			hasar *= 0.75
 	c_can[j] -= hasar
-	efektler.append([0, c_x[j], c_y[j], 2])
 	if c_can[j] <= 0.0:
-		var savasla: bool = t_irk[c_tur[j]] == 1 and t_irk[c_tur[i]] == 1
+		var savasla: bool = irk_j and irk_i
 		if savasla:
 			_skor_ekle(i, j, 1)
-		elif t_avci[c_tur[i]] == 1 and t_irk[c_tur[i]] == 0:
+			_efekt([17, c_x[j], c_y[j], 4])
+		elif t_avci[c_tur[i]] == 1 and not irk_i:
 			c_tok[i] = mini(8, c_tok[i] + 4)
 		oldur(j, "savaş" if savasla else "saldırı")
 		c_oldurme[i] += 1
 		c_can[i] = minf(s_canmax[i], c_can[i] + s_canmax[i] * 0.1)
 		return
+	if uzak > 0:
+		# vurulan asker saldırgana döner ya da (korkaksa) kaçar
+		if irk_j and c_can[j] < s_canmax[j] * (0.30 - s_cesaret[j] * 0.5):
+			c_durum[j] = D_KAC
+			_yeni_hedef(j)
+		return
 	# karşılık
-	c_can[i] -= s_guc[j] * _silah(j) * rng.randf_range(0.3, 1.0)
+	c_can[i] -= s_guc[j] * _silah(j) * s_vurus[j] * rng.randf_range(0.3, 1.0)
 	if c_can[i] <= 0.0:
-		oldur(i, "savaş" if t_irk[c_tur[i]] == 1 and t_irk[c_tur[j]] == 1 else "saldırı")
+		var savasla2: bool = irk_i and irk_j
+		if savasla2:
+			_efekt([17, c_x[i], c_y[i], 4])
+		oldur(i, "savaş" if savasla2 else "saldırı")
 		c_oldurme[j] += 1
 		return
-	if t_irk[c_tur[i]] == 1 and c_can[i] < s_canmax[i] * (0.30 - s_cesaret[i] * 0.5):
+	if irk_i and c_can[i] < s_canmax[i] * (0.30 - s_cesaret[i] * 0.5):
 		c_durum[i] = D_KAC
 		_yeni_hedef(i)
+
+
+## Efekt ekler (ekranda görünür; çok hızlı oyunda liste şişmesin diye sınırlı).
+func _efekt(e: Array) -> void:
+	if efektler.size() < 500:
+		efektler.append(e)
+
+
+## Askerin birimi: 0 piyade, 1 okçu (yay/arbalet), 2 tüfekli, 3 lazerli. Çağa ve canlının yeteneğine göre.
+func birim(i: int) -> int:
+	var vid := c_koy[i]
+	var cag: int = kv_cag[vid] if vid >= 0 and vid < kv_cag.size() else 0
+	if cag >= 6:
+		return 3
+	if cag >= 4:
+		return 2
+	if s_okcu[i] >= 0.25 or (cag >= 2 and c_uid[i] % 3 == 0):
+		return 1
+	return 0
 
 
 func _skor_ekle(i: int, j: int, puan: int) -> void:
@@ -1088,6 +1353,10 @@ func _kusatma(i: int, v: Dictionary, hv: Dictionary) -> void:
 	if hv["krallik"] == v["krallik"]:
 		v["hedef"] = -1
 		return
+	hv["kusatma"] = ay            # haritada "kuşatma altında" işareti
+	hv["kusatan"] = v["krallik"]
+	if rng.randf() < 0.3:
+		_efekt([18, hv["x"] + rng.randf_range(-2.0, 2.0), hv["y"] + rng.randf_range(-2.0, 2.0), 3])
 	var yp: Array = hv["yapilar"]
 	if yp.size() > 1 and rng.randf() < 0.25:
 		var k: int = yp[rng.randi_range(1, yp.size() - 1)]
@@ -1096,6 +1365,8 @@ func _kusatma(i: int, v: Dictionary, hv: Dictionary) -> void:
 		else:
 			_yapi_yik(k)
 	var p := clampf(0.22 - hv["nufus"] * 0.004, 0.015, 0.22)
+	if s_vurus[i] > 1.2:
+		p *= 1.25   # usta savaşçılar kuşatmayı hızlandırır
 	var kale: int = hv["b"][Y_KALE] if hv["b"].size() > Y_KALE else 0
 	if kale > 0:
 		p *= 0.35
@@ -1474,7 +1745,7 @@ func _koy_yillik(v: Dictionary) -> void:
 	if v["cag"] < CAG_ESIK.size() - 1 and v["tek"] >= CAG_ESIK[v["cag"] + 1]:
 		v["cag"] += 1
 		if kr != null and kr["baskent"] == v["id"]:
-			_kronik("%s %s'na girdi. Yeni silah: %s." % [kr["ad"], CAG_AD[v["cag"]], SILAH_AD[v["cag"]]], 2)
+			_kronik("%s %s girdi. Yeni silah: %s." % [kr["ad"], yonelme(CAG_AD[v["cag"]]), SILAH_AD[v["cag"]]], 2)
 	# --- inşaat
 	var cag: int = v["cag"]
 	_kapasite_hesapla(v)
@@ -1569,7 +1840,7 @@ func _kv_boyut(id: int) -> void:
 	if id < kv_bayrak.size():
 		return
 	var n := maxi(id + 1, kv_bayrak.size() * 2)
-	for a in [kv_bayrak, kv_bolluk, kv_is, kv_zeka, kv_yet, kv_aday, kv_puan, kv_erkek]:
+	for a in [kv_bayrak, kv_bolluk, kv_is, kv_zeka, kv_yet, kv_aday, kv_puan, kv_erkek, kv_cag, kv_kahin, kv_hain, kv_sifa]:
 		var eski: int = a.size()
 		a.resize(n)
 		for m in range(eski, n):
@@ -1580,6 +1851,9 @@ func _kv_boyut(id: int) -> void:
 			kv_aday[m] = -1
 			kv_erkek[m] = -1
 			kv_puan[m] = -1.0
+			kv_hain[m] = -1
+			kv_kahin[m] = -100000
+			kv_sifa[m] = -100000
 
 
 ## Köyün durum bayraklarını hızlı dizilere yazar (yıllık canlı döngüsü bunları okur).
@@ -1601,10 +1875,11 @@ func _bayrak(v: Dictionary) -> void:
 		f |= 32
 	kv_bayrak[id] = f
 	kv_bolluk[id] = v["bolluk"]
+	kv_cag[id] = v["cag"]
 
 
 func _kv_kur() -> void:
-	for a in [kv_bayrak, kv_bolluk, kv_is, kv_zeka, kv_yet, kv_aday, kv_puan, kv_erkek]:
+	for a in [kv_bayrak, kv_bolluk, kv_is, kv_zeka, kv_yet, kv_aday, kv_puan, kv_erkek, kv_cag, kv_kahin, kv_hain, kv_sifa]:
 		a.resize(0)
 	_kv_boyut(son_koy + 1)
 	for id in koyler:
@@ -1704,6 +1979,7 @@ func isyan(v: Dictionary, tanri := false) -> bool:
 	var t: Dictionary = turler[v["irk"]]
 	var kr := _krallik_kur(v, v["irk"], "Özgür %s %s" % [v["ad"], t["krallik_eki"]])
 	kr["din"] = eski.get("din", -1)
+	kr["asi"] = eski["id"]        # hangi krallıktan koptu (barışta yeniden birleşme ya da bağımsızlık)
 	v["krallik"] = kr["id"]
 	v["huzur"] = 65.0
 	_kk_ay = -1
@@ -1728,7 +2004,7 @@ func isyan(v: Dictionary, tanri := false) -> bool:
 				break
 	if aday >= 0:
 		kr["kral"] = aday; kr["kral_uid"] = c_uid[aday]; kr["kral_ad"] = c_ad[aday]
-	_kronik("İSYAN: %s halkı %s'na karşı ayaklandı%s! %s kuruldu." % [v["ad"], eski["ad"],
+	_kronik("İSYAN: %s halkı %s karşı ayaklandı%s! %s kuruldu." % [v["ad"], yonelme(eski["ad"]),
 		(" (%d köy katıldı)" % katilan) if katilan > 0 else "", kr["ad"]], 3, v["x"], v["y"])
 	efektler.append([10, v["x"] + 0.5, v["y"] + 0.5, 10])
 	savas_ilan(eski["id"], kr["id"], "isyan (iç savaş)")
@@ -1843,6 +2119,8 @@ func _krallik_yillik(kr: Dictionary) -> void:
 			_kronik("%s tahtına %s çıktı%s." % [kr["ad"], c_ad[aday], (" (" + ", ".join(ozl) + ")") if ozl.size() > 0 else ""], 2)
 		else:
 			kral = -1
+	if kral >= 0:
+		kral = _darbe_dene(kr, kral)
 	# hazine: vergi kararı, haraç, ordu
 	kr["_koy"] = liste.size()
 	_hazine_yillik(kr, kral)
@@ -1861,10 +2139,14 @@ func _krallik_yillik(kr: Dictionary) -> void:
 			p *= 0.1
 		if rng.randf() < p:
 			baris_yap(kid, did)
+		elif sure_yil >= 2.0 and _baris_satin_al(kr, kralliklar[did], kral):
+			pass
 	var savasta := not savas.is_empty()
 	if not savasta:
 		kr["kayip"] = 0
 	_diplomasi_yillik(kr, kral, liste)
+	if not kralliklar.has(kid):
+		return   # krallık başka birine katıldı
 	# hız: savaş hedefi araması her yıl değil, ortalama 4 yılda bir yapılır (olasılık 4 katı: beklenen savaş sayısı aynı)
 	if not savasta and kralliklar.size() > 1 and rng.randf() < 0.25:
 		# en yakın yabancı köyü bul
@@ -1929,6 +2211,138 @@ func _krallik_yillik(kr: Dictionary) -> void:
 				v["hedef"] = d["id"]
 
 
+## Darbe: başkentteki hain/hırslı bir soylu, zayıf ya da sevilmeyen hükümdarı devirmeyi dener.
+## Başarırsa tahta geçer (eski hükümdar öldürülür ya da sürülür); başaramazsa idam edilir.
+func _darbe_dene(kr: Dictionary, kral: int) -> int:
+	var bv = koyler.get(kr["baskent"])
+	if bv == null:
+		return kral
+	var h: int = kv_hain[bv["id"]]
+	if h < 0 or h == kral or c_var[h] == 0 or c_koy[h] != bv["id"] or (c_bit[h] & 2) == 0:
+		return kral
+	if ay - int(kr.get("darbe_ay", -100000)) < 15 * 12:
+		return kral   # son girişimin üstünden 15 yıl geçmeden saray tetikte
+	var p := 0.02 * (1.0 + (etki(h, "darbe") + etki(h, "ihanet")) / 60.0)
+	var huzur: float = float(bv.get("huzur", 70.0))
+	if huzur < 45.0:
+		p *= 2.0
+	if int(kr.get("vergi", 1)) == 2:
+		p *= 1.4
+	if not kr["savas"].is_empty() and int(kr.get("kayip", 0)) > 20:
+		p *= 1.5
+	p *= clampf(1.0 - s_lider[kral] / 80.0, 0.25, 1.5)
+	if rng.randf() >= p:
+		return kral
+	kr["darbe_ay"] = ay
+	# güç dengesi: darbecinin zekâsı ve liderliği, hükümdarın liderliği ve halkın huzuru
+	var basari := clampf(0.45 + (s_zeka[h] - s_zeka[kral]) / 200.0 + (s_lider[h] - s_lider[kral]) / 100.0 + (50.0 - huzur) / 150.0, 0.15, 0.85)
+	if rng.randf() < basari:
+		_darbe_uygula(kr, kral, h, bv)
+		return h
+	_kronik("%s sarayında darbe girişimi bastırıldı; %s idam edildi." % [kr["ad"], c_ad[h]], 2, bv["x"], bv["y"])
+	kv_hain[bv["id"]] = -1
+	oldur(h, "idam")
+	return kral
+
+
+## Darbeyi gerçekleştirir: h tahta geçer, eski hükümdar öldürülür ya da sürülür, halkın huzuru sarsılır.
+func _darbe_uygula(kr: Dictionary, kral: int, h: int, bv: Dictionary) -> void:
+	var eski_var: bool = kral >= 0 and c_var[kral] == 1 and c_uid[kral] == kr["kral_uid"]
+	var eski_ad: String = c_ad[kral] if eski_var else str(kr.get("kral_ad", "?"))
+	var surgun := rng.randf() < 0.4
+	kr["kral"] = h; kr["kral_uid"] = c_uid[h]; kr["kral_ad"] = c_ad[h]
+	if eski_var:
+		_kronik("DARBE: %s, %s hükümdarı %s devirip tahta geçti. Eski hükümdar %s." % [c_ad[h], kr["ad"], belirtme(eski_ad), "sürgüne gitti" if surgun else "öldürüldü"], 3, bv["x"], bv["y"])
+	else:
+		_kronik("DARBE: %s, boş kalan %s tahtını ele geçirdi." % [c_ad[h], kr["ad"]], 3, bv["x"], bv["y"])
+	_efekt([10, bv["x"] + 0.5, bv["y"] + 0.5, 8])
+	kr["darbe_sayisi"] = int(kr.get("darbe_sayisi", 0)) + 1
+	kr["darbe_ay"] = ay
+	if eski_var:
+		if surgun:
+			var ev = koyler.get(c_koy[kral])
+			if ev != null:
+				ev["nufus"] -= 1
+			c_koy[kral] = -1
+			c_durum[kral] = D_GEZ
+		else:
+			kr["kral_uid"] = 0            # ölüm kroniği ayrıca "hükümdar öldü" yazmasın
+			oldur(kral, "darbe")
+			kr["kral_uid"] = c_uid[h]
+	# darbe halkı böler: köylerin huzuru sarsılır
+	for v in krallik_koyleri(kr["id"]):
+		v["huzur"] = maxf(5.0, float(v.get("huzur", 70.0)) - rng.randf_range(4.0, 14.0))
+	kv_hain[bv["id"]] = -1
+
+
+## Tanrı gücü: bir krallıkta darbe yaptırır (hükümdarı değiştirir). Yeni hükümdarın adını döndürür ("" = olmadı).
+func darbe_yaptir(kr: Dictionary) -> String:
+	var bv = koyler.get(kr["baskent"])
+	if bv == null:
+		return ""
+	var kral: int = kr["kral"]
+	var h := -1
+	for aday in [kv_hain[bv["id"]], kv_aday[bv["id"]]]:
+		if aday >= 0 and aday != kral and c_var[aday] == 1 and c_koy[aday] == bv["id"] and c_yas[aday] >= t_yetiskin[c_tur[aday]]:
+			h = aday
+			break
+	if h < 0:
+		for i in ust:
+			if c_var[i] == 1 and i != kral and c_koy[i] == bv["id"] and c_yas[i] >= t_yetiskin[c_tur[i]]:
+				h = i
+				break
+	if h < 0:
+		return ""
+	_darbe_uygula(kr, kral, h, bv)
+	return c_ad[h]
+
+
+## Savaşı kaybeden taraf, hazinesinde yeterli altın varsa barışı satın almayı dener (rüşvet / savaş tazminatı).
+func _baris_satin_al(kr: Dictionary, dusman: Dictionary, kral: int) -> bool:
+	var bizim: int = int(kr["skor"].get(dusman["id"], 0))
+	var onlar: int = int(dusman["skor"].get(kr["id"], 0))
+	if onlar < bizim + 12:
+		return false
+	var bedel: float = 25.0 + krallik_koyleri(dusman["id"]).size() * 4.0 + (onlar - bizim) * 0.8
+	if float(kr["hazine"]) < bedel:
+		return false
+	var p := 0.25
+	if kral >= 0:
+		p *= clampf(1.0 + (etki(kral, "diplomasi") + etki(kral, "ticaret")) / 50.0, 0.3, 3.0)
+	if rng.randf() >= p:
+		return false
+	kr["hazine"] = float(kr["hazine"]) - bedel
+	dusman["hazine"] = float(dusman.get("hazine", 0.0)) + bedel
+	var a: int = kr["id"]
+	var b: int = dusman["id"]
+	kr["savas"].erase(b); dusman["savas"].erase(a)
+	kr["skor"].erase(b); dusman["skor"].erase(a)
+	_kronik("BARIŞ: %s, %s %d altın ödeyerek barışı satın aldı." % [kr["ad"], yonelme(dusman["ad"]), int(bedel)], 2)
+	return true
+
+
+## Bir krallığın tüm köylerini başka bir krallığa katar (yeniden birleşme, gönüllü katılma).
+func _krallik_kat(kucuk: Dictionary, buyuk: Dictionary) -> void:
+	var kid: int = kucuk["id"]
+	for v in krallik_koyleri(kid):
+		v["krallik"] = buyuk["id"]
+		v["hedef"] = -1
+		v["huzur"] = maxf(float(v.get("huzur", 70.0)), 55.0)
+		for k in v["yapilar"]:
+			degisen.append(k)
+	buyuk["hazine"] = float(buyuk.get("hazine", 0.0)) + float(kucuk.get("hazine", 0.0))
+	for did in kucuk["savas"].keys():
+		if kralliklar.has(did):
+			kralliklar[did]["savas"].erase(kid)
+			kralliklar[did]["skor"].erase(kid)
+	kralliklar.erase(kid)
+	for id in kralliklar:
+		kralliklar[id]["savas"].erase(kid)
+		kralliklar[id].get("muttefik", {}).erase(kid)
+		kralliklar[id].get("harac", {}).erase(kid)
+	_kk_ay = -1
+
+
 ## Hükümdar vergiyi karakterine göre belirler; hazine haraç öder ve savaşta paralı asker/zırh alır.
 func _hazine_yillik(kr: Dictionary, kral: int) -> void:
 	_krallik_tamamla(kr)
@@ -1984,13 +2398,17 @@ func savas_ilan(a: int, b: int, sebep := "") -> void:
 	kb["savas"][a] = ay
 	ka["skor"][b] = 0
 	kb["skor"][a] = 0
+	if not ka.has("sebep"):
+		ka["sebep"] = {}
+	ka["sebep"][b] = sebep        # savaşı açan tarafta saklanır (Savaşlar panelinde gösterilir)
 	# haraç ödeyen, efendisine savaş açarsa haracı keser
 	ka["harac"].erase(b)
 	for v in krallik_koyleri(a) + krallik_koyleri(b):
 		v["savasta"] = true
 		_bayrak(v)
 	var yerb := baskent_yeri(kb)
-	_kronik("SAVAŞ: %s, %s'na savaş ilan etti! (Sebep: %s)" % [ka["ad"], kb["ad"], sebep], 3, yerb.x, yerb.y)
+	_kronik("SAVAŞ: %s, %s savaş ilan etti! (Sebep: %s)" % [ka["ad"], yonelme(kb["ad"]), sebep], 3, yerb.x, yerb.y)
+	efektler.append([19, yerb.x + 0.5, yerb.y + 0.5, 24])
 	# müttefikler savaşa katılır: savunanın müttefikleri daha istekli
 	for taraf in [[b, a, 0.7], [a, b, 0.4]]:
 		var dost: Dictionary = kralliklar[taraf[0]]
@@ -2007,6 +2425,14 @@ func savas_ilan(a: int, b: int, sebep := "") -> void:
 					v["savasta"] = true
 					_bayrak(v)
 				_kronik("%s, müttefiki %s için savaşa katıldı." % [kralliklar[mid]["ad"], dost["ad"]], 2)
+
+
+## Süren savaş sayısı (krallık çifti).
+func savas_sayisi() -> int:
+	var n := 0
+	for id in kralliklar:
+		n += kralliklar[id]["savas"].size()
+	return n / 2
 
 
 ## Savaşın nedeni: hükümdarın karakteri, din, ırk düşmanlığı, zenginlik ya da toprak.
@@ -2082,6 +2508,17 @@ func _diplomasi_yillik(kr: Dictionary, kral: int, liste: Array) -> void:
 			ittifak_boz(kid, mid)
 	if kralliklar.size() < 2:
 		return
+	if liste.size() == 1 and kr["savas"].is_empty() and ay - int(kr["kurulus"]) > 240 and rng.randf() < 0.05:
+		var tek: Dictionary = liste[0]
+		if int(tek["nufus"]) < 60:
+			var komsu = koy_yakin(tek["x"] + rng.randi_range(-14, 14), tek["y"] + rng.randi_range(-14, 14), 30, tek["irk"])
+			if komsu != null and komsu["krallik"] != kid and kralliklar.has(komsu["krallik"]):
+				var bk: Dictionary = kralliklar[komsu["krallik"]]
+				var ayni_din: bool = dinler.has(int(kr.get("din", -1))) and int(kr.get("din", -1)) == int(bk.get("din", -2))
+				if krallik_koyleri(bk["id"]).size() >= 3 and (mt.has(bk["id"]) or ayni_din) and kita[tek["y"] * gen + tek["x"]] == kita[komsu["y"] * gen + komsu["x"]]:
+					_kronik("BİRLEŞME: %s, hanedan evliliğiyle %s katıldı." % [kr["ad"], yonelme(bk["ad"])], 2, tek["x"], tek["y"])
+					_krallik_kat(kr, bk)
+					return
 	var idler := kralliklar.keys()
 	var dip := 0.0
 	if kral >= 0:
@@ -2169,6 +2606,23 @@ func baris_yap(a: int, b: int) -> void:
 	ka["skor"].erase(b)
 	kb["skor"].erase(a)
 	var sure_yazi: String = ("%d yıl sürdü" % sure) if sure > 0 else "bir yıldan kısa sürdü"
+	# iç savaşın sonu: isyancılar yenildiyse eski krallığa döner, kazandıysa bağımsızlıkları tanınır
+	for cift in [[ka, kb, sa, sb], [kb, ka, sb, sa]]:
+		var asi: Dictionary = cift[0]
+		var ana: Dictionary = cift[1]
+		if int(asi.get("asi", -1)) != int(ana["id"]):
+			continue
+		var s_asi: int = cift[2]
+		var s_ana: int = cift[3]
+		if s_ana >= s_asi + 8 or (s_ana >= s_asi and krallik_koyleri(asi["id"]).size() * 3 <= krallik_koyleri(ana["id"]).size() and rng.randf() < 0.5):
+			var by := baskent_yeri(asi)
+			_kronik("İÇ SAVAŞ BİTTİ: %s yenildi; köyleri yeniden %s bağlandı. Savaş %s." % [asi["ad"], yonelme(ana["ad"]), sure_yazi], 3, by.x, by.y)
+			_krallik_kat(asi, ana)
+			return
+		asi.erase("asi")
+		if s_asi > s_ana + 5:
+			_kronik("BAĞIMSIZLIK: %s, %s karşı iç savaşı kazandı ve bağımsızlığını kabul ettirdi. Savaş %s." % [asi["ad"], yonelme(ana["ad"]), sure_yazi], 2)
+			return
 	# antlaşma: açık farkla kazanan taraf 10 yıl haraç alır
 	if absi(sa - sb) >= 10 and maxi(sa, sb) >= 2 * mini(sa, sb):
 		var kazanan: Dictionary = ka if sa > sb else kb
@@ -2281,12 +2735,14 @@ func _afet_tick() -> void:
 		afet("karakis", 0, 0, false)
 	elif r < 0.0125 * olcek and yil() > 2000 and ufolar.is_empty():
 		afet("ufo", rng.randi_range(5, gen - 6), rng.randi_range(5, yuk - 6), false)
-	elif r < 0.0145 * olcek and ay % 12 >= 2 and ay % 12 <= 4 and koyler.size() > 0:
-		# bahar selleri: kıyıdaki bir köyü sular basar
+	if ay % 12 >= 2 and ay % 12 <= 4 and koyler.size() > 0 and rng.randf() < 0.012 * olcek:
+		# bahar selleri: kıyıdaki bir köyü sular basar (önce hiç olmuyordu: rastgele tek köy deneniyordu)
 		var idler := koyler.keys()
-		var sv: Dictionary = koyler[idler[rng.randi_range(0, idler.size() - 1)]]
-		if _kiyiya_yakin(sv["x"], sv["y"], 6):
-			afet("sel", sv["x"] + rng.randi_range(-3, 3), sv["y"] + rng.randi_range(-3, 3), false)
+		for deneme in 10:
+			var sv: Dictionary = koyler[idler[rng.randi_range(0, idler.size() - 1)]]
+			if _kiyiya_yakin(sv["x"], sv["y"], 6):
+				afet("sel", sv["x"] + rng.randi_range(-3, 3), sv["y"] + rng.randi_range(-3, 3), false)
+				break
 	if koyler.size() > 0 and rng.randf() < 0.012:
 		var idler := koyler.keys()
 		var v: Dictionary = koyler[idler[rng.randi_range(0, idler.size() - 1)]]
@@ -2306,7 +2762,19 @@ func _karo_ara(b: int) -> int:
 
 
 ## Bir afeti tetikler. tanri=true ise oyuncu yapmıştır.
+## Afet gönderir. Yakındaki köyde bir Kâhin yaşıyorsa halk felaketi önceden sezer ve çoğu kaçar.
 func afet(ad: String, x: int, y: int, tanri := true) -> void:
+	_onsezi = false
+	if ad in ["deprem", "volkan", "meteor", "tsunami", "hortum", "sel"]:
+		var kv = koy_yakin(clampi(x, 0, gen - 1), clampi(y, 0, yuk - 1), 14)
+		if kv != null and kv_kahin[kv["id"]] > ay - 14:
+			_onsezi = true
+			_kronik("%s köyünün kâhini felaketi önceden sezdi; halk kaçtı." % kv["ad"], 2, kv["x"], kv["y"])
+	_afet_ic(ad, x, y, tanri)
+	_onsezi = false
+
+
+func _afet_ic(ad: String, x: int, y: int, tanri := true) -> void:
 	x = clampi(x, 0, gen - 1)
 	y = clampi(y, 0, yuk - 1)
 	var k := y * gen + x
@@ -2462,7 +2930,7 @@ func afet(ad: String, x: int, y: int, tanri := true) -> void:
 					elif biyom[kk] == B_LAV:
 						biyom[kk] = B_TEPE
 						degisen.append(kk)
-						kita_kirli = true
+						_kita_kara_oldu(kk)
 			if v != null:
 				v["yemek"] += 30.0
 		"bereket":
@@ -2495,6 +2963,8 @@ func _karodakini_oldur(k: int, sebep: String) -> void:
 	var j := yer[k] - 1
 	if j >= 0 and c_var[j] == 1 and int(c_y[j]) * gen + int(c_x[j]) == k:
 		if t_ucan[c_tur[j]] == 0:
+			if _onsezi and t_irk[c_tur[j]] == 1 and rng.randf() < 0.75:
+				return
 			oldur(j, sebep)
 
 
@@ -2508,6 +2978,8 @@ func _alan_hasar(x: int, y: int, r: int, yikim: float, hasar: float, sebep: Stri
 				_yapi_yik(kk)
 			var j := yer[kk] - 1
 			if j >= 0 and c_var[j] == 1 and int(c_y[j]) * gen + int(c_x[j]) == kk and rng.randf() < 0.5:
+				if _onsezi and t_irk[c_tur[j]] == 1 and rng.randf() < 0.75:
+					continue
 				c_can[j] -= hasar * rng.randf_range(0.5, 1.5)
 				if c_can[j] <= 0.0:
 					oldur(j, sebep)
@@ -2591,7 +3063,7 @@ func _rastgele_karolar() -> void:
 			if rng.randf() < 0.12:
 				biyom[k] = B_TEPE
 				degisen.append(k)
-				kita_kirli = true
+				_kita_kara_oldu(k)
 			elif rng.randf() < 0.2:
 				yangin_baslat(k % gen + rng.randi_range(-1, 1), k / gen + rng.randi_range(-1, 1))
 		elif b == B_OVA and yapi[k] == 0 and rng.randf() < 0.015:
@@ -2751,6 +3223,8 @@ func yukle(yol: String) -> bool:
 	yanan = d["yanan"]; hortumlar = d["hortumlar"]; ufolar = d["ufolar"]; kuraklik_ay = d["kuraklik"]; kis_ay = d["kis"]
 	dogal_afet = d["dogal_afet"]; ufo_geldi = d["ufo_geldi"]; nufus_siniri = d["nufus_siniri"]
 	dinler = d.get("dinler", {}); son_din = d.get("son_din", 0)
+	# sürüm 4: köyde kusatma/kusatan, krallıkta asi/sebep/darbe_ay alanları eklendi. Hepsi isteğe bağlıdır
+	# (.get ile okunur); eski kayıtta yoksa varsayılan değerle sürer, dönüştürme gerekmez.
 	# sürüm 3: sel, nüfus geçmişi, avcı tokluğu, hazine/vergi/haraç, huzur, kale
 	if d.has("sel"):
 		sel = d["sel"]; seller = d["seller"]; nufus_gecmis = d["gecmis"]; c_tok = d["c_tok"]

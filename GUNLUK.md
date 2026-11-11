@@ -1,5 +1,115 @@
 # Gece günlüğü
 
+## 2026-11-11 (2. çalışma) — Gece 3: kasma avı, görünür savaşlar, ayrıntılı binalar, darbe, ses
+
+### Analiz bulguları (dogrulama 256x160 tohum 3/7/11/21/33, 512x320 tohum 5; 300–1000 yıl, sınırsız nüfus; yeni `olcum` modu)
+- **Kasmanın asıl sebebi harita dokusuydu, simülasyon değil.** Haritada tek bir karo değişince (ova ormana döndü, ev yapıldı, yanık yeşerdi) değişen karoların *sınır kutusu* yeniden çiziliyordu; iki uzak karo değişince bu kutu tüm harita oluyordu. Hız arttıkça her 60 ms'de bir **tüm harita** yeniden çiziliyor ve tüm doku (Dev haritada ~8 MB) ekran kartına yeniden yükleniyordu. Ölçüm: 100x'te karenin 131–913 ms'si buna gidiyordu; Dev haritada 20x'te kare 845 ms (saniyede 1 kare), ulaşılan hız 20 yerine **1 ay/sn**.
+- **Yılda bir takılma:** kıta etiketleri (kara parçalarının hangi kıtada olduğu) soğuyan her lav karosunda baştan hesaplanıyordu: Dev haritada tek ayda **57–79 ms**.
+- **1x'te saniyede bir sarsıntı:** her ay tüm canlılar aynı karede yürütülüyordu (10 bin canlıda ~10 ms, telefonda birkaç katı).
+- **Köy adları her karede** yeniden sıralanıp ölçülüyordu (400 köyde her kare binlerce çağrı); üst çubuk her karede tüm köyleri tarıyordu.
+- **Bahar seli hiç olmuyordu:** 300 yılda kendiliğinden 0 sel (rastgele tek köy deneniyor, kıyıda değilse vazgeçiliyordu).
+- **100 özelliğin çoğu etkisizdi:** `okculuk`, `saldiri`, `yakin_dovus`, `kacinma`, `afet_onsezi`, `sifa`, `ihanet`, `darbe` hiçbir yerde okunmuyordu.
+- **İsyancı krallıklar birikiyordu** (Gece 2'nin sorunu): 300 yılda 23–27 krallık, çoğu "Özgür …".
+- **Tarayıcıda simgeler kutu çıkıyordu:** ♛ ⚔ → ■ ★ gibi işaretler oyunun yazı tipinde yok; PC'de sistem yazı tipinden geliyordu, tarayıcıda sistem yazı tipi kullanılamıyor. 📍 hiçbir yerde çıkmıyordu.
+- Savaşlar haritada neredeyse görünmüyordu: asker köylüden yalnızca koyu renkle ayrılıyordu, çarpışma tek kırmızı nokta.
+
+### Kasma ölçümü (önce → sonra)
+Yeni ölçüm: `godot -- olcum` (az/orta/çok nüfus × uzak/yakın görünüm × 1x/20x/100x/500x; her satır aynı kayıttan başlar). Aynı ölçüm betiği Gece 2 koduna da takılıp **aynı makinede** çalıştırıldı. Süreler yazılım çizimiyle (ekran kartsız bulut makinesi) ölçüldü; gerçek cihazda kareler daha kısa, ama oranlar geçerli. "Sonra" dünyaları yeni kurallar yüzünden ~%15 daha az canlı içeriyor.
+
+| Nüfus | Görünüm | Hız | Canlı (önce → sonra) | Ort. kare ms | En yavaş kare ms | Harita dokusu ms/kare | Ulaşılan hız (ay/sn) |
+|---|---|---|---|---|---|---|---|
+| az | uzak | 1x | 1059 → 869 | 18.6 → **21.0** | 75.6 → **29.0** | 0.6 → 0.0 | 1 → **1** |
+| az | uzak | 20x | 1010 → 808 | 22.1 → **20.2** | 77.4 → **28.1** | 2.9 → 0.1 | 20 → **20** |
+| az | uzak | 100x | 2958 → 1087 | 167.5 → **22.5** | 398.8 → **29.3** | 131.0 → 0.9 | 56 → **100** |
+| az | uzak | 500x | 4539 → 3259 | 270.4 → **37.5** | 419.7 → **67.3** | 221.3 → 2.0 | 52 → **322** |
+| az | yakın | 100x | 2909 → 1096 | 176.2 → **23.2** | 400.9 → **36.4** | 134.2 → 0.9 | 53 → **101** |
+| az | yakın | 500x | 4470 → 3360 | 306.0 → **38.2** | 473.6 → **57.7** | 239.0 → 2.0 | 45 → **337** |
+| orta | uzak | 1x | 5179 → 4519 | 32.2 → **25.4** | 282.0 → **35.4** | 5.5 → 0.0 | 1 → **1** |
+| orta | uzak | 20x | 5567 → 4647 | 64.0 → **28.3** | 288.5 → **47.0** | 25.5 → 0.5 | 19 → **20** |
+| orta | uzak | 100x | 6976 → 5422 | 239.1 → **38.9** | 516.9 → **60.0** | 185.3 → 1.8 | 25 → **98** |
+| orta | uzak | 500x | 7257 → 6216 | 215.2 → **43.3** | 626.2 → **58.3** | 158.3 → 2.1 | 36 → **124** |
+| orta | yakın | 1x | 5164 → 4519 | 46.6 → **33.9** | 200.4 → **47.7** | 4.0 → 0.0 | 1 → **1** |
+| orta | yakın | 20x | 5697 → 4727 | 125.3 → **38.5** | 417.4 → **57.3** | 63.1 → 0.7 | 15 → **20** |
+| orta | yakın | 100x | 6978 → 5700 | 252.4 → **53.4** | 583.6 → **71.6** | 189.6 → 2.0 | 23 → **83** |
+| orta | yakın | 500x | 7264 → 6334 | 223.0 → **51.4** | 586.4 → **71.7** | 157.8 → 2.1 | 36 → **114** |
+| çok (Dev harita) | uzak | 1x | 12482 → 11041 | 83.6 → **34.6** | 1449.9 → **55.2** | 50.0 → 0.1 | 1 → **1** |
+| çok (Dev harita) | uzak | 20x | 13712 → 11516 | 845.3 → **54.8** | 1728.2 → **83.6** | 780.5 → 1.7 | 1 → **18** |
+| çok (Dev harita) | uzak | 100x | 15096 → 12837 | 978.1 → **60.2** | 1592.6 → **74.5** | 913.0 → 2.3 | 2 → **31** |
+| çok (Dev harita) | uzak | 500x | 15878 → 13255 | 1071.3 → **54.8** | 1606.2 → **76.4** | 1004.4 → 2.1 | 3 → **39** |
+| çok (Dev harita) | yakın | 1x | 12240 → 10903 | 189.9 → **50.4** | 1779.1 → **71.1** | 98.3 → 0.2 | 0 → **1** |
+
+Özet: hızlandırılmış oyunda ortalama kare **5–18 kat**, en yavaş kare **7–20 kat** kısaldı; 100x gerçekten 100x gidiyor (önce 25–56). Yazılım çiziminde bir karenin ~20–30 ms'si boş haritayı çizmeye gidiyor; gerçek ekran kartında bu pay çok daha küçük.
+
+Tek ayın (tick) süresi, ekransız (dogrulama TICK satırları): en yavaş tek ay Dev haritada **57–79 ms → 7–17 ms**. Simülasyonun ham hızı aynı kaldı (300 yıl, 256x160 tohum 3: 7.07 → 7.04 sn; 512x320: 22.2 → 20.7 sn; 1000 yıl tohum 11: aynı makinede 42.5 → 50.1 sn ama 17.2 bin yerine 19.6 bin canlıyla, canlı başına eşit). Bu gecenin kazancı kare akıcılığı; ham simülasyon hızı için sıradaki adım aşağıda.
+
+### Performans (yapılanlar)
+- **Parçalı harita dokusu:** harita 32x32 karoluk parçalara bölündü; değişen karonun yalnızca kendi parçası ekran kartına yüklenir (önce her değişiklikte tüm harita). Karede en çok ~2,5 ms karo çizilir ve 4 parça yüklenir; fazlası sonraki karelere kalır.
+- **Kıyı yenileme yerelleşti:** yalnızca su ↔ kara değişen karoların çevresi, yakın kümeler hâlinde yeniden hesaplanır (önce tüm değişikliklerin sınır kutusu).
+- **Kıta etiketleri aylara yayıldı** (`_kita_adim`); soğuyan lav komşusunun etiketini alır, tam hesap gerekmez.
+- **Yayık hareket (1x–5x):** canlıların hareketi ayın içine 8 dilime bölündü; her karede sekizde biri yürür, çizim her canlıyı kendi diliminden başlatarak akıtır. Tick anındaki sarsıntı kalktı.
+- **Kare bütçesi:** karenin çizim/arayüz payı ölçülür, simülasyona kalan süre verilir (düşük hızda hedef 60 FPS, yüksek hızda en az ~30 FPS). Hareket adımı: 20x'te 2, 100x'te 6, 500x'te 12.
+- **Uzak görünüm:** canlı nokta listesi her karede değil, simülasyon ilerleyince (en çok saniyede ~8 kez) kurulur. **Yakın görünüm:** ekrandaki canlıların listesi önbelleklenir (her karede 10–30 bin canlı taranmaz). Orta uzaklıkta sade figürler.
+- **Köy adları** yarım saniyede bir hazırlanır, her karede yalnızca yerleştirilir; üst çubuk saniyede birkaç kez güncellenir.
+- **Krallık/ırk haritası** karelere yayılarak hesaplanır (önce saniyede bir tek karede 40–80 ms).
+- **Bina katmanı** çizim komutlarını saklar: kamera aynı bölgedeyken yeniden çalışmaz.
+- Okçu/tüfekli hedef araması karoları birer atlayarak tarar (1000 yıllık dünyada hareket payı 26 → 19 sn).
+
+### Görünürlük (dünyada olanlar net görünsün)
+- **Askerler krallık renginde** giyinir; çağa göre silah: sopa (Taş), mızrak (Tunç), kılıç ya da yay (Demir), çelik kılıç ya da arbalet (Orta Çağ), süngülü tüfek (Barut/Sanayi), lazer (Uzay). Kalkan (Tunç'tan), miğfer (Demir'den; Orta Çağ'da tepelikli), göğüslük. Her dokuz askerden biri **sancaktar** (dalgalanan krallık bayrağı).
+- **Çarpışma efektleri:** kılıç kıvılcımı, uçan ok, namlu alevi ve duman, lazer ışını, ölüm izi (kan ve yükselen ruh), kuşatılan köyde ateş ve duman.
+- **Savaşın özeti her uzaklıkta:** kuşatılan köyün üstünde atan çapraz kılıç simgesi (kuşatanın rengiyle), sefere çıkan köyden hedefe kesik ok, savaş ilan edilen başkentte kırmızı halka. Simgeler ekranda sabit boyda.
+- **Krallık toprakları uzaktan her zaman** hafif renkli ve sınırlı görünür (yaklaştıkça silikleşir; Menü → Uzaktan sınırlar). Yakında köy sınırı krallık renginde ince halka.
+- **Ayrıntılı binalar** (yakınlaştırınca): 8x8 piksel ev, ambar, maden, demirhane, kışla, tapınak, kütüphane, pazar, saray, kule, kale, harabe, köy meydanı (kuyu ve bayrak); çatılar krallık renginde, duvarlar ırka göre.
+- **Savaşlar paneli** ve üst çubukta "⚔ N savaş".
+
+### Oynanabilirlik
+- **⚔ Savaşlar** (Gözlem): süren savaşlar, kaç yıldır sürdüğü, skor, sebep, kuşatılan köyler; satıra dokun → cepheye git. Altında son savaş olayları.
+- **Gerçek hız göstergesi:** oyun istenen hıza yetişemiyorsa üst çubukta "hız ~180x" yazar (oyuncu neden yavaş aktığını görür).
+- **Simgeler tarayıcıda da çıkıyor:** oyuna küçük bir simge yazı tipi (DejaVu Sans alt kümesi, 127 KB, özgür lisans) eklendi; 📍 yerine ➤.
+- Kronik/İstatistik/Savaşlar paneli artık alt araç çubuğunun üstüne taşmıyor.
+- Yeni tanrı gücü **Darbe yaptır**; Gözlem'e **Irk haritası**; menüde **Ses** ve **Uzaktan sınırlar** (ayar kalıcı). Menü bir satır kısaldı.
+- Kronikte Türkçe ekler düzeldi ("Çetesi'na" → "Çetesi'ne", "Permar'i" → "Permar'ı").
+
+### Mantık
+- **Menzilli savaş:** okçu, tüfekli ve lazerli askerler 4–5 karodan vurur ve karşılık almaz; okçuluk özelliği hasarı artırır. Cüce zırhı ve Dev derisi oku/mermiyi keser (×0.55 / ×0.7).
+- **Özellikler savaşta işliyor:** Saldırgan, Kana Susamış, yakın dövüş ustaları daha sert vurur; Çevik canlı darbeden sıyrılır; Korkak (cesareti düşük) vurulunca kaçar; usta savaşçı kuşatmayı hızlandırır.
+- **İç savaşın sonu var:** isyancılar yenilirse köyleri eski krallığa döner; kazanırsa bağımsızlık tanınır. Tek köylü yaşlı krallıklar müttefik/dindaş büyük komşuya katılabilir. 300 yılda krallık sayısı 23–27 → 16–22.
+- **Barış satın alınır:** kaybeden taraf hazinesinden savaş tazminatı ödeyerek barış yapabilir.
+- **Darbe:** zayıf, sevilmeyen, yüksek vergi alan ya da savaş kaybeden hükümdar devrilebilir; 15 yılda en çok bir girişim (300 yılda 3–10 başarılı darbe).
+- **Kâhin** felaketi sezer, halk kaçar (sınama: aynı deprem + meteor, 10 ölü → 2 ölü). **Şifacı** salgın ölümlerini azaltır.
+- **Bahar selleri** artık oluyor (300 yılda 0 → ~10).
+
+### Görsel kalite ve detay
+- Binalar 4 kat ayrıntılı (yakında); evler çağa göre **kulübe → ev → taş ev**, ırka göre **elf ağaç evi, ork deri çadırı, cüce taş evi, goblin çamur kulübesi, kertenkele kamış evi, dev taş halkası, uzaylı kubbesi**.
+- Canlılar: saç (beş ton; elflerde sarı/gümüş; yaşlılarda ağarır; kadınlarda omuza iner), kişiye göre giysi tonu, kuşak, çok yakında gözler.
+- Yeni efektler (7 adet) ve savaş simgeleri; uzaktan krallık renkli bölgeler.
+
+### Derinleştirilen 3 özellik
+1. **Savaş:** birimler (piyade, okçu, tüfekli, lazerli, sancaktar), menzilli atış, çağa göre silah ve zırh görünümü, çarpışma efektleri, kuşatma işaretleri, savaşlar paneli.
+2. **Diplomasi:** iç savaşın sonucu (yeniden birleşme / bağımsızlık), barışı satın alma, gönüllü katılma (hanedan evliliği), savaş sebebinin saklanması.
+3. **Canlı özellikleri:** saldırı, yakın dövüş, okçuluk, kaçınma, afet önsezisi, şifa, ihanet ve darbe etkileri simülasyona bağlandı.
+
+### Eklenen yeni sistemler (TASARIM.md)
+1. **Darbe** (§8) + tanrı gücü "Darbe yaptır" (§11 "kral değiştir").
+2. **Kâhin önsezisi** (§10).
+3. **Ses** (§14): kodla üretilen ortam, afet, savaş ve arayüz sesleri (ses dosyası yok).
+- Ek: **Irk haritası** (§11), **ırka özel ev görünümleri** (§7), **okçu/tüfekli birimler** (§8).
+
+### Kayıt
+- `KAYIT_SURUMU` 4. Yeni alanlar (köyde kuşatma bilgisi, krallıkta isyan kaynağı / savaş sebebi / son darbe) isteğe bağlı; Gece 2 koduyla üretilmiş sürüm 3 kayıt yüklendi, 62 yıl sorunsuz sürdü, yeniden kaydedilip açıldı.
+
+### Derleme / depo
+- CI'a `olcum` adımı eklendi (`onizleme/olcum.txt`); önizlemeye 9 yeni kare (ırk haritası, orta uzaklık, binalar yakın plan, savaş uzak/kuşatma/asker, tüfekli ve lazerli askerler, savaşlar paneli).
+- `jekyll-gh-pages.yml` yalnızca elle çalışacak şekilde değiştirildi: her push'ta README'yi site olarak yayınlayıp oyunun web sayfasının üstüne yazabiliyordu (iki iş yarışıyordu).
+
+### Sorunlar / sonraki gece
+- **Ham simülasyon hızı artmadı.** 10 bin canlıda bir ay 500x kipinde ~3–4 ms; 500x'e ancak ~3 bin canlıya kadar tam ulaşılıyor (ölçüm: az 322, orta 124, Dev harita 39 ay/sn — yazılım çiziminde). Sıradaki adımlar: simülasyonu ayrı iş parçacığına almak (PC/Android), canlı döngülerini C++'a taşımak ya da 500x'te sivillerin hareketini istatistiksel yapmak.
+- Yakın görünümde canlı çizimi biraz ağırlaştı (ölçüm, orta nüfus: 2.4 → 3.6 ms/kare; saç ve donanım). Canlıları tek çizim çağrılı hazır resimlere (atlas / MultiMesh) taşımak planlı.
+- Irk dengesi hâlâ tohuma göre çok oynuyor (Cüce 11 ile 1576, Dev 1 ile 438 arasında); küçük nüfuslu ırkların ilk yüzyılı şansa bağlı.
+- Kronik 3000 satırla sınırlı: uzun oyunda ilk yüzyılların olayları siliniyor (önemli olayları ayrı saklamak gerek).
+- Sesler kulakla denenemedi (bulutta hoparlör yok); seviyeleri sayısal olarak ölçüldü. Rahatsız ederse Menü → Ses: KAPALI.
+- Telefon düzeni (büyük düğmeler) bulutta denenemiyor; menü taşarsa bildir.
+
 ## 2026-11-11 — Gece 2: ekonomi, isyan/iç savaş, sel, besin zinciri, kıyılar
 
 ### Analiz bulguları (dogrulama 256x160, tohum 7 ve 3; 300 ve 600 yıl, sınırsız nüfus)

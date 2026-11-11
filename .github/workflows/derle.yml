@@ -50,7 +50,7 @@ jobs:
       - name: Doğrulama (300 yıllık hızlı simülasyon)
         run: |
           export HOME=/root
-          godot --headless -s betikler/dogrulama.gd -- yil=300 | tee dogrulama.txt
+          timeout 900 godot --headless -s betikler/dogrulama.gd -- yil=300 2>&1 | tee dogrulama.txt
           grep -q "DOGRULAMA bitti" dogrulama.txt
           ! grep -q "SCRIPT ERROR" dogrulama.txt
 
@@ -127,6 +127,10 @@ jobs:
           rm -rf onizleme && mkdir -p onizleme
           timeout 600 xvfb-run -a -s "-screen 0 1280x720x24" ./godot --rendering-driver opengl3 --resolution 1280x720 -- onizleme klasor=$PWD/onizleme 2>&1 | grep -v ALSA | tee onizleme/calisma.txt
           grep -q "ONIZLEME bitti" onizleme/calisma.txt
+          ! grep -q "SCRIPT ERROR" onizleme/calisma.txt
+      - name: Kasma ölçümü (kare süreleri)
+        run: |
+          timeout 900 xvfb-run -a -s "-screen 0 1280x720x24" ./godot --rendering-driver opengl3 --resolution 1280x720 -- olcum 2>&1 | grep "OLCUM" | tee onizleme/olcum.txt || true
       - name: Depoya yaz
         run: |
           git config user.name "github-actions"
