@@ -35,22 +35,22 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 
 ## 3. Hayvanlar ve ekosistem
 - [ ] **Otoburlar:** koyun, inek, geyik, tavşan, at, tavuk.
-- [ ] **Avcılar:** kurt, ayı, aslan, timsah.
+- [ ] **Avcılar:** kurt, ayı, aslan, timsah. *(Kurt ve ayı var; Gece 6: kurt sürüleri birlikte avlanır, ayı böğürtlen/bal/balıkla da geçinir.)*
 - [ ] **Deniz:** balık sürüleri, köpekbalığı, deniz canavarı.
 - [ ] **Uçanlar:** kartal, akbaba.
 - [ ] **Efsanevi:** ejderha, dev solucan, anka kuşu. Çok nadir doğarlar ya da tanrı tarafından konurlar.
 - ✅ Besin zinciri: otlar büyür → otoburlar yer ve çoğalır → avcılar otoburları avlar. Avcı biterse otoburlar her şeyi yer ve kıtlık olur.
-- [ ] Evcilleştirme: at (binicilik), inek ve koyun (yiyecek, yün), kurt → köpek.
+- [ ] Evcilleştirme: at (binicilik), inek ve koyun (yiyecek, yün), ✅ kurt → köpek (Gece 6: köy yakınındaki kurtlar evcilleşir; köpek avda yardım eder, yırtıcıları kovalar; Hayvan Terbiyecisi hızlandırır).
 - [ ] Hayvanlar da özellik taşır ve özelliklerini yavrularına aktarır.
 
 ## 4. Canlı özellikleri (100 adet) — `veri/ozellikler.json`
 - ✅ Her canlının 0–5 özelliği olur. Bir kısmı doğuştan gelir (ırk olasılıkları + ebeveynlerden kalıtım), bir kısmı hayat boyunca kazanılır (ör. savaştan sağ çıkan "Cesur" olabilir).
 - ✅ Tanrı paneli: oyuncu herhangi bir canlıya dokunup listeden özellik **ekleyebilir veya silebilir**. "Yerleştirme fırçası" ile yeni konan canlılara önceden seçilmiş özellikler verilebilir.
 - ✅ Zıt özellikler bir arada olamaz (Aptal + Dahi gibi). Liste JSON dosyasındaki `zit` alanında.
-- [ ] Etkiler gerçekten oyunu değiştirmeli: *(Gece 3: saldırı, yakın dövüş, okçuluk, kaçınma, afet önsezisi, şifa, ihanet ve darbe etkileri artık simülasyonda işliyor.)*
+- [ ] Etkiler gerçekten oyunu değiştirmeli: *(Gece 3: saldırı, yakın dövüş, okçuluk, kaçınma, afet önsezisi, şifa, ihanet ve darbe etkileri artık simülasyonda işliyor. Gece 6: eş bulma, moral, zanaat, kaza, şans, iyileşme, silah/zırh yapımı, evcilleştirme, hayvan saldırısı, denizcilik, yüzme/boğulma, sadakat da işliyor — Hain general düşmana geçer.)*
   - Zeki/Dahi bir kral ülkenin teknolojisini hızlandırır. Aptal kral kötü kararlar verir: gereksiz savaş açar, hazineyi boşa harcar.
   - Çalışkan halk daha çok üretir; Tembel halkın ambarı boş kalır.
-  - Hızlı asker önce varır, Korkak asker savaşta kaçar, Hain general düşmana geçer.
+  - Hızlı asker önce varır, Korkak asker savaşta kaçar, ✅ Hain general düşmana geçer (Gece 6).
   - Doğurgan bir köy hızla büyür, Kısır bir soy tükenir.
   - Güçlü Kalıtım taşıyan bir soy, yüzyıllar içinde özelliklerini yayarak "dahi bir hanedan" ya da "devler soyu" oluşturur.
 - ✅ Nadirlik: ★ yaygın → ★★★★★ efsanevi. Efsanevi özellikler (Dahi, Ölümsüz, Kahraman) kendiliğinden çok nadir doğar.
@@ -67,13 +67,13 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 - [ ] Kaynaklar: yiyecek, odun, taş, demir, **altın**, gümüş, değerli taş, yün, at.
 - ✅ Altın madenleri haritada sabit yerlerde bulunur; o topraklar için savaş çıkar.
 - ✅ Altının kullanımı: bina, silah, paralı asker, rüşvet ve diplomasi, kralın sarayı. Vergi sistemi; yüksek vergi isyana yol açar. (Gece 3: savaşı kaybeden taraf altınla barışı satın alabiliyor.)
-- [ ] Ticaret yolları (karadan ve denizden), pazar binaları, tüccar kervanları. ✅ Haydutlar kervan soyar (Gece 5). *(Kara kervanları var; deniz ticareti henüz yok.)*
+- [x] ✅ Ticaret yolları (karadan ve denizden), pazar binaları, tüccar kervanları. ✅ Haydutlar kervan soyar (Gece 5). ✅ Deniz ticareti: limanlar arası gemiler, kıtalar arası kazanç ve bilgi, korsanlar (Gece 6).
 - [ ] Kıtlık, enflasyon (çok altın çıkarılırsa), ekonomik çöküş. *(Gece 4: altının değeri dünyadaki altın miktarına göre değişir (enflasyon); savaşta hazinesi tükenen krallık iflas eder.)*
 
 ## 7. Binalar (çağa göre açılır)
 - [ ] **Taş Çağı:** çadır, kulübe, ateş başı, avcı kampı.
 - [ ] **Tunç / Demir:** ev, ambar, tarla, değirmen, maden, demirhane, ahır, kışla, ahşap sur.
-- [ ] **Orta Çağ:** taş ev, taş sur, gözetleme kulesi, kale, tapınak, kütüphane, pazar, liman, tersane, saray.
+- [ ] **Orta Çağ:** taş ev, taş sur, gözetleme kulesi, kale, tapınak, kütüphane, pazar, liman, tersane, saray. *(Tersane dışında hepsi var; liman Gece 6'da, Demir Çağı'ndan itibaren kıyı köylerinde.)*
 - [ ] **Barut ve sonrası:** top dökümhanesi, fabrika, demiryolu, üniversite.
 - [ ] Irka özel binalar: Elf ağaç evleri, Cüce dağ kaleleri, Ork savaş totemleri, Dev taş halkaları, Goblin yeraltı tünelleri. *(Gece 3: evler ırka göre farklı çiziliyor — elf ağaç evi, ork çadırı, cüce taş evi, goblin kulübesi, kertenkele kamış evi, dev taş halkası, uzaylı kubbesi; işlev farkı henüz yok.)*
 - ✅ Şehirler büyür: köy → kasaba → şehir → başkent. Yıkılan şehirler harabe olarak kalır.
@@ -115,7 +115,7 @@ Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla,
 - [ ] **Arazi:** kara yükselt/alçalt, su, dağ, orman, çöl, kar, lav, nehir çiz.
 - ✅ **Canlı koy:** her ırk, her hayvan, efsanevi yaratıklar. Yanında seçilen özellik fırçası kullanılır.
 - [ ] **Afetler:** yukarıdaki tablonun tamamı.
-- [ ] **Kutsama / lanet:** bir şehre bolluk, bir krallığa kıtlık. Tek canlıya özellik ver veya al.
+- [x] ✅ **Kutsama / lanet:** bir şehre bolluk, bir krallığa kıtlık. Tek canlıya özellik ver veya al. *(Gece 6: Güçler → Kutsa / Lanetle, on yıl sürer; doğan çocuklar Kutsanmış/Lanetli olabilir.)*
 - ✅ **Müdahale:** iki krallığa savaş ilan ettir, barış yaptır, kral değiştir (Darbe yaptır), isyan çıkar.
 - [ ] **Bilgi araçları:** krallık haritası, ırk haritası, nüfus/altın/teknoloji grafikleri, kronik. *(Krallık haritası, ırk haritası, huzur haritası, savaşlar paneli, nüfus grafiği, kronik; Gece 4: altın, teknoloji ve toprak grafikleri, tarih kitabı.)*
 
@@ -313,3 +313,11 @@ Gece geliştirmelerinde ortaya çıkan, tasarıma eklenen fikirler (✅ = oyunda
 - ✅ **Tanrıların öfkesi (§10):** büyük afetten sonra çevre köyler korkar, tapınak yapar; inanç doğabilir ya da değişebilir.
 - ✅ **Göçmen kabile:** soyu tükenmek üzere olan ırka (bir zamanlar 12+, şimdi 6'dan az) uzak diyarlardan kabile gelir.
 - Fikir (sonraki geceler): ordu ızgarası (cepheden uzak askerler düşman taramaz), kurt sürüleri ve köpek evcilleştirme, deniz ticareti ve gemiler, generalin adının haritada yazması, haydut kampları (gerçek haydut canlıları), müzikte savaş temposu.
+
+### 2026-11-11 (Gece 6)
+- ✅ **Liman ve deniz ticareti (§6, §7):** Demir Çağı'ndan itibaren kıyı köyleri liman kurar; limanlar arası yelkenli gemiler (düz ya da tek dönüşlü deniz yolu) altın, tahıl ve bilgi taşır, kıtalar arası sefer daha kazançlı. Korsanlar savaşta ve huzursuz kıyılarda gemi soyar. İlk deniz yolu kroniğe yazılır; deniz ortakları zor savaşır.
+- ✅ **Köpekler (§3 evcilleştirme):** köy yakınındaki kurtlar evcilleşir; köpekler köye bağlı yaşar, yırtıcıları kovalar, avcıların av getirisini artırır. Kurt sürüleri birlikte avlanır, aç kurt köpeksiz köyün sürüsüne dadanır.
+- ✅ **Kutsama ve lanet (§11):** on yıllık tanrı gücü; bereket/kıtlık, doğum, huzur, inanç, Kutsanmış/Lanetli doğan çocuklar; haritada altın ışıltı / kara bulut.
+- ✅ **Hain general düşmana geçer (§4)**, generallerin adı haritada.
+- ✅ **14 özellik etkisi işliyor** (eş bulma, moral, zanaat, kaza, şans, iyileşme, silah/zırh yapımı, evcilleştirme, hayvan saldırısı, denizcilik, yüzme/boğulma, sadakat).
+- Fikir (sonraki geceler): gemilerle deniz aşırı çıkarma ve deniz savaşı, tersane, balıkçılık (liman yiyeceği), at evcilleştirme (atlı birliklerin kaynağı), koyun yünü/inek sütü, ayı popülasyonunu dengeleme, korsan yuvaları (adada korsan köyü), kutsamanın komşu krallıklarda kıskançlık doğurması.

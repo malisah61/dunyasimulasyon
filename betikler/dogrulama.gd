@@ -133,11 +133,29 @@ func _init() -> void:
 		if str(e[1]).find("komutanı General") >= 0 and not str(e[1]).begins_with("GENERAL"):
 			oldu += 1
 	print("GENERAL: savasan krallik %d, general %d (en iyi komuta x%.2f), atanan %d, savasta dusen %d, baska sebeple olen %d | HAYDUT soygun %d / kervan %d | GOCMEN kabile %d | TANRI OFKESI %d" % [savasan, gen_say, gen_ust, gk, dustu, oldu, s.haydut_soygun, s.kervan_say, s.gocmen_kabile, ofke])
+	var liman := 0
+	var kopekli := 0
+	for id in s.koyler:
+		liman += int(s.koyler[id]["b"][s.Y_LIMAN])
+		if int(s.koyler[id].get("kopek", 0)) > 0:
+			kopekli += 1
+	var kaza := int(s.olumler.get("kaza", 0))
+	print("GECE6: liman %d, deniz seferi %d, korsan %d, yolda gemi %d | kopek %d (evcillestirilen %d, kopekli koy %d), kurt %d, ayi %d | ihanet %d | kaza olumu %d" % [liman, s.deniz_say, s.korsan_say, s.gemiler.size(), s.sayim[s.tk_kopek], s.kopek_say, kopekli, s.sayim[s.tk_kurt], s.sayim[s.tk_ayi], s.ihanet_say, kaza])
+	# tanrı gücü denemesi: bir köyü kutsa, birini lanetle; on yılda yiyecek ve huzur farkı
+	var kl: Array = s.koyler.keys()
+	if kl.size() >= 2:
+		var kv1: Dictionary = s.koyler[kl[0]]
+		var kv2: Dictionary = s.koyler[kl[1]]
+		s.kutsa(kv1)
+		s.lanetle(kv2)
+		for a in 60:
+			s.tick()
+		print("KUTSAMA: %s huzur %.0f bolluk %.2f | LANET: %s huzur %.0f bolluk %.2f" % [kv1["ad"], float(kv1.get("huzur", 0)), float(kv1["bolluk"]), kv2["ad"], float(kv2.get("huzur", 0)), float(kv2["bolluk"])])
 	print("PERFORMANS: %d yil %d ms (%.1f yil/sn), en yavas yil %d ms, en yuksek canli %d (sinir %s)" % [yil, sure, yil * 1000.0 / maxi(1, sure), azami_ms, azami_nufus, "yok" if sinir <= 0 else str(sinir)])
 	var ou: PackedInt64Array = s.olc_us
 	print("DAGILIM (ms): canli yillik %d, hareket %d, koy %d, krallik %d, afet+diger %d | en yavas tek ay %.1f ms" % [ou[0] / 1000, ou[1] / 1000, ou[2] / 1000, ou[3] / 1000, ou[4] / 1000, ou[5] / 1000.0])
-	# hız kademelerinde bir ayın (tick) süresi: 20x (adım 1), 100x (adım 4), 500x (adım 12)
-	for ad in [1, 4, 12]:
+	# hız kademelerinde bir ayın (tick) süresi: 1x–5x (adım 1, oyunda karelere yayılır), 20x (adım 2), 100x (adım 6), 500x (adım 12)
+	for ad in [1, 2, 6, 12]:
 		s.hareket_adim = ad
 		s.olc_us = PackedInt64Array([0, 0, 0, 0, 0, 0])
 		var tb := Time.get_ticks_usec()

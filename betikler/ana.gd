@@ -17,7 +17,7 @@ const AFETLER := [
 	["Volkan", "volkan"], ["Meteor", "meteor"], ["Tsunami", "tsunami"], ["Hortum", "hortum"],
 	["Salgın", "salgin"], ["Çekirge", "cekirge"], ["Kuraklık", "kuraklik"], ["Kara kış", "karakis"], ["Sel", "sel"], ["UFO", "ufo"],
 ]
-const GUCLER := [["Canlı sil", "sil"], ["Bereket", "bereket"], ["Gazap", "olum"], ["Savaş çıkar", "savas"], ["Barış yaptır", "baris"], ["İttifak kur", "ittifak"], ["İsyan çıkar", "isyan"], ["Darbe yaptır", "darbe"]]
+const GUCLER := [["Canlı sil", "sil"], ["Bereket", "bereket"], ["Kutsa", "kutsa"], ["Lanetle", "lanet"], ["Gazap", "olum"], ["Savaş çıkar", "savas"], ["Barış yaptır", "baris"], ["İttifak kur", "ittifak"], ["İsyan çıkar", "isyan"], ["Darbe yaptır", "darbe"]]
 const FIRCALAR := [1, 2, 4, 7, 12]
 ## Seçili araç için kısa ipucu (oyuncu ne yapacağını anlasın)
 const IPUCU := {
@@ -36,6 +36,8 @@ const IPUCU := {
 	"darbe": "Bir krallığın köyüne dokun: sarayda darbe olur, hükümdar devrilir ve yerine başkası geçer.",
 	"sil": "Sürükleyerek fırça alanındaki canlıları sil. Fırça boyutunu sağdaki düğmeden değiştir.",
 	"bereket": "Bir köye dokun: yiyecek ve malzeme yağar.", "olum": "Dokun: küçük alandaki canlılar ölür.",
+	"kutsa": "Bir köye dokun: on yıl kutsanır — bol ekin, çok doğum, huzur; çocuklar Kutsanmış doğabilir. Laneti de kaldırır.",
+	"lanet": "Bir köye dokun: on yıl lanetlenir — ekinler kurur, huzur düşer, salgın çıkabilir; halk tapınağa koşar.",
 	"savas": "Önce bir krallığın köyüne, sonra diğerinin köyüne dokun: savaş başlar.",
 	"baris": "İki savaşan krallığın köylerine sırayla dokun: barış yapılır.",
 	"ittifak": "İki krallığın köylerine sırayla dokun: ittifak kurulur, birbirlerini savunurlar.",
@@ -534,6 +536,20 @@ func _guc_uygula(ad: String, x: int, y: int) -> void:
 				_bildir("%s köyü kutsandı: yiyecek ve malzeme bol." % v["ad"])
 			else:
 				_bildir("Bir köye dokun.")
+		"kutsa":
+			if v == null:
+				_bildir("Bir köye dokun.")
+			else:
+				sim.kutsa(v)
+				_ses("can", -8.0, 300)
+				_bildir("%s köyü on yıl kutsandı: bereket, doğum ve huzur." % v["ad"])
+		"lanet":
+			if v == null:
+				_bildir("Bir köye dokun.")
+			else:
+				sim.lanetle(v)
+				_ses("gok", -8.0, 300)
+				_bildir("%s köyü on yıl lanetlendi: kıtlık ve korku." % v["ad"])
 		"olum":
 			sim.afet("olum", x, y, true)
 		"isyan":
@@ -977,7 +993,7 @@ func _bilgi_yaz() -> void:
 	s += "Çalışkanlık %d%% · Doğurganlık %d%%\n" % [int(sim.s_is[i] * 100), int(sim.s_dogur[i] * 100)]
 	s += "Beklenen ömür: %d yıl\n" % int(sim.s_omur[i] / 12)
 	var v = sim.koyler.get(sim.c_koy[i])
-	if v != null:
+	if v != null and t["irk"]:
 		var kr = sim.kralliklar.get(v["krallik"])
 		s += "%s: %s\n" % [SimS.KADEME_AD[sim.kademe(v)], v["ad"]]
 		if kr != null:
@@ -992,6 +1008,10 @@ func _bilgi_yaz() -> void:
 		s += "Silah: %s · Zırh: %s (%%%d)\n" % [SimS.SILAH_AD[v["cag"]], SimS.ZIRH_AD[v["cag"]], int(sim.kv_zirh[v["id"]] * 100.0) if v["id"] < sim.kv_zirh.size() else 0]
 	elif t["irk"]:
 		s += "Köyü yok (gezgin)\n"
+	if not t["irk"] and v != null:
+		s += "Sahibi: %s köyü — köyü korur, avda yardım eder\n" % v["ad"]
+	elif sim.tk_kurt == sim.c_tur[i]:
+		s += "Sürü avcısı: sürüdaşı yanındayken %60 sert ısırır\n"
 	var durum := ["Geziyor", "Asker", "Göç ediyor", "Kaçıyor"]
 	if sim.c_durum[i] == SimS.D_ASKER:
 		s += "Durum: Asker — [color=#ffb060]%s[/color]\n" % SimS.BIRIM_AD[sim.birim(i)]
@@ -1081,10 +1101,14 @@ func _koy_goster(v: Dictionary) -> void:
 	s += "Çağ: %s\n" % SimS.CAG_AD[v["cag"]]
 	s += "Ordu: %s · %s (%%%d)\n" % [SimS.SILAH_AD[v["cag"]], SimS.ZIRH_AD[v["cag"]], int(sim.kv_zirh[v["id"]] * 100.0) if v["id"] < sim.kv_zirh.size() else 0]
 	s += "Yiyecek: %d  ·  Malzeme: %d\nAltın: %d  ·  Demir: %d\n" % [int(v["yemek"]), int(v["malzeme"]), int(v["altin"]), int(v["demir"])]
-	s += "Bina: %d%s\n" % [v["yapilar"].size(), ("  ·  Kale: %d" % v["b"][SimS.Y_KALE]) if v["b"][SimS.Y_KALE] > 0 else ""]
+	s += "Bina: %d%s%s\n" % [v["yapilar"].size(), ("  ·  Kale: %d" % v["b"][SimS.Y_KALE]) if v["b"][SimS.Y_KALE] > 0 else "", "  ·  ⚓ Liman" if v["b"].size() > SimS.Y_LIMAN and v["b"][SimS.Y_LIMAN] > 0 else ""]
+	if int(v.get("kopek", 0)) > 0:
+		s += "Köpekler: %d (avcılar daha çok av getirir, yırtıcıları kovarlar)\n" % int(v["kopek"])
 	var hz: float = float(v.get("huzur", 70.0))
 	var hz_renk := "7be07b" if hz >= 55.0 else ("ffd36a" if hz >= 30.0 else "ff6a5a")
 	s += "Huzur: [color=#%s]%d / 100%s[/color]\n" % [hz_renk, int(hz), "  (isyan tehlikesi!)" if hz < 20.0 else ""]
+	if int(v.get("kutsal", 0)) > sim.ay: s += "[color=#ffd84a]Kutsanmış: ekin ×1.4, doğum ×1.3, huzur +10 (%d yıl)[/color]\n" % ((int(v["kutsal"]) - sim.ay) / 12 + 1)
+	if int(v.get("lanet", 0)) > sim.ay: s += "[color=#c08aff]Lanetli: ekin ×0.45, doğum azaldı, huzur −15 (%d yıl)[/color]\n" % ((int(v["lanet"]) - sim.ay) / 12 + 1)
 	if kr != null:
 		s += "Vergi: %s  ·  Hazine: %d altın\n" % [SimS.VERGI_AD[int(kr.get("vergi", 1))], int(kr.get("hazine", 0.0))]
 		for kid in kr.get("harac", {}):
@@ -1096,6 +1120,12 @@ func _koy_goster(v: Dictionary) -> void:
 				ortak.append(sim.kralliklar[kid]["ad"])
 		if ortak.size() > 0:
 			s += "Ticaret ortakları: %s\n" % ", ".join(ortak.slice(0, 3))
+		var dz: Array = []
+		for kid in kr.get("deniz", {}):
+			if sim.kralliklar.has(kid):
+				dz.append(sim.kralliklar[kid]["ad"])
+		if dz.size() > 0:
+			s += "⚓ Deniz yolları: %s\n" % ", ".join(dz.slice(0, 3))
 	if int(v.get("aluvyon", 0)) > 0: s += "[color=#7be07b]Alüvyonlu toprak: verim +%%25 (%d yıl)[/color]\n" % int(v["aluvyon"])
 	if v["aclik"]: s += "[color=#ff7a7a]Kıtlık var![/color]\n"
 	if v["salgin"] > 0: s += "[color=#ff7a7a]Salgın var![/color]\n"
@@ -1706,7 +1736,8 @@ func _etiketleri_ciz() -> void:
 			var v: Dictionary = o[1]
 			var kr = sim.kralliklar.get(v["krallik"])
 			var baskent: bool = kr != null and kr["baskent"] == v["id"]
-			var yazi := "%s%s (%d)" % ["♛ " if baskent else "", v["ad"], v["nufus"]]
+			var isaret := "☀ " if int(v.get("kutsal", 0)) > sim.ay else ("☁ " if int(v.get("lanet", 0)) > sim.ay else "")
+			var yazi := "%s%s%s (%d)" % ["♛ " if baskent else "", isaret, v["ad"], v["nufus"]]
 			var renk := (Color(kr["renk"]) if kr != null else Color.WHITE).lightened(0.6)
 			var savasta: bool = kr != null and not kr["savas"].is_empty() and int(v.get("hedef", -1)) >= 0
 			etiket_liste.append([float(v["x"]) + 0.5, float(v["y"]) - 1.5, yazi, renk, sim.kademe(v), baskent, int(v["nufus"]), font.get_string_size(yazi, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x, savasta])
@@ -1736,6 +1767,29 @@ func _etiketleri_ciz() -> void:
 		dolu.append(kutu)
 		etiket_katmani.draw_string_outline(font, p - Vector2(gen * 0.5, 0), e[2], HORIZONTAL_ALIGNMENT_LEFT, -1, b2, 4, Color(0, 0, 0, 0.8))
 		etiket_katmani.draw_string(font, p - Vector2(gen * 0.5, 0), e[2], HORIZONTAL_ALIGNMENT_LEFT, -1, b2, e[3])
+	# generallerin adı yıldızlarının altında (Gece 6): orduyu kimin yönettiği haritada okunur
+	if olcek >= 1.2:
+		var gb := 14 if olcek < 3.0 else 16
+		for g in harita.generaller:
+			var gi: int = g[0]
+			if gi >= sim.ust or sim.c_var[gi] == 0:
+				continue
+			var p: Vector2 = tr * (Vector2(sim.c_x[gi], sim.c_y[gi]) * KARO) + Vector2(0, 14)
+			if p.x < -80.0 or p.y < -10.0 or p.x > ekran.x + 80.0 or p.y > ekran.y + 30.0:
+				continue
+			var yazi: String = "★ Gen. " + sim.c_ad[gi]
+			var gen: float = font.get_string_size(yazi, HORIZONTAL_ALIGNMENT_LEFT, -1, gb).x
+			var kutu := Rect2(p.x - gen * 0.5, p.y - gb, gen, gb + 2)
+			var cakisma := false
+			for r in dolu:
+				if r.intersects(kutu):
+					cakisma = true
+					break
+			if cakisma:
+				continue
+			dolu.append(kutu)
+			etiket_katmani.draw_string_outline(font, p - Vector2(gen * 0.5, 0), yazi, HORIZONTAL_ALIGNMENT_LEFT, -1, gb, 4, Color(0, 0, 0, 0.85))
+			etiket_katmani.draw_string(font, p - Vector2(gen * 0.5, 0), yazi, HORIZONTAL_ALIGNMENT_LEFT, -1, gb, (g[1] as Color).lerp(Color("ffe08a"), 0.5))
 
 
 func _etiket_onem(v: Dictionary) -> int:
@@ -2050,7 +2104,104 @@ func _savas_kareleri(klasor: String) -> void:
 	kamera.zoom = Vector2(3, 3)
 	await _kare(klasor + "/25_afet_sonrasi_ofke.png")
 	bilgi_panel.visible = false
+	await _onizleme_gece6(klasor, en_a)
 	hiz_ayarla(1)
+
+
+## Gece 6 kareleri: liman ve ticaret gemileri, kutsanmış ve lanetli köy, köpekler ve kurt sürüsü, yakın plan hayvanlar.
+func _onizleme_gece6(klasor: String, en_a: Dictionary) -> void:
+	# liman: limanı olan bir köy (yoksa kıyıdaki bir köye kurulur)
+	var lv = null
+	for id in sim.koyler:
+		var v: Dictionary = sim.koyler[id]
+		if v["b"][SimS.Y_LIMAN] > 0 and int(v.get("liman", -1)) >= 0:
+			lv = v
+			break
+	if lv == null:
+		for id in sim.koyler:
+			if sim._liman_kur(sim.koyler[id]):
+				lv = sim.koyler[id]
+				break
+	if lv != null:
+		var lk: int = int(lv["liman"])
+		var lp := Vector2(lk % sim.gen + 0.5, lk / sim.gen + 0.5)
+		# limandan açık denize çıkan ve gelen gemiler (görüntü için)
+		var kac := 0
+		for yon in 16:
+			var a := yon * TAU / 16.0
+			var q := lp + Vector2(cos(a), sin(a)) * 26.0
+			if sim.icinde(int(q.x), int(q.y)) and sim.biyom[int(q.y) * sim.gen + int(q.x)] <= SimS.B_SIG and sim._deniz_acik(lp, q):
+				var ters := kac % 2 == 1
+				sim.gemiler.append([PackedVector2Array([q, lp]) if ters else PackedVector2Array([lp, q]), sim.ay - 2 - kac, 7, lv["krallik"]])
+				kac += 1
+				if kac >= 4:
+					break
+		harita.alfa = 0.5
+		kamera.position = (lp + Vector2(4, 3)) * KARO
+		kamera.zoom = Vector2(9, 9)
+		await _kare(klasor + "/26_liman_gemiler.png")
+		kamera.position = lp * KARO
+		kamera.zoom = Vector2(1.6, 1.6)
+		await _kare(klasor + "/26b_deniz_yollari.png")
+	# kutsama ve lanet: yan yana iki köy
+	# savaşta olmayan en kalabalık köy (kare alınırken yıkılmasın)
+	var kv1: Dictionary = en_a
+	var en_n := -1
+	for id in sim.koyler:
+		var o: Dictionary = sim.koyler[id]
+		if not o["savasta"] and int(o["nufus"]) > en_n:
+			en_n = int(o["nufus"]); kv1 = o
+	var kv2 = null
+	for v in sim._kk_yakin_koyler(kv1["x"], kv1["y"], 30):
+		if v["id"] != kv1["id"] and not v["savasta"]:
+			kv2 = v
+			break
+	sim.kutsa(kv1)
+	if kv2 != null:
+		sim.lanetle(kv2)
+	for n in 2:
+		sim.tick()
+	harita.ozet_ay = -1
+	print("ONIZLEME kutsanan %s (var: %s, kutsal ayı %d, şimdi %d)" % [kv1["ad"], sim.koyler.has(int(kv1["id"])), int(kv1.get("kutsal", 0)), sim.ay])
+	var orta := Vector2(kv1["x"], kv1["y"])
+	if kv2 != null:
+		orta = (orta + Vector2(kv2["x"], kv2["y"])) * 0.5
+	kamera.position = orta * KARO
+	kamera.zoom = Vector2(2.6, 2.6)
+	etiket_zaman = 0
+	await _kare(klasor + "/27_kutsama_lanet.png")
+	_koy_goster(kv1)
+	kamera.zoom = Vector2(4.5, 4.5)
+	kamera.position = Vector2(kv1["x"], kv1["y"]) * KARO
+	await _kare(klasor + "/27b_kutsanmis_koy.png")
+	bilgi_panel.visible = false
+	# köpekler ve kurt sürüsü, yakın plan hayvanlar
+	var hv: Dictionary = kv1
+	for id in sim.koyler:
+		var o: Dictionary = sim.koyler[id]
+		if o["id"] != kv1["id"] and (kv2 == null or o["id"] != kv2["id"]) and absi(int(o["x"]) - int(kv1["x"])) + absi(int(o["y"]) - int(kv1["y"])) > 40:
+			hv = o
+			break
+	var cx: float = hv["x"] + 0.5
+	var cy: float = hv["y"] + 4.5
+	var turler := [["kopek", 4], ["kurt", 3], ["koyun", 3], ["inek", 2], ["geyik", 2], ["tavsan", 3], ["ayi", 1]]
+	var sira := 0
+	for tt in turler:
+		var tid: int = sim.tur_id[tt[0]]
+		for n in int(tt[1]):
+			var x: float = cx - 6.0 + (sira % 6) * 2.2
+			var y: float = cy + (sira / 6) * 2.0
+			var i: int = sim.canli_koy(tid, x, y, [])
+			if i >= 0:
+				sim.c_yas[i] = sim.t_yetiskin[tid] + 12
+				if tt[0] == "kopek":
+					sim.c_koy[i] = hv["id"]
+			sira += 1
+	harita.gorunen_ay = -1
+	sim.efektler.clear()
+	kamera.position = Vector2(cx, cy + 1.0) * KARO
+	kamera.zoom = Vector2(14, 14)
+	await _kare(klasor + "/28_kopekler_hayvanlar.png")
 
 
 ## Önizleme sırasında kare hızını ölçer (CI'da yazılım çizimi; yalnızca göreli karşılaştırma için).

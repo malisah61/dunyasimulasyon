@@ -1,5 +1,71 @@
 # Gece günlüğü
 
+## 2026-11-11 (5. çalışma) — Gece 6: limanlar ve deniz ticareti, köpekler ve kurt sürüleri, kutsama ve lanet, 14 boş özellik etkisi
+
+### Analiz bulguları (dogrulama 256x160 tohum 7/3, 300 yıl; 512x320 tohum 5 kayıtlı dünya, sınırsız nüfus)
+- **Yırtıcılar yok oluyordu:** tohum 7'de 300 yılda kurt 4–14, ayı 0–6 (kapasite 15); tohum 3'te ayı 250. yılda **0**. Kurtlar tek tek avlanıyor, aç kalıp ölüyordu (açlık 34, yaşlılık 126); ayılar yalnızca et yiyordu.
+- **100 özelliğin 44 etki anahtarı hiçbir yerde okunmuyordu** (ör. Karizmatik/İtici eş bulma, Neşeli/Karamsar moral, Dalgın/Sakar/Lanetli kaza, Kutsanmış/Lanetli şans, Yenilenen iyileşme, Usta Demirci/Mucit silah-zırh yapımı, Hayvan Terbiyecisi, Doğa Dostu, Denizci, Yüzücü, Hain/Sadık sadakat).
+- **Deniz hiç kullanılmıyordu:** kıtalar arasında ticaret, bilgi akışı yoktu; ada krallıkları yalnız kalıyordu. Liman binası yoktu.
+- **Tanrı gücü "Bereket" tek seferlikti**, uzun süreli kutsama/lanet yoktu (TASARIM §11).
+- **Hız (512x320, ~22 bin canlı, kayıtlı dünya):** 20x'te (adim 2) bir ay ~18–20 ms, bunun ~12 ms'si köyünde gezinen sivillerin yürümesi (100x–500x'te seyrek yürüyüş vardı, 20x'te yoktu). Kalabalık dünyada yeni köy yeri arama (`_yer_bul`) ayda ~0,6 ms'ydi. Askerin krallığı her adımda sözlükten okunuyordu.
+- Denenip geri alınan: "ordu ızgarası" (cepheden uzak askerler düşman taramasın) — ölçünce askerlerin yalnızca %3'ü cepheden uzaktaydı (askerler hep hedef köyün başında), kazanç yoktu; kaldırıldı.
+
+### Kasma ölçümü (önce → sonra)
+**Aynı kayıtlı dünya** (512x320 tohum 5, 250. yıl, ~22 bin canlı), Gece 5 kodu ve bu gecenin kodu dönüşümlü 4–5 kez, her biri 3 denemenin en iyisi, bir ayın süresi (bulut makinesi ±%15 oynuyor). "Sonra" yeni sistemlerin (gemiler, köpekler, kurt sürüleri, kutsama) yükünü de taşır:
+
+| Hız | Bir ay (önce → sonra) | Hareket |
+|---|---|---|
+| 20x (adim 2) | 17.3–19.5 → **14.2–16.8 ms** (≈ −%15) | 11.1–12.8 → **8.7–10.3 ms** (≈ −%20) |
+| 100x (adim 6) | 7.2–9.2 → 8.1–9.6 ms (gürültü içinde aynı) | 2.3–2.9 → 2.3–2.9 ms |
+| 500x (adim 12) | 5.6–7.9 → 6.7–8.4 ms (gürültü içinde aynı) | 0.9–1.3 → 1.3–1.6 ms (yaşayan kurt sürüleri her adımda yürür) |
+
+Köy işi (`_koy_yillik`, 512x320): yeni köy yeri arama ön elemesi ile ayda **2.1 → 1.35 ms**.
+dogrulama (256x160 tohum 7, 300 yıl): 4.37 → **4.09 sn**; ayın süresi (dogrulama artık oyunun gerçek adımlarıyla ölçüyor: 2/6/12) adim 12: 2.81 → **1.77 ms**.
+Kare ölçümü (`olcum`) derleme makinesinde `onizleme/olcum.txt`'ye yazılır; Gece 5 değerleri README'de.
+
+### Performans (yapılanlar)
+- **20x'te de seyrek sivil yürüyüşü:** köyünde gezinen siviller ve otlayan hayvanlar 20x'te iki ayda bir, iki kat adımla yürür (100x–500x'te dört kat). Toplam yol aynı, 20x'te ayın hareket işi ~%20 az.
+- **Köy yeri arama ön eleme:** aday karonun ızgara hücresinde 10 karo içinde köy varsa 8 örnekli puanlama yapılmadan geçilir (dolu dünyada adayların çoğu böyle).
+- **Askerin krallığı dizide (`kv_kr`):** düşman/savaş denetimleri sözlüksüz.
+- **Deniz rotaları önbellekte:** liman çiftlerinin rotası bir kez hesaplanır (50 yılda bir tazelenir); ortak yalnızca limanlı köyler listesinden aranır.
+
+### Görünürlük
+- **Ticaret gemileri:** limandan limana yelkenli gemiler yol alır — kahverengi gövde, krallık renkli şerit ve flama, rüzgârda dalgalanan iki yelken, dalga izi. Uzaktan bakınca deniz yolu ince kesik çizgiyle görünür, gemi ekranda en az ~14 piksel kalır.
+- **Liman binası:** iskele, ambar ve vinç (yakında 8x8, uzakta 4x4 desen).
+- **Kutsanmış köy:** altın ışıltı, yükselen kıvılcımlar, üstünde güneş simgesi; adı ☀ ile yazılır. **Lanetli köy:** mor halka, kara bulut, yağmur, ara sıra mor şimşek; adı ☁ ile. Kutsama anında gökten altın ışık sütunu, lanette mor yıldırım.
+- **Generallerin adı haritada:** yıldızın altında "★ Gen. Ad" (orta ve yakın uzaklıkta, köy adlarıyla çakışmaz).
+
+### Oynanabilirlik
+- **Güçler → Kutsa / Lanetle:** köye dokun; on yıl sürer, ipucu ne olacağını anlatır. Kutsama laneti kaldırır.
+- **Köy kartı:** huzur satırının hemen altında kutsama/lanet durumu (kalan yıl), "⚓ Liman", köpek sayısı, "⚓ Deniz yolları" (deniz ticareti ortakları).
+- **Canlı kartı:** köpekte "Sahibi: … köyü", kurtta "Sürü avcısı".
+
+### Mantık
+- **Kurt sürüleri ve ayı:** tok kurt sürüdaşının yanında dolaşır, sürü halinde %60 sert ısırır ve avı paylaşır, kurt yavruları batın batın doğar; aç kurt köpeksiz köyün sürüsüne dadanır (köyün yiyeceği azalır); ayı ormanda, tepede, dağda ve kıyıda böğürtlen, bal ve balıkla açlıktan kurtulur. Aynı tohumla 300 yıl (30 yılda bir sayım), önce → sonra: tohum 3 kurt ortalama **25 → 32** (en düşük **1 → 23**), tohum 7 kurt **7.8 → 10.1**. Ayı sayısı değişmedi (2–16 arası, gürültü içinde) — sıradaki gece.
+- **14 özellik etkisi artık işliyor** (bkz. derinleştirilenler).
+- **Hain general düşmana geçer** (TASARIM §4).
+
+### Görsel kalite ve detay
+- Yakın plan hayvanlar ayırt edilir: koyunun yünü, ineğin benekleri ve boynuzları, geyiğin çatallı boynuzu ve beyaz kuyruğu, tavşanın uzun kulakları, kurdun sivri kulakları ve sarı gözleri, ayının yuvarlak kulakları, köpeğin sallanan kuyruğu ve krallık renkli tasması. Gemiler, liman, kutsama/lanet ışıltıları.
+
+### Derinleştirilen 3 özellik
+1. **Canlı özellikleri (§4 "etkiler gerçekten oyunu değiştirmeli"):** 44 okunmayan anahtardan 14'ü işler hale geldi — eş bulma (Karizmatik +, İtici/Yalnız Kurt −) doğurganlığa; moral (Neşeli, Karamsar, Cesur, Kutsanmış…) cesarete; zanaat (Sakar) çalışkanlığa; kaza (Dalgın, Sakar, Simyacı, Lanetli) yıllık kaza ölümü (300 yılda ~20); şans (Kutsanmış/Lanetli) darbeden sıyrılmaya; iyileşme (Yenilenen) yaraların her yıl tamamen kapanmasına; silah/zırh yapımı (Usta Demirci, Mucit) köyün silahına ×1.15 ve zırhına +%6; evcilleştirme (Hayvan Terbiyecisi) kurt evcilleştirmeye; hayvan saldırısı (Doğa Dostu) yırtıcıların dokunmamasına; denizcilik (Denizci) deniz seferi sıklığına; yüzme/boğulma (Yüzücü) tsunami ve selden %70 kurtulmaya; sadakat (Hain) generalin düşmana geçmesine. Hepsi önceden hesaplı (sıcak döngüde sözlük yok).
+2. **Generaller:** Hain general savaşta köyüyle birlikte düşman safına geçebilir ("İHANET", ekranda bildirim; ordu sarsılır ×0.85); generallerin adı haritada yazılır.
+3. **Hayvan ekosistemi:** kurt sürüleri, ayının her şeyi yemesi, köpeklerin yırtıcıları kovalaması ve avcılara yardımı.
+
+### Eklenen yeni sistemler (TASARIM.md)
+1. **Liman ve deniz ticareti (§6, §7):** Demir Çağı'ndan itibaren 30+ nüfuslu kıyı köyleri açık denize bakan bir karoya liman kurar. Limanlı köy her yıl %35 (denizcisi varsa %55) olasılıkla uzak bir limana gemi yollar: rota düz ya da tek dönüşlü deniz yoludur. İki köy altın kazanır (kıtalar arası ×1.6), aç limana tahıl gider, geride kalan liman öndekinden bilgi öğrenir (teknoloji farkının %4'ü). Korsanlar savaşta, huzursuz kıyılarda ve uzun seferlerde gemi soyar. Krallıklar arası ilk deniz yolu kroniğe ve tarih kitabına yazılır; deniz ortakları birbirine zor savaş açar. Tohum 7, 300 yıl: **57 liman, ~1100 sefer, ~50 korsan baskını**.
+2. **Evcilleştirme: köpekler (§3):** köy yakınındaki kurtlar zamanla evcilleşip köpek olur (Hayvan Terbiyecisi olan köyde çok daha hızlı); "EVCİLLEŞTİRME" kroniği. Köpek köyüne bağlı yaşar, halkın sekizde biri kadar çoğalır, yaklaşan kurda/ayıya saldırır; köpekli köyün avcıları daha uzaktan iz sürer ve %40 fazla et getirir. Köyü yıkılan köpek komşu köye sığınır. Kurtlar ancak kapasitelerinin %80'ini aşınca evcilleşir (yabani sürü tükenmesin). Tohum 3: 300 yılda ~200 köpek, kurtlar 23–43 arasında kaldı.
+3. **Kutsama ve lanet (§11):** Güçler'de "Kutsa" (on yıl: ekin ×1.4, doğum ×1.3, huzur +10, inanç daha kolay doğar, çocukların %4'ü Kutsanmış doğar) ve "Lanetle" (on yıl: ekin ×0.45, doğum ×0.6, huzur −15, salgın olabilir, halk tapınak ister, çocukların %4'ü Lanetli doğar). Doğrulama denemesi: 5 yılda kutsanan köy huzur 100, lanetli köy 45.
+
+### Kayıt
+- `KAYIT_SURUMU` 7: yeni bina tipi Liman (köylerin bina sayacı 16 elemana uzar, eski köyler yüklemede genişletilir), köyde kutsal/lanet/liman/liman_yok/kopek, krallıkta deniz/kopek/liman_ilk. Hepsi isteğe bağlı; eski kayıt dönüştürme gerekmeden açılır. Yeni tür Köpek listenin sonuna eklendi (eski kayıtlardaki tür numaraları değişmedi). Gemiler kaydedilmez (yolda olanlar yüklemede kaybolur, yenileri çıkar).
+
+### Sorunlar / sonraki gece
+- Ölçüm makinesi çok gürültülü (aynı kod art arda %20 oynuyor); 100x/500x'te değişim gürültü içinde kaldı. Bir sonraki adım: canlı yıllığını (ayın %40'ı) bölmek — doğum ve ölüm dışındaki işleri köy düzeyine taşımak.
+- Kurtlar 200. yıldan sonra yine azalıyor (otobur kapasitesi düşüyor, evcilleştirme); göç onları geri getiriyor ama sürüler küçük.
+- Gemiler henüz asker taşımıyor (deniz aşırı çıkarma, deniz savaşı) — sıradaki adım.
+
 ## 2026-11-11 (4. çalışma) — Gece 5: generaller, zırhlar, haydutlar, çağa göre müzik, göçmen kabileler
 
 ### Analiz bulguları (dogrulama 256x160 tohum 7/3, 512x320 tohum 5; 300 ve 1000 yıl, sınırsız nüfus)

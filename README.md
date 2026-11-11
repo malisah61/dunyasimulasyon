@@ -12,7 +12,17 @@ Ana tasarım: [TASARIM.md](TASARIM.md) · Canlı özellikleri: [veri/ozellikler.
 ## Kasma ölçümü (kare süreleri) — `godot -- olcum`
 Az/orta/çok nüfus × uzak/yakın/çok yakın × 1x/20x/100x/500x. Yazılım çizimiyle (ekran kartsız bulut makinesi) ölçülür; gece gece karşılaştırma içindir. Tam tablo: [GUNLUK.md](GUNLUK.md), her derlemenin ölçümü: `onizleme/olcum.txt`.
 
-**Son ölçüm: 2026-11-11 (Gece 5).** Aynı kayıtlı dünyada (512x320, ~29 bin canlı), eski ve yeni kod art arda, bir simülasyon ayının süresi (2–3 ölçümün ortalaması; makine gürültüsü ±%15). "Sonra" sütunu bu gecenin yeni sistemlerini (generaller, kervan ticareti, haydutlar) de taşır:
+**Son ölçüm: 2026-11-11 (Gece 6).** Aynı kayıtlı dünya (512x320, ~22 bin canlı), Gece 5 ve Gece 6 kodu dönüşümlü 4–5 kez, her biri 3 denemenin en iyisi (bulut makinesi ±%15 oynuyor). Sonra sütunu yeni sistemlerin (gemiler, köpekler, kurt sürüleri, kutsama) yükünü de taşır:
+
+| Hız | Bir ay (önce → sonra) | Hareket |
+|---|---|---|
+| 20x (adim 2) | 17.3–19.5 → **14.2–16.8 ms** (≈ −%15) | 11.1–12.8 → **8.7–10.3 ms** (≈ −%20) |
+| 100x (adim 6) | 7.2–9.2 → 8.1–9.6 ms (aynı) | 2.3–2.9 → 2.3–2.9 ms |
+| 500x (adim 12) | 5.6–7.9 → 6.7–8.4 ms (aynı) | 0.9–1.3 → 1.3–1.6 ms |
+
+Gece 6'da: 20x'te de seyrek sivil yürüyüşü, yeni köy yeri aramada ucuz ön eleme (köy işi ayda 2.1 → 1.35 ms), askerin krallığı dizide, deniz rotaları önbellekte.
+
+Gece 5 ölçümü: Aynı kayıtlı dünyada (512x320, ~29 bin canlı), eski ve yeni kod art arda, bir simülasyon ayının süresi (2–3 ölçümün ortalaması; makine gürültüsü ±%15). "Sonra" sütunu bu gecenin yeni sistemlerini (generaller, kervan ticareti, haydutlar) de taşır:
 
 | Hız | Bir ay (önce → sonra) | Hareket | Krallıklar |
 |---|---|---|---|

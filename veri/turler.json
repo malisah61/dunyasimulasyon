@@ -40,6 +40,7 @@
   {"id":"tavsan","ad":"Tavşan","irk":false,"otobur":true,"omur":6,"yetiskin":1,"dogur":0.9,"guc":1,"can":10,"hiz":1.5,"zeka":8,"saldirgan":0,"yemek":0,"boy":0.3,"et":2,"biyom":[3,4,5,10],"renk":"c8c0b0","ten":"ffffff","sinir":40},
   {"id":"kurt","ad":"Kurt","irk":false,"avci":true,"omur":14,"yetiskin":2,"dogur":0.4,"guc":14,"can":70,"hiz":1.4,"zeka":20,"saldirgan":0.7,"yemek":0,"boy":0.5,"et":4,"biyom":[4,10,5,8],"renk":"707078","ten":"c0c0c8","sinir":8},
   {"id":"ayi","ad":"Ayı","irk":false,"avci":true,"omur":25,"yetiskin":4,"dogur":0.25,"guc":28,"can":180,"hiz":0.9,"zeka":18,"saldirgan":0.5,"yemek":0,"boy":0.75,"et":15,"biyom":[4,9,8,10],"renk":"5a3a20","ten":"3a2410","sinir":4},
-  {"id":"ejderha","ad":"Ejderha","irk":false,"avci":true,"ucan":true,"atesli":true,"omur":2000,"yetiskin":50,"dogur":0.0,"guc":150,"can":2500,"hiz":2.2,"zeka":120,"saldirgan":1.0,"yemek":0,"boy":2.2,"et":80,"biyom":[9,11],"renk":"c02020","ten":"ffb020","sinir":0}
- ]
+  {"id":"ejderha","ad":"Ejderha","irk":false,"avci":true,"ucan":true,"atesli":true,"omur":2000,"yetiskin":50,"dogur":0.0,"guc":150,"can":2500,"hiz":2.2,"zeka":120,"saldirgan":1.0,"yemek":0,"boy":2.2,"et":80,"biyom":[9,11],"renk":"c02020","ten":"ffb020","sinir":0},
+  {"id": "kopek", "ad": "Köpek", "irk": false, "evcil": true, "omur": 13, "yetiskin": 1, "dogur": 0.35, "guc": 9, "can": 55, "hiz": 1.3, "zeka": 25, "saldirgan": 0.4, "yemek": 0, "boy": 0.42, "et": 3, "biyom": [3, 4, 5], "renk": "a8743a", "ten": "f0dcc0", "sinir": 0}
+  ]
 }
