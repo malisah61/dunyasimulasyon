@@ -183,6 +183,11 @@ func yeni_dunya(boyut: int, tohum: int, bos := false) -> void:
 	harita.baglan(sim)
 	harita.secili = -1
 	son_kronik = sim.kronik.size()
+	# eski dünyanın olay bildirimi yeni dünyada kalmasın
+	if olay_btn != null:
+		olay_btn.visible = false
+		olay_sure = 0.0
+		olay_yer = Vector2i(-1, -1)
 	_kamera_sigdir()
 	_bilgi_kapat()
 

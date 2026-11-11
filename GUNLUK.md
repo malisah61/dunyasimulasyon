@@ -40,6 +40,8 @@ Yeni ölçüm: `godot -- olcum` (az/orta/çok nüfus × uzak/yakın görünüm �
 
 Özet: hızlandırılmış oyunda ortalama kare **5–18 kat**, en yavaş kare **7–20 kat** kısaldı; 100x gerçekten 100x gidiyor (önce 25–56). Yazılım çiziminde bir karenin ~20–30 ms'si boş haritayı çizmeye gidiyor; gerçek ekran kartında bu pay çok daha küçük.
 
+Derleme makinesinde (GitHub, `onizleme/olcum.txt`, yeni kod): kareler 11–49 ms; 500x'te ulaşılan hız az nüfusta **488**, orta nüfusta **207**, Dev haritada **71** ay/sn; 20x her nüfusta tam 20; 100x az ve orta nüfusta tam 100.
+
 Tek ayın (tick) süresi, ekransız (dogrulama TICK satırları): en yavaş tek ay Dev haritada **57–79 ms → 7–17 ms**. Simülasyonun ham hızı aynı kaldı (300 yıl, 256x160 tohum 3: 7.07 → 7.04 sn; 512x320: 22.2 → 20.7 sn; 1000 yıl tohum 11: aynı makinede 42.5 → 50.1 sn ama 17.2 bin yerine 19.6 bin canlıyla, canlı başına eşit). Bu gecenin kazancı kare akıcılığı; ham simülasyon hızı için sıradaki adım aşağıda.
 
 ### Performans (yapılanlar)
@@ -66,7 +68,7 @@ Tek ayın (tick) süresi, ekransız (dogrulama TICK satırları): en yavaş tek 
 - **⚔ Savaşlar** (Gözlem): süren savaşlar, kaç yıldır sürdüğü, skor, sebep, kuşatılan köyler; satıra dokun → cepheye git. Altında son savaş olayları.
 - **Gerçek hız göstergesi:** oyun istenen hıza yetişemiyorsa üst çubukta "hız ~180x" yazar (oyuncu neden yavaş aktığını görür).
 - **Simgeler tarayıcıda da çıkıyor:** oyuna küçük bir simge yazı tipi (DejaVu Sans alt kümesi, 127 KB, özgür lisans) eklendi; 📍 yerine ➤.
-- Kronik/İstatistik/Savaşlar paneli artık alt araç çubuğunun üstüne taşmıyor.
+- Kronik/İstatistik/Savaşlar paneli artık alt araç çubuğunun üstüne taşmıyor. Yeni dünya açılınca eski dünyanın olay bildirimi ekranda kalmıyor.
 - Yeni tanrı gücü **Darbe yaptır**; Gözlem'e **Irk haritası**; menüde **Ses** ve **Uzaktan sınırlar** (ayar kalıcı). Menü bir satır kısaldı.
 - Kronikte Türkçe ekler düzeldi ("Çetesi'na" → "Çetesi'ne", "Permar'i" → "Permar'ı").
 
