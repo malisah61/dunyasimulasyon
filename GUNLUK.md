@@ -1,5 +1,64 @@
 # Gece günlüğü
 
+## 2026-11-11 — Gece 2: ekonomi, isyan/iç savaş, sel, besin zinciri, kıyılar
+
+### Analiz bulguları (dogrulama 256x160, tohum 7 ve 3; 300 ve 600 yıl, sınırsız nüfus)
+- **Altının hiçbir kullanımı yoktu:** köylerde 300 yılda toplam ~17 bin altın birikti, yalnızca savaş sebebi yazısında kullanılıyordu. Hükümdarın "altın hırsı" her yıl altını %0.x katlıyordu (anlamsız).
+- **Krallıklar hiç bölünmüyordu:** 120 köylük dünyada 9-11 krallık; büyük krallığın uzak köyleri için hiçbir sonuç yoktu. Barışlar hep "eşit", savaşın kazananı yoktu ("Savaş 0 yıl sürdü" yazıyordu).
+- **Hayvanlar donmuştu:** 11 bin canlılı dünyada hep tam 81 koyun, 51 inek; kurt/ayı hiç aç kalmıyor, ayılar 400. yılda tükendi ve ekosistemin hiçbir etkisi yoktu.
+- **Harita kahverengi lekelerle dolmuştu:** yanık toprak ortalama ~170 yılda yeşeriyordu.
+- **Kıyılar keskin ve düz:** derin/sığ su arasında geçiş yok, köpük yok.
+- **Performans:** yıllık canlı işlemi 17 ms/yıl (10 bin canlı), krallık işlemi 1.8 ms; tüm haritanın çizimi 559 ms (telefonda yeni dünya/yükleme birkaç saniye).
+
+### Oynanabilirlik
+- **Önemli olay bildirimi:** savaş, isyan, din, krallık yıkılışı, UFO ekranın sol üstünde belirir; **dokununca olay yerine gidilir**.
+- **Kronikte 📍 bağlantıları:** yeri olan olaylara dokununca kamera oraya gider.
+- **Canlı kartında soy ağacı:** "↑ Anne", "↑ Baba", "♛ Hükümdar" düğmeleri; **Takip** düğmesi açık/kapalı durumunu gösterir.
+- **Köy kartı:** huzur (renkli, isyan uyarısı), vergi, hazine, haraç, ticaret ortakları, kale, alüvyon; "Hükümdar" ve "Başkente git" düğmeleri.
+- **Huzur haritası** (Gözlem): köyler yeşil (huzurlu) → kırmızı (isyana hazır) halkalarla.
+- Yeni araçlar: Afetler → **Sel**, Güçler → **İsyan çıkar** (ipuçlarıyla).
+
+### Mantık
+- Vergi/hazine/bakım/yolsuzluk döngüsü: hazine boşalınca vergi yükselir → huzur düşer → isyan. Dolunca vergi iner.
+- Huzur formülü: vergi, kıtlık, salgın, savaş yorgunluğu, başkente uzaklık, farklı ırk, krallık büyüklüğü (bürokrasi), tapınak, bolluk, haraç, hükümdarın liderliği/kana susamışlığı.
+- Hazine kıtlıkta tahıl alır (açlık ölümleri azaldı), savaşta paralı asker ve zırh alır.
+- Barış antlaşması: skorla kazanan belirlenir, kaybeden 10 yıl haraç öder; "haraçtan kurtulmak" yeni savaş sebebi.
+- Besin zinciri ve taşıma kapasitesi; avcılar aç kalınca ölür, tok olunca yavrular (kurt sayısı 5 ile 53 arasında dalgalanıyor — avcı-av döngüsü).
+- Yanık toprak ~15 yılda yeşerir; ova ormana daha yavaş döner.
+- Denge: Goblin doğurganlığı 0.32 → 0.28 (büyük haritada dünyanın %60'ını kaplıyordu), Elf 0.05 → 0.06.
+
+### Görsel kalite ve detay
+- **Kıyılar:** su derinliği gradyanı (karaya yaklaştıkça turkuaz), karaya bakan kenarlarda köpük, karada ıslak kıyı şeridi.
+- **Su parıltısı:** suya piksel piksel kıpırdayan ışıltı (shader; yalnızca mavi pikseller).
+- Dağlarda sol kenar ışığı, ağaçlarda gövde gölgesi, ovalarda çiçek, yanık toprakta kül ve yeni filizler.
+- Yeni bina **Kale** (taş sur, krallık bayrağı); efektler: **ticaret kervanı** (yolda yürüyen araba), **isyan** (dalgalanan kırmızı bayrak, öfke halkası), **sel** (genişleyen su halkaları, bulanık sel suyu).
+
+### Performans
+- Harita çizimi `set_pixel` yerine bayt dizisine; karo başına 6 renklik palet; açık deniz ve iç kara karoları 4x4 **önbellekten `blit_rect`** ile. Tüm harita: **559 ms → 160–250 ms**. Arazi boyarken yalnızca değişen bölgenin su derinliği yeniden hesaplanır.
+- Yıllık canlı döngüsü köy sözlüğü yerine **`kv_*` dizilerini** okuyor/yazıyor (bayraklar + birikimler): 20 → 16 ms/yıl (11 bin canlı).
+- `krallik_koyleri()` ayda bir kurulan önbellekten; savaş hedefi araması ortalama 4 yılda bir (olasılık ×4): krallık işlemi **6.3 → 1.8 ms/yıl** (isyanlarla krallık sayısı arttığında).
+- Sonuç (README tablosu): 512x320'de 35 bin canlı **360 → 148 ms/yıl**; 1000 yıllık 18.5 bin canlılık dünya **56 → 34 sn**; 256x160 10.5 bin canlı 43 → 35 ms/yıl.
+
+### Derinleştirilen 3 özellik
+1. **Ekonomi ve altın:** vergi, hazine, bakım, kıtlık yardımı, ticaret kervanları, saray/kale maliyeti, paralı asker.
+2. **Savaş:** skor, barış antlaşması ve haraç, haraçtan kurtulma savaşı, kale kuşatması (surlar önce yıkılır), ticaret ortaklarının barışçıllığı.
+3. **Hayvan ekosistemi:** otlak kapasitesi, lojistik üreme, avcı tokluğu/açlığı, sürü izi süren avcılar, aşırı otlatma ile çölleşme, İstatistik'te ekosistem durumu.
+
+### Eklenen 3 yeni sistem (TASARIM.md)
+1. **İsyan ve iç savaş** (§8) + tanrı gücü "İsyan çıkar" (§11) + Huzur haritası.
+2. **Sel afeti** (§10) + alüvyon bereketi.
+3. **Nüfus grafiği** (§5, §11 bilgi araçları) — İstatistik panelinde ırk çizgileri.
+- Ek: **Kale** binası (§7), önemli olay bildirimleri.
+
+### Kayıt
+- `KAYIT_SURUMU` 3. Eski (sürüm 2) kayıt denendi: açıldı, eksik alanlar (hazine, vergi, haraç, huzur, kale, sel, nüfus geçmişi, avcı tokluğu) tamamlandı, 50 yıl sorunsuz sürdü.
+
+### Sorunlar / sonraki gece
+- İsyanlarla krallık sayısı 300 yılda 20-40'a çıkabiliyor (önce 9-15). Tarih daha hareketli ama "Özgür …" krallıkları kalabalıklaşıyor; isyancıların geri fethedilmesi/birleşme (hanedan evliliği, vasallık) eklenmeli.
+- Irk dengesi hâlâ tohuma göre çok değişiyor (bir dünyada Kertenkele 1300, başkasında 130).
+- Avcılar küçük haritada zaman zaman tükenip göçle geri geliyor.
+- Önizleme kare süreleri yazılım çiziminde ölçülüyor; gerçek cihazı yansıtmaz.
+
 ## 2026-11-10 — Gece 1: sınırsız nüfus, boş dünya, canlı sil, din, ittifak, şehirler
 
 ### Analiz bulguları (dogrulama, 256x160, tohum 7 ve 3, 300 yıl)

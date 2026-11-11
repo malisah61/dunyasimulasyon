@@ -12,9 +12,16 @@ var sprite: Sprite2D
 var alfa := 1.0            # tick arası ara değer (akıcı hareket)
 var ara_deger := true
 var secili := -1
+var piks := PackedByteArray()      # arazi resmi (RGB8), doğrudan yazılır
+var su_mes := PackedByteArray()    # su karosunun karaya uzaklığı (0-7)
+var son_biyom := PackedByteArray() # son çizilen biyom (kıyı değişimini anlamak için)
+var pal := PackedByteArray()       # karo paleti (6 renk × rgb)
+var gurultu := PackedInt32Array()  # önceden hesaplanmış piksel gürültüsü (karo başına hash yerine)
+var karo_onbellek: Dictionary = {}  # basit karo görünümü → 4x4 resim
 var gorunur := Rect2()
 var son_guncelleme := 0
 var krallik_harita := false   # krallık toprakları renkli gösterilsin mi
+var huzur_harita := false     # köylerin huzuru (yeşil → kırmızı) gösterilsin mi
 var toprak_doku: ImageTexture
 var toprak_zaman := -100000
 var imlec := Vector2(-1, -1)  # fırça önizlemesi (dünya karosu), -1 = yok
@@ -30,18 +37,39 @@ const SAKAL := Color("8a6a4a")
 const GOLGE := Color(0, 0, 0, 0.28)
 const TAC := Color("ffd23a")
 
+const SU_SHADER := """
+shader_type canvas_item;
+void fragment() {
+	vec4 c = texture(TEXTURE, UV);
+	float su = step(0.12, c.b - c.r) * step(c.g, c.b + 0.02);
+	vec2 px = floor(UV * vec2(textureSize(TEXTURE, 0)));
+	vec2 karo = floor(px / 4.0);
+	float d = sin(TIME * 1.7 + karo.x * 0.9 + karo.y * 0.55) * sin(TIME * 1.1 - karo.y * 0.8 + karo.x * 0.3);
+	float isik = step(0.82, d) * step(0.5, fract(sin(dot(px, vec2(12.9898, 78.233))) * 43758.5453));
+	c.rgb += su * isik * 0.10;
+	COLOR = c;
+}
+"""
+
 var B_RENK := [
 	Color("1b3f75"), Color("2e6fb0"), Color("e3d39a"), Color("6fb24a"), Color("3f8a35"),
 	Color("a9b85a"), Color("e0bf6e"), Color("4f6a3a"), Color("7d8f62"), Color("8a8580"),
-	Color("eef3f7"), Color("e2531c"), Color("4a4037"),
+	Color("eef3f7"), Color("e2531c"), Color("5c5246"),
 ]
 
 
 func _ready() -> void:
+	_tablo_kur()
 	sprite = Sprite2D.new()
 	sprite.centered = false
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.show_behind_parent = true
+	# suya hafif, piksel piksel kıpırdayan parıltı (yalnızca mavimsi piksellerde)
+	var sh := Shader.new()
+	sh.code = SU_SHADER
+	var mat := ShaderMaterial.new()
+	mat.shader = sh
+	sprite.material = mat
 	add_child(sprite)
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
@@ -76,19 +104,36 @@ func guncelle() -> void:
 		sim.hepsi_degisti = false
 		sim.degisen.clear()
 	elif sim.degisen.size() > 0:
-		var n := mini(sim.degisen.size(), 4000)
-		for m in n:
-			_karo_ciz(sim.degisen[m])
-		if n >= sim.degisen.size():
-			sim.degisen.clear()
-		else:
-			sim.degisen = sim.degisen.slice(n)
 		var simdi := Time.get_ticks_msec()
+		# sık değişen karolar (yangın) her karede değil, en çok 60 ms'de bir çizilir
 		if simdi - son_guncelleme > 60:
+			var n := mini(sim.degisen.size(), 6000)
+			var arazi := false
+			for m in n:
+				var k: int = sim.degisen[m]
+				if not arazi and sim.biyom[k] != son_biyom[k]:
+					arazi = true
+				_karo_ciz(k)
+			if arazi:
+				# kıyı değişti: bölgedeki su derinliği ve köpük yeniden hesaplanır
+				var x0: int = sim.gen
+				var y0: int = sim.yuk
+				var x1 := -1
+				var y1 := -1
+				for m in n:
+					var k: int = sim.degisen[m]
+					if sim.biyom[k] != son_biyom[k]:
+						son_biyom[k] = sim.biyom[k]
+						x0 = mini(x0, k % sim.gen); x1 = maxi(x1, k % sim.gen)
+						y0 = mini(y0, k / sim.gen); y1 = maxi(y1, k / sim.gen)
+				_bolge_yenile(x0, y0, x1, y1)
+			if n >= sim.degisen.size():
+				sim.degisen.clear()
+			else:
+				sim.degisen = sim.degisen.slice(n)
+			resim.set_data(sim.gen * KARO, sim.yuk * KARO, false, Image.FORMAT_RGB8, piks)
 			doku.update(resim)
 			son_guncelleme = simdi
-		else:
-			sim.degisen.append(0)  # bir sonraki karede tekrar dene
 	queue_redraw()
 
 
@@ -98,64 +143,294 @@ func _hash(k: int, s: int) -> int:
 	return h ^ (h >> 16)
 
 
+func _tablo_kur() -> void:
+	if gurultu.size() == 8192:
+		return
+	pal.resize(18)
+	gurultu.resize(8192)
+	for n in 8192:
+		gurultu[n] = _hash(n, 7)
+
+
+## Tüm haritayı bayt dizisine çizer (set_pixel yerine doğrudan bellek: ~6 kat hızlı).
 func _hepsini_ciz() -> void:
-	for k in sim.gen * sim.yuk:
-		_karo_ciz(k)
+	var gen: int = sim.gen
+	var yuk: int = sim.yuk
+	var n := gen * yuk
+	_tablo_kur()
+	piks.resize(n * KARO * KARO * 3)
+	son_biyom = sim.biyom.duplicate()
+	_su_mesafe_hesapla()
+	# basit karolar (açık deniz, iç kara; yapısız) önbellekteki 4x4 resimlerden C++ ile kopyalanır
+	var hizli := PackedInt32Array()
+	var anahtar := PackedInt32Array()
+	var biyom: PackedByteArray = sim.biyom
+	var yapi: PackedByteArray = sim.yapi
+	var maden: PackedByteArray = sim.maden
+	var ates: PackedByteArray = sim.ates
+	var sel: PackedByteArray = sim.sel
+	for k in n:
+		var b: int = biyom[k]
+		var x := k % gen
+		var y := k / gen
+		var a := -1
+		if ates[k] == 0 and sel[k] == 0 and x > 0 and y > 0 and x < gen - 1 and y < yuk - 1:
+			var h := _hash(k, 1)
+			if b <= SimS.B_SIG:
+				if su_mes[k] >= 2:
+					a = ((b * 8 + su_mes[k]) * 9 + h % 9) * 64 + (h & 63)
+			elif biyom[k - 1] > SimS.B_SIG and biyom[k + 1] > SimS.B_SIG and biyom[k - gen] > SimS.B_SIG and biyom[k + gen] > SimS.B_SIG:
+				var dg := 1 if (b == SimS.B_DAG and biyom[k - 1] != SimS.B_DAG) else 0
+				a = (((b * 8 + dg) * 9 + h % 9) * 64 + (h & 63)) + 1000000
+		if a < 0:
+			_karo_ciz(k)
+		else:
+			hizli.append(k)
+			anahtar.append(a)
+	resim.set_data(gen * KARO, yuk * KARO, false, Image.FORMAT_RGB8, piks)
+	var gecici := PackedByteArray()
+	gecici.resize(48)
+	var r := Rect2i(0, 0, KARO, KARO)
+	for m in hizli.size():
+		var a := anahtar[m]
+		var k := hizli[m]
+		var img = karo_onbellek.get(a)
+		if img == null:
+			_karo_yaz(k, gecici, 0, 0, KARO)
+			img = Image.create_from_data(KARO, KARO, false, Image.FORMAT_RGB8, gecici)
+			karo_onbellek[a] = img
+		resim.blit_rect(img, r, Vector2i((k % gen) * KARO, (k / gen) * KARO))
+	piks = resim.get_data()
+	# önbellekten gelen karoların üstüne yapı ve maden
+	var ek := false
+	for k in hizli:
+		if yapi[k] != 0 or maden[k] != 0:
+			_karo_ek(k)
+			ek = true
+	if ek:
+		resim.set_data(gen * KARO, yuk * KARO, false, Image.FORMAT_RGB8, piks)
 
 
+## Her su karosunun en yakın karaya uzaklığı (0-7). Çoklu kaynaklı genişlik araması: O(n).
+func _su_mesafe_hesapla() -> void:
+	var gen: int = sim.gen
+	var yuk: int = sim.yuk
+	var n := gen * yuk
+	var biyom: PackedByteArray = sim.biyom
+	su_mes.resize(n)
+	su_mes.fill(7)
+	var kuyruk := PackedInt32Array()
+	for k in n:
+		if biyom[k] > SimS.B_SIG:
+			su_mes[k] = 0
+			kuyruk.append(k)
+	var bas := 0
+	while bas < kuyruk.size():
+		var k := kuyruk[bas]
+		bas += 1
+		var d := su_mes[k] + 1
+		if d >= 7:
+			continue
+		var x := k % gen
+		if x > 0 and su_mes[k - 1] > d:
+			su_mes[k - 1] = d; kuyruk.append(k - 1)
+		if x < gen - 1 and su_mes[k + 1] > d:
+			su_mes[k + 1] = d; kuyruk.append(k + 1)
+		if k >= gen and su_mes[k - gen] > d:
+			su_mes[k - gen] = d; kuyruk.append(k - gen)
+		if k < n - gen and su_mes[k + gen] > d:
+			su_mes[k + gen] = d; kuyruk.append(k + gen)
+
+
+## Arazi değişince yalnızca değişen bölgenin (7 karo payla) su derinliği yeniden hesaplanır ve çizilir.
+func _bolge_yenile(x0: int, y0: int, x1: int, y1: int) -> void:
+	var gen: int = sim.gen
+	var yuk: int = sim.yuk
+	var biyom: PackedByteArray = sim.biyom
+	var ax0 := maxi(0, x0 - 14); var ay0 := maxi(0, y0 - 14)
+	var ax1 := mini(gen - 1, x1 + 14); var ay1 := mini(yuk - 1, y1 + 14)
+	var kuyruk := PackedInt32Array()
+	for y in range(ay0, ay1 + 1):
+		for x in range(ax0, ax1 + 1):
+			var k := y * gen + x
+			if biyom[k] > SimS.B_SIG:
+				su_mes[k] = 0
+				kuyruk.append(k)
+			else:
+				su_mes[k] = 7
+	var bas := 0
+	while bas < kuyruk.size():
+		var k := kuyruk[bas]
+		bas += 1
+		var d := su_mes[k] + 1
+		if d >= 7:
+			continue
+		var x := k % gen
+		var y := k / gen
+		if x > ax0 and su_mes[k - 1] > d:
+			su_mes[k - 1] = d; kuyruk.append(k - 1)
+		if x < ax1 and su_mes[k + 1] > d:
+			su_mes[k + 1] = d; kuyruk.append(k + 1)
+		if y > ay0 and su_mes[k - gen] > d:
+			su_mes[k - gen] = d; kuyruk.append(k - gen)
+		if y < ay1 and su_mes[k + gen] > d:
+			su_mes[k + gen] = d; kuyruk.append(k + gen)
+	for y in range(maxi(0, y0 - 7), mini(yuk - 1, y1 + 7) + 1):
+		for x in range(maxi(0, x0 - 7), mini(gen - 1, x1 + 7) + 1):
+			_karo_ciz(y * gen + x)
+
+
+func _px(x: int, y: int, c: Color) -> void:
+	var o: int = (y * sim.gen * KARO + x) * 3
+	piks[o] = int(clampf(c.r, 0.0, 1.0) * 255.0)
+	piks[o + 1] = int(clampf(c.g, 0.0, 1.0) * 255.0)
+	piks[o + 2] = int(clampf(c.b, 0.0, 1.0) * 255.0)
+
+
+## Palete renk yazar (r,g,b bayt).
+func _pal(n: int, c: Color) -> void:
+	pal[n * 3] = int(clampf(c.r, 0.0, 1.0) * 255.0)
+	pal[n * 3 + 1] = int(clampf(c.g, 0.0, 1.0) * 255.0)
+	pal[n * 3 + 2] = int(clampf(c.b, 0.0, 1.0) * 255.0)
+
+
+## Bir karoyu (4x4 piksel) bayt dizisine çizer. Karo başına 6 renklik palet kurulur, pikseller paletten seçilir.
 func _karo_ciz(k: int) -> void:
-	var x0: int = (k % sim.gen) * KARO
-	var y0: int = (k / sim.gen) * KARO
-	var b: int = sim.biyom[k]
+	_karo_yaz(k, piks, (k % sim.gen) * KARO, (k / sim.gen) * KARO, sim.gen * KARO)
+	_karo_ek(k)
+
+
+## Karonun zemin pikselleri. Görünüş yalnızca biyom, komşular, h%9 ve h&63'e bağlıdır (önbelleklenebilir).
+func _karo_yaz(k: int, hedef: PackedByteArray, x0: int, y0: int, satir: int) -> void:
+	var gen: int = sim.gen
+	var tx := k % gen
+	var ty := k / gen
+	var biyom: PackedByteArray = sim.biyom
+	var b: int = biyom[k]
 	var temel: Color = B_RENK[b]
 	var h := _hash(k, 1)
+	var hv := h & 63
 	var oyn := float(h % 9 - 4) * 0.012
 	temel = Color(temel.r + oyn, temel.g + oyn, temel.b + oyn)
+	var su := b <= SimS.B_SIG
+	# komşular (kıyı köpüğü, ıslak kum, dağ gölgesi için)
+	var ks: int = biyom[k - gen] if ty > 0 else b
+	var ka: int = biyom[k + gen] if ty < sim.yuk - 1 else b
+	var kb: int = biyom[k - 1] if tx > 0 else b
+	var kd: int = biyom[k + 1] if tx < gen - 1 else b
+	var ks_k := ks > SimS.B_SIG
+	var ka_k := ka > SimS.B_SIG
+	var kb_k := kb > SimS.B_SIG
+	var kd_k := kd > SimS.B_SIG
+	# palet: 0 temel, 1-3 desen, 4 kıyı (köpük ya da ıslak şerit), 5 köpük karışımı
+	if su:
+		var d: int = su_mes[k] if k < su_mes.size() else 7
+		temel = temel.lerp(Color("4fa3c8"), clampf((7 - d) * 0.07, 0.0, 0.42))
+		_pal(0, temel); _pal(1, temel.lightened(0.15)); _pal(4, Color("e8f4f4")); _pal(5, temel.lerp(Color("e8f4f4"), 0.45))
+	else:
+		_pal(0, temel)
+		match b:
+			SimS.B_ORMAN:
+				_pal(1, temel.darkened(0.25)); _pal(2, temel.darkened(0.15)); _pal(3, Color("5a3a20")); _pal(5, temel.darkened(0.3))
+			SimS.B_DAG:
+				_pal(1, Color("f2f2f2") if hv % 2 == 0 else temel.lightened(0.2)); _pal(2, temel.darkened(0.18)); _pal(3, temel.lightened(0.08))
+			SimS.B_TEPE:
+				_pal(1, temel.darkened(0.12)); _pal(2, temel.lightened(0.08))
+			SimS.B_BATAK:
+				_pal(1, Color("3d6b78")); _pal(2, Color("6a8a4a"))
+			SimS.B_LAV:
+				_pal(1, Color("ffb020")); _pal(2, Color("ff7a10"))
+			SimS.B_OVA, SimS.B_BOZKIR:
+				_pal(1, temel.lightened(0.12)); _pal(2, temel.darkened(0.08)); _pal(3, Color("e8d870") if b == SimS.B_OVA else Color("c8b878"))
+			SimS.B_KAR:
+				_pal(1, Color("d8e4f0")); _pal(2, Color("ffffff"))
+			SimS.B_YANIK:
+				_pal(1, Color("3a3630")); _pal(2, Color("6f9a3c"))   # kül ve yeni filizler
+			_:
+				_pal(1, temel.darkened(0.06)); _pal(2, temel.lightened(0.06))
+		_pal(4, temel.lerp(Color("b8c8a0") if b != SimS.B_KUM else Color("c8b880"), 0.5))
+	var agac := hv % 3
 	for py in KARO:
+		var o: int = ((y0 + py) * satir + x0) * 3
 		for px in KARO:
-			var c := temel
-			var hh := _hash(k * 16 + py * 4 + px, 7)
-			match b:
-				SimS.B_DERIN, SimS.B_SIG:
-					if hh % 23 == 0:
-						c = temel.lightened(0.15)
-				SimS.B_ORMAN:
-					# küçük ağaç: koyu taç, alt orta gövde
-					var agac := (h % 3)
-					if py <= 2 and px >= agac % 2 and px <= 1 + agac % 2 + 1:
-						c = temel.darkened(0.25 if (px + py) % 2 == 0 else 0.15)
-					if py == 3 and px == 1 + agac % 2:
-						c = Color("5a3a20")
-				SimS.B_DAG:
-					if py == 0 or (py == 1 and px >= 1 and px <= 2):
-						c = Color("f2f2f2") if h % 2 == 0 else temel.lightened(0.2)
-					elif px + py >= 5:
-						c = temel.darkened(0.15)
-				SimS.B_TEPE:
-					if px + py >= 5:
-						c = temel.darkened(0.1)
-				SimS.B_BATAK:
-					if hh % 5 == 0:
-						c = Color("3d6b78")
-				SimS.B_LAV:
-					if hh % 3 == 0:
-						c = Color("ffb020")
-				SimS.B_OVA, SimS.B_BOZKIR:
-					if hh % 11 == 0:
-						c = temel.lightened(0.12)
-				_:
-					if hh % 13 == 0:
-						c = temel.darkened(0.06)
-			resim.set_pixel(x0 + px, y0 + py, c)
+			var hh: int = gurultu[hv * 16 + py * 4 + px]
+			var n := 0
+			if su:
+				# köpük: karaya bakan kenar pikselleri
+				if (py == 0 and ks_k) or (py == 3 and ka_k) or (px == 0 and kb_k) or (px == 3 and kd_k):
+					n = 4 if hh % 3 != 0 else 5
+				elif hh % 23 == 0:
+					n = 1
+			else:
+				match b:
+					SimS.B_ORMAN:
+						# ağaç: koyu taç, gövde, sağda gölge
+						if py <= 2 and px >= agac % 2 and px <= 1 + agac % 2 + 1:
+							n = 1 if (px + py) % 2 == 0 else 2
+						if py == 3 and px == 1 + agac % 2:
+							n = 3
+						elif py == 3 and px == 2 + agac % 2:
+							n = 5
+					SimS.B_DAG:
+						if py == 0 or (py == 1 and px >= 1 and px <= 2):
+							n = 1
+						elif px + py >= 5:
+							n = 2
+						elif px == 0 and kb != SimS.B_DAG:
+							n = 3
+					SimS.B_TEPE:
+						if px + py >= 5:
+							n = 1
+						elif px + py <= 1:
+							n = 2
+					SimS.B_BATAK, SimS.B_LAV, SimS.B_KAR:
+						if hh % 5 == 0:
+							n = 1
+						elif hh % 7 == 0:
+							n = 2
+					SimS.B_OVA, SimS.B_BOZKIR:
+						if hh % 11 == 0:
+							n = 1
+						elif hh % 17 == 0:
+							n = 2
+						elif hh % 61 == 0:
+							n = 3   # çiçek / kuru ot
+					_:
+						if hh % 13 == 0:
+							n = 1
+						elif hh % 19 == 0:
+							n = 2
+				# ıslak kıyı şeridi
+				if (py == 0 and not ks_k) or (py == 3 and not ka_k) or (px == 0 and not kb_k) or (px == 3 and not kd_k):
+					n = 4
+			hedef[o] = pal[n * 3]
+			hedef[o + 1] = pal[n * 3 + 1]
+			hedef[o + 2] = pal[n * 3 + 2]
+			o += 3
+
+
+## Karonun üstündekiler: maden, yapı, ateş, sel.
+func _karo_ek(k: int) -> void:
+	var x0: int = (k % sim.gen) * KARO
+	var y0: int = (k / sim.gen) * KARO
+	var h := _hash(k, 1)
 	if sim.maden[k] > 0 and sim.yapi[k] == 0:
-		resim.set_pixel(x0 + 2, y0 + 2, Color("ffd23a") if sim.maden[k] == 1 else Color("b5653a"))
+		_px(x0 + 2, y0 + 2, Color("ffd23a") if sim.maden[k] == 1 else Color("b5653a"))
+		_px(x0 + 1, y0 + 2, Color("6a6460"))
 	var y: int = sim.yapi[k]
 	if y != 0:
 		_yapi_ciz(k, y, x0, y0)
 	if sim.ates[k] > 0:
 		for n in 6:
 			var hh := _hash(k, n + 31)
-			resim.set_pixel(x0 + hh % 4, y0 + (hh >> 3) % 4, Color("ff7a1a") if n % 2 == 0 else Color("ffd84a"))
+			_px(x0 + hh % 4, y0 + (hh >> 3) % 4, Color("ff7a1a") if n % 2 == 0 else Color("ffd84a"))
+	if k < sim.sel.size() and sim.sel[k] > 0:
+		# sel: bulanık su
+		for py in KARO:
+			for px in KARO:
+				var hh: int = gurultu[(h + py * 4 + px + 7) & 8191]
+				if hh % 4 != 0:
+					_px(x0 + px, y0 + py, Color("5a86a8") if hh % 5 != 0 else Color("8aa8b8"))
 
 
 func _yapi_ciz(k: int, tip: int, x0: int, y0: int) -> void:
@@ -204,6 +479,8 @@ func _yapi_ciz(k: int, tip: int, x0: int, y0: int) -> void:
 			desen = [".cc.", ".ww.", ".ww.", ".wd."]
 		SimS.Y_HARABE:
 			desen = ["....", ".s..", "s.s.", ".ss."]
+		SimS.Y_KALE:
+			desen = ["sFs.", "ssss", "sdds", "sdds"]
 	for py in desen.size():
 		var satir: String = desen[py]
 		for px in 4:
@@ -222,7 +499,7 @@ func _yapi_ciz(k: int, tip: int, x0: int, y0: int) -> void:
 				"Y": c = Color("ffd23a")
 				"B": c = Color("3060c0")
 			if c.a > 0.0:
-				resim.set_pixel(x0 + px, y0 + py, c)
+				_px(x0 + px, y0 + py, c)
 
 
 # ------------------------------------------------------------ canlılar
@@ -239,6 +516,8 @@ func _draw() -> void:
 	var detay := olcek >= 1.6
 	if krallik_harita:
 		_krallik_toprak()
+	if huzur_harita:
+		_huzur_ciz()
 	_mevsim_ortu()
 	var a := alfa if ara_deger else 1.0
 	var gx := gorunur.position.x
@@ -468,6 +747,18 @@ func _mevsim_ortu() -> void:
 		draw_rect(Rect2(0, 0, gen_px, yuk_px), Color(1.0, 0.75, 0.3, 0.08))
 
 
+## Huzur haritası: her köy huzuruna göre yeşil (huzurlu) → kırmızı (isyana yakın) halka.
+func _huzur_ciz() -> void:
+	for id in sim.koyler:
+		var v: Dictionary = sim.koyler[id]
+		var h: float = float(v.get("huzur", 70.0)) / 100.0
+		var c := Color(1.0, 0.15, 0.1).lerp(Color(0.25, 1.0, 0.3), clampf((h - 0.15) / 0.7, 0.0, 1.0))
+		var p := Vector2(v["x"] + 0.5, v["y"] + 0.5) * KARO
+		var r: float = (float(v["yaricap"]) + 1.0) * KARO
+		draw_circle(p, r, Color(c, 0.22))
+		draw_arc(p, r, 0, TAU, 32, Color(c, 0.85), 2.0)
+
+
 func _efektleri_ciz() -> void:
 	var zaman := Time.get_ticks_msec() * 0.001
 	for e in sim.efektler:
@@ -501,6 +792,26 @@ func _efektleri_ciz() -> void:
 			8:
 				# tanrı silgisi: kırmızı halka söner
 				draw_arc(p, float(e[4]) * KARO, 0, TAU, 40, Color(1, 0.3, 0.25, 0.25 * e[3]), 2.0)
+			9:
+				# ticaret kervanı: yol çizgisi ve yürüyen araba
+				var q := Vector2(e[4], e[5]) * KARO
+				var t := clampf(1.0 - float(e[3]) / 8.0 + fmod(zaman * 0.15, 0.125), 0.0, 1.0)
+				draw_dashed_line(p, q, Color(1.0, 0.85, 0.45, 0.45), 1.0, 4.0)
+				var a := p.lerp(q, t)
+				draw_rect(Rect2(a - Vector2(2.5, 2.0), Vector2(5, 3)), Color("8a5a2a"))
+				draw_rect(Rect2(a - Vector2(2.0, 3.5), Vector2(4, 1.6)), Color("f0e0c0"))
+				draw_circle(a + Vector2(-1.5, 1.2), 0.9, Color("3a2a1a"))
+				draw_circle(a + Vector2(1.5, 1.2), 0.9, Color("3a2a1a"))
+			10:
+				# isyan: kırmızı bayrak ve öfke halkası
+				var nab := 1.0 + 0.25 * sin(zaman * 8.0)
+				draw_arc(p, 14.0 * nab, 0, TAU, 32, Color(1, 0.2, 0.15, 0.8), 2.0)
+				draw_line(p + Vector2(0, 2), p - Vector2(0, 14), Color("5a3a20"), 1.2)
+				draw_colored_polygon(PackedVector2Array([p - Vector2(0, 14), p - Vector2(-8, 11.5 + sin(zaman * 6.0)), p - Vector2(0, 9)]), Color(0.9, 0.1, 0.1))
+			11:
+				# sel: genişleyen su halkaları
+				for n in 3:
+					draw_arc(p, 6.0 + n * 10.0 + fmod(zaman * 16.0, 10.0), 0, TAU, 32, Color(0.35, 0.6, 0.85, 0.55), 2.0)
 	for h in sim.hortumlar:
 		var p := Vector2(h[0], h[1]) * KARO
 		for n in 5:

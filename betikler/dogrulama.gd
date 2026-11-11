@@ -67,6 +67,32 @@ func _init() -> void:
 	for id in s.kralliklar:
 		ittifak += s.kralliklar[id].get("muttefik", {}).size()
 	print("DINLER: %d kurulmus, %d yasiyor; ITTIFAK cifti: %d" % [s.dinler.size(), s.din_nufuslari().size(), ittifak / 2])
+	# ekonomi, huzur, isyan, ekosistem
+	var hazine := 0.0
+	var vergiler := [0, 0, 0]
+	var harac := 0
+	for id in s.kralliklar:
+		var kr: Dictionary = s.kralliklar[id]
+		hazine += float(kr.get("hazine", 0.0))
+		vergiler[int(kr.get("vergi", 1))] += 1
+		harac += kr.get("harac", {}).size()
+	var huzur := 0.0
+	var huzursuz := 0
+	var kale := 0
+	for id in s.koyler:
+		huzur += float(s.koyler[id].get("huzur", 70.0))
+		if float(s.koyler[id].get("huzur", 70.0)) < 30.0:
+			huzursuz += 1
+		kale += int(s.koyler[id]["b"][s.Y_KALE])
+	var olay := {"İSYAN": 0, "BARIŞ ANTLAŞMASI": 0, "TİCARET": 0, "SEL": 0, "SAVAŞ:": 0, "saray": 0, "kale ile": 0}
+	for k in s.kronik:
+		for anahtar in olay:
+			if (k[1] as String).contains(anahtar):
+				olay[anahtar] += 1
+	print("EKONOMI: toplam hazine %d, vergi (dusuk/orta/yuksek) %s, harac odeyen %d, kale %d" % [int(hazine), str(vergiler), harac, kale])
+	print("HUZUR: ortalama %.1f, huzursuz koy %d / %d" % [huzur / maxi(1, s.koyler.size()), huzursuz, s.koyler.size()])
+	print("OLAYLAR (kronikte kalan): ", olay)
+	print("EKOSISTEM: ", s.ekosistem_durumu(), " gecmis ornek=", s.nufus_gecmis.size())
 	print("PERFORMANS: %d yil %d ms (%.1f yil/sn), en yavas yil %d ms, en yuksek canli %d (sinir %s)" % [yil, sure, yil * 1000.0 / maxi(1, sure), azami_ms, azami_nufus, "yok" if sinir <= 0 else str(sinir)])
 	var ok: bool = s.kaydet("user://dogrulama.kayit")
 	var s2 = SimS.new()

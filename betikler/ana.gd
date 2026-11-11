@@ -14,9 +14,9 @@ const ARAZI := [
 const AFETLER := [
 	["Yıldırım", "yildirim"], ["Yangın", "yangin"], ["Yağmur", "yagmur"], ["Deprem", "deprem"],
 	["Volkan", "volkan"], ["Meteor", "meteor"], ["Tsunami", "tsunami"], ["Hortum", "hortum"],
-	["Salgın", "salgin"], ["Çekirge", "cekirge"], ["Kuraklık", "kuraklik"], ["Kara kış", "karakis"], ["UFO", "ufo"],
+	["Salgın", "salgin"], ["Çekirge", "cekirge"], ["Kuraklık", "kuraklik"], ["Kara kış", "karakis"], ["Sel", "sel"], ["UFO", "ufo"],
 ]
-const GUCLER := [["Canlı sil", "sil"], ["Bereket", "bereket"], ["Gazap", "olum"], ["Savaş çıkar", "savas"], ["Barış yaptır", "baris"], ["İttifak kur", "ittifak"]]
+const GUCLER := [["Canlı sil", "sil"], ["Bereket", "bereket"], ["Gazap", "olum"], ["Savaş çıkar", "savas"], ["Barış yaptır", "baris"], ["İttifak kur", "ittifak"], ["İsyan çıkar", "isyan"]]
 const FIRCALAR := [1, 2, 4, 7, 12]
 ## Seçili araç için kısa ipucu (oyuncu ne yapacağını anlasın)
 const IPUCU := {
@@ -30,6 +30,8 @@ const IPUCU := {
 	"salgin": "Bir köye dokun: salgın başlar ve yayılabilir.", "cekirge": "Bir köye dokun: çekirgeler ekinleri yer.",
 	"kuraklik": "Dokun: tüm dünyada 3 yıllık kuraklık.", "karakis": "Dokun: kara kış; kuzeyde soğuk öldürür.",
 	"ufo": "Dokun: UFO gelir, sonra uzaylılar üs kurar.",
+	"sel": "Kıyıya ya da göl kenarına dokun: sular taşar, tarlalar boğulur; çekilince toprak bereketlenir.",
+	"isyan": "Bir krallığın başkent olmayan köyüne dokun: halk ayaklanır, yeni krallık kurulur ve iç savaş başlar.",
 	"sil": "Sürükleyerek fırça alanındaki canlıları sil. Fırça boyutunu sağdaki düğmeden değiştir.",
 	"bereket": "Bir köye dokun: yiyecek ve malzeme yağar.", "olum": "Dokun: küçük alandaki canlılar ölür.",
 	"savas": "Önce bir krallığın köyüne, sonra diğerinin köyüne dokun: savaş başlar.",
@@ -99,6 +101,14 @@ var etiket_katmani: Control
 var firca_btn: Button
 var sekme := "Gözlem"
 var onizleme_modu := false
+var bilgi_git: HFlowContainer      # bilgi kartında "git" düğmeleri (anne, baba, hükümdar, başkent)
+var bilgi_git_anahtar := ""
+var takip_btn: Button
+var olay_btn: Button               # önemli olay bildirimi: dokununca olay yerine gider
+var olay_yer := Vector2i(-1, -1)
+var olay_sure := 0.0
+var son_kronik := 0
+var grafik: Control                # istatistik: nüfus grafiği
 
 
 func _ready() -> void:
@@ -128,6 +138,7 @@ func yeni_dunya(boyut: int, tohum: int, bos := false) -> void:
 		sim.baslangic_canlilari()
 	harita.baglan(sim)
 	harita.secili = -1
+	son_kronik = sim.kronik.size()
 	_kamera_sigdir()
 	_bilgi_kapat()
 
@@ -170,12 +181,64 @@ func _process(delta: float) -> void:
 	if bildirim_sure > 0.0:
 		bildirim_sure -= delta
 		bildirim.modulate.a = clampf(bildirim_sure, 0.0, 1.0)
+	_olaylari_izle(delta)
+	if takip_btn != null and takip_btn.button_pressed != takip:
+		takip_btn.button_pressed = takip
 	if boyuyor and dokunmalar.size() == 1 and _surekli_arac():
 		son_boya += delta
 		if son_boya > 0.06:
 			son_boya = 0.0
 			var p: Vector2 = dokunmalar.values()[0]
 			_arac_uygula(p, true)
+
+
+## Kroniğe yeni düşen önemli olayları (savaş, isyan, din, krallık yıkılışı...) ekranda gösterir.
+func _olaylari_izle(delta: float) -> void:
+	if son_kronik > sim.kronik.size():
+		son_kronik = sim.kronik.size()
+	while son_kronik < sim.kronik.size():
+		var k: Array = sim.kronik[son_kronik]
+		son_kronik += 1
+		if int(k[2]) >= 3:
+			var metin: String = k[1]
+			if metin.length() > 72:
+				metin = metin.substr(0, 70) + "…"
+			olay_btn.text = "⚑ Yıl %d: %s%s" % [int(k[0]) / 12 + 1, metin, "   → Git" if k.size() >= 5 else ""]
+			olay_yer = Vector2i(int(k[3]), int(k[4])) if k.size() >= 5 else Vector2i(-1, -1)
+			olay_btn.visible = true
+			olay_btn.reset_size()
+			olay_sure = 7.0
+	if olay_sure > 0.0:
+		olay_sure -= delta
+		olay_btn.modulate.a = clampf(olay_sure, 0.0, 1.0)
+		olay_btn.visible = not buyuk_panel.visible and not menu_panel.visible and not secici.visible
+		if olay_sure <= 0.0:
+			olay_btn.visible = false
+
+
+## Kamerayı bir karoya götürür.
+func _git(x: int, y: int) -> void:
+	takip = false
+	kamera.position = Vector2(x + 0.5, y + 0.5) * KARO
+	if kamera.zoom.x < 3.0:
+		kamera.zoom = Vector2(4, 4)
+	_kamera_sinirla()
+
+
+func _kronik_tik(meta) -> void:
+	var p := str(meta).split(",")
+	if p.size() == 2:
+		buyuk_panel.visible = false
+		_git(int(p[0]), int(p[1]))
+
+
+func _canliya_git(i: int) -> void:
+	if i < 0 or sim.c_var[i] == 0:
+		_bildir("Bu canlı artık yaşamıyor.")
+		return
+	harita.secili = i
+	kamera.position = Vector2(sim.c_x[i], sim.c_y[i]) * KARO
+	_bilgi_ac()
 
 
 func _ust_bar() -> void:
@@ -355,6 +418,13 @@ func _guc_uygula(ad: String, x: int, y: int) -> void:
 				_bildir("Bir köye dokun.")
 		"olum":
 			sim.afet("olum", x, y, true)
+		"isyan":
+			if v == null:
+				_bildir("Bir köye dokun.")
+			elif not sim.isyan(v, true):
+				_bildir("Bu köy ayaklanamaz (başkent ya da krallığın tek köyü).")
+			else:
+				_bildir("%s ayaklandı! İç savaş başladı." % v["ad"])
 		"sil":
 			sim.canli_sil(x + 0.5, y + 0.5, firca + 0.5)
 			sim.efektler.append([8, x + 0.5, y + 0.5, 2, firca + 0.5])
@@ -532,10 +602,12 @@ func _arayuz_kur() -> void:
 	bv.add_child(bilgi_lbl)
 	bilgi_ozl = HFlowContainer.new()
 	bv.add_child(bilgi_ozl)
+	bilgi_git = HFlowContainer.new()
+	bv.add_child(bilgi_git)
 	var bh := HBoxContainer.new()
 	bv.add_child(bh)
 	_dugme("+ Özellik", _secici_ac.bind("ekle"), bh)
-	_dugme("Takip", func(): takip = not takip, bh)
+	takip_btn = _dugme("Takip", func(): takip = not takip, bh, true)
 	_dugme("Kapat", _bilgi_kapat, bh)
 	# ---- özellik seçici
 	secici = PanelContainer.new()
@@ -587,7 +659,13 @@ func _arayuz_kur() -> void:
 	buyuk_baslik.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	yh.add_child(buyuk_baslik)
 	_dugme("Kapat", func(): buyuk_panel.visible = false, yh)
+	grafik = Control.new()
+	grafik.custom_minimum_size = Vector2(0, 200 if platform_mobil else 170)
+	grafik.draw.connect(_grafik_ciz)
+	grafik.visible = false
+	yv.add_child(grafik)
 	buyuk_lbl = RichTextLabel.new()
+	buyuk_lbl.meta_clicked.connect(_kronik_tik)
 	buyuk_lbl.bbcode_enabled = true
 	buyuk_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	buyuk_lbl.add_theme_font_size_override("normal_font_size", 19 if platform_mobil else 16)
@@ -611,6 +689,20 @@ func _arayuz_kur() -> void:
 	bildirim.add_theme_constant_override("outline_size", 6)
 	bildirim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	kok.add_child(bildirim)
+	# ---- önemli olay bildirimi (dokun: oraya git)
+	olay_btn = Button.new()
+	olay_btn.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	olay_btn.offset_left = 8
+	olay_btn.offset_top = 92 if platform_mobil else 80
+	olay_btn.focus_mode = Control.FOCUS_NONE
+	olay_btn.add_theme_font_size_override("font_size", 18 if platform_mobil else 15)
+	olay_btn.add_theme_color_override("font_color", Color("ffd23a"))
+	olay_btn.visible = false
+	olay_btn.pressed.connect(func():
+		if olay_yer.x >= 0:
+			_git(olay_yer.x, olay_yer.y)
+		olay_btn.visible = false)
+	kok.add_child(olay_btn)
 
 
 func _bildir(s: String) -> void:
@@ -632,6 +724,11 @@ func _sekme_sec(s: String) -> void:
 			_dugme("Haritayı sığdır", _kamera_sigdir, arac_kutu)
 			var kb := _dugme("Krallık haritası", func(): harita.krallik_harita = not harita.krallik_harita, arac_kutu, true)
 			kb.button_pressed = harita.krallik_harita
+			var hb := _dugme("Huzur haritası", func():
+				harita.huzur_harita = not harita.huzur_harita
+				if harita.huzur_harita:
+					_bildir("Yeşil: huzurlu · Sarı: tedirgin · Kırmızı: isyana hazır"), arac_kutu, true)
+			hb.button_pressed = harita.huzur_harita
 			_dugme("Rastgele canlı", func():
 				var adaylar := []
 				for i in sim.ust:
@@ -694,6 +791,9 @@ func _bilgi_ac() -> void:
 
 func _bilgi_kapat() -> void:
 	bilgi_panel.visible = false
+	bilgi_git_anahtar = ""
+	for c in bilgi_git.get_children():
+		c.queue_free()
 	harita.secili = -1
 	takip = false
 
@@ -741,6 +841,22 @@ func _bilgi_yaz() -> void:
 		s += "Anne/baba: %s / %s\n" % [sim.c_ad[anne] if anne >= 0 else "?", sim.c_ad[baba] if baba >= 0 else "?"]
 	s += "\n[b]Özellikler[/b] (dokun = sil):"
 	bilgi_lbl.text = s
+	# aile ve hükümdar düğmeleri (soy ağacında gezinme)
+	var hukumdar := -1
+	var kr0 = sim.kralliklar.get(sim.koyler[sim.c_koy[i]]["krallik"]) if sim.koyler.has(sim.c_koy[i]) else null
+	if kr0 != null and kr0["kral_uid"] != sim.c_uid[i]:
+		hukumdar = sim.uid_bul(kr0["kral_uid"])
+	var anahtar := "%d-%d-%d-%d" % [i, anne, baba, hukumdar]
+	if anahtar != bilgi_git_anahtar:
+		bilgi_git_anahtar = anahtar
+		for c in bilgi_git.get_children():
+			c.queue_free()
+		if anne >= 0:
+			_dugme("↑ Anne: " + sim.c_ad[anne], _canliya_git.bind(anne), bilgi_git)
+		if baba >= 0:
+			_dugme("↑ Baba: " + sim.c_ad[baba], _canliya_git.bind(baba), bilgi_git)
+		if hukumdar >= 0:
+			_dugme("♛ Hükümdar", _canliya_git.bind(hukumdar), bilgi_git)
 	var idler: PackedInt32Array = sim.ozellik_idleri(i)
 	var mevcut := []
 	for c in bilgi_ozl.get_children():
@@ -798,12 +914,37 @@ func _koy_goster(v: Dictionary) -> void:
 	s += "Irk: %s\nNüfus: %d / %d (tavan %d)\n" % [sim.turler[v["irk"]]["ad"], v["nufus"], v["kapasite"], int(v.get("tavan", 0))]
 	s += "Çağ: %s\n" % SimS.CAG_AD[v["cag"]]
 	s += "Yiyecek: %d  ·  Malzeme: %d\nAltın: %d  ·  Demir: %d\n" % [int(v["yemek"]), int(v["malzeme"]), int(v["altin"]), int(v["demir"])]
-	s += "Bina: %d\n" % v["yapilar"].size()
+	s += "Bina: %d%s\n" % [v["yapilar"].size(), ("  ·  Kale: %d" % v["b"][SimS.Y_KALE]) if v["b"][SimS.Y_KALE] > 0 else ""]
+	var hz: float = float(v.get("huzur", 70.0))
+	var hz_renk := "7be07b" if hz >= 55.0 else ("ffd36a" if hz >= 30.0 else "ff6a5a")
+	s += "Huzur: [color=#%s]%d / 100%s[/color]\n" % [hz_renk, int(hz), "  (isyan tehlikesi!)" if hz < 20.0 else ""]
+	if kr != null:
+		s += "Vergi: %s  ·  Hazine: %d altın\n" % [SimS.VERGI_AD[int(kr.get("vergi", 1))], int(kr.get("hazine", 0.0))]
+		for kid in kr.get("harac", {}):
+			if sim.kralliklar.has(kid):
+				s += "[color=#ffb060]%s'na haraç: yılda %d altın (%d yıl kaldı)[/color]\n" % [sim.kralliklar[kid]["ad"], int(kr["harac"][kid][0]), maxi(0, (int(kr["harac"][kid][1]) - sim.ay) / 12)]
+		var ortak := []
+		for kid in kr.get("ortak", {}):
+			if sim.kralliklar.has(kid):
+				ortak.append(sim.kralliklar[kid]["ad"])
+		if ortak.size() > 0:
+			s += "Ticaret ortakları: %s\n" % ", ".join(ortak.slice(0, 3))
+	if int(v.get("aluvyon", 0)) > 0: s += "[color=#7be07b]Alüvyonlu toprak: verim +%%25 (%d yıl)[/color]\n" % int(v["aluvyon"])
 	if v["aclik"]: s += "[color=#ff7a7a]Kıtlık var![/color]\n"
 	if v["salgin"] > 0: s += "[color=#ff7a7a]Salgın var![/color]\n"
 	if v["savasta"]: s += "[color=#ffb060]Savaşta[/color]\n"
 	s += "Kuruluş: Yıl %d" % (v["kurulus"] / 12 + 1)
 	bilgi_lbl.text = s
+	bilgi_git_anahtar = ""
+	for c in bilgi_git.get_children():
+		c.queue_free()
+	if kr != null:
+		var h: int = sim.uid_bul(kr["kral_uid"]) if kr["kral_uid"] != 0 else -1
+		if h >= 0:
+			_dugme("♛ Hükümdar: " + sim.c_ad[h], _canliya_git.bind(h), bilgi_git)
+		var bk: Vector2i = sim.baskent_yeri(kr)
+		if bk.x >= 0 and kr["baskent"] != v["id"]:
+			_dugme("Başkente git", _git.bind(bk.x, bk.y), bilgi_git)
 
 
 # ------------------------------------------------------------ özellik seçici
@@ -905,20 +1046,27 @@ func _buyuk_ac(tur: String) -> void:
 
 func _buyuk_yaz() -> void:
 	var s := ""
+	grafik.visible = buyuk_tur == "istatistik"
+	if grafik.visible:
+		grafik.queue_redraw()
 	if buyuk_tur == "kronik":
-		buyuk_baslik.text = "Dünya Kroniği"
+		buyuk_baslik.text = "Dünya Kroniği  (📍 olan satıra dokun: oraya git)"
 		var n := 0
 		for m in range(sim.kronik.size() - 1, -1, -1):
 			var k: Array = sim.kronik[m]
 			var renk := "#c8d0d8"
 			if k[2] >= 3: renk = "#ffd23a"
 			elif k[2] == 2: renk = "#ffffff"
-			s += "[color=#89a]Yıl %d:[/color] [color=%s]%s[/color]\n" % [k[0] / 12 + 1, renk, k[1]]
+			if k.size() >= 5:
+				s += "[color=#89a]Yıl %d:[/color] [url=%d,%d][color=%s]📍 %s[/color][/url]\n" % [k[0] / 12 + 1, int(k[3]), int(k[4]), renk, k[1]]
+			else:
+				s += "[color=#89a]Yıl %d:[/color] [color=%s]%s[/color]\n" % [k[0] / 12 + 1, renk, k[1]]
 			n += 1
 			if n >= 300:
 				break
 	else:
 		buyuk_baslik.text = "Dünya İstatistikleri — " + sim.tarih_yazi()
+		s += "[color=#9ab]Yukarıdaki grafik: ırkların nüfusu (5 yılda bir ölçülür).[/color]\n\n"
 		s += "[b]Canlılar[/b]\n"
 		var d: Dictionary = sim.irk_sayilari()
 		for ad in d:
@@ -941,6 +1089,10 @@ func _buyuk_yaz() -> void:
 			s += "  [color=#%s]■ %s[/color] (%s) — %d köy, %d nüfus, %s, altın %d\n" % [kr["renk"], kr["ad"], sim.turler[kr["irk"]]["ad"], koyler.size(), nuf, SimS.CAG_AD[cag], int(altin)]
 			var din = sim.dinler.get(int(kr.get("din", -1)))
 			s += "      Hükümdar: %s  ·  Din: %s%s\n" % [kr["kral_ad"] if kr["kral_uid"] != 0 else "yok", din["ad"] if din != null else "yok", ("  ·  [color=#ff8a6a]Savaşta: " + ", ".join(savas) + "[/color]") if savas.size() > 0 else ""]
+			var huz := 0.0
+			for v in koyler:
+				huz += float(v.get("huzur", 70.0))
+			s += "      Hazine: %d altın  ·  Vergi: %s  ·  Ortalama huzur: %d%s\n" % [int(kr.get("hazine", 0.0)), SimS.VERGI_AD[int(kr.get("vergi", 1))], int(huz / maxi(1, koyler.size())), ("  ·  [color=#ffb060]haraç ödüyor[/color]" if not kr.get("harac", {}).is_empty() else "")]
 		s += "\n[b]Dinler[/b]\n"
 		var dn: Dictionary = sim.din_nufuslari()
 		if dn.is_empty():
@@ -959,6 +1111,15 @@ func _buyuk_yaz() -> void:
 				s += "  %s ⇄ %s\n" % [sim.kralliklar[id]["ad"], sim.kralliklar[mid]["ad"]]
 		if yazildi.is_empty():
 			s += "  Yok.\n"
+		var eko: Dictionary = sim.ekosistem_durumu()
+		s += "\n[b]Ekosistem (besin zinciri)[/b]\n"
+		s += "  Otobur: %d (otlak kapasitesi %d)  ·  Avcı: %d (av kapasitesi %d)\n" % [eko["otobur"], eko["otobur_kap"], eko["avci"], eko["avci_kap"]]
+		if eko["avci"] == 0 and eko["otobur"] > eko["otobur_kap"]:
+			s += "  [color=#ff8a6a]Avcı kalmadı: sürüler otlakları tüketiyor, ovalar bozkıra dönüyor![/color]\n"
+		elif eko["otobur"] < eko["otobur_kap"] / 3:
+			s += "  [color=#ffd36a]Av hayvanları azaldı: avcılar aç kalıyor.[/color]\n"
+		else:
+			s += "  [color=#7be07b]Denge sağlıklı.[/color]\n"
 		s += "\n[b]Ölüm nedenleri[/b]\n"
 		for k in sim.olumler:
 			s += "  %s: %d\n" % [k, sim.olumler[k]]
@@ -975,6 +1136,57 @@ func _buyuk_yaz() -> void:
 
 
 # ------------------------------------------------------------ menü
+## Nüfus grafiği: her ırkın nüfusu zamanla (5 yılda bir örnek).
+func _grafik_ciz() -> void:
+	var g: Array = sim.nufus_gecmis
+	var w := grafik.size.x
+	var h := grafik.size.y
+	grafik.draw_rect(Rect2(0, 0, w, h), Color(0, 0, 0, 0.3))
+	var font := ThemeDB.fallback_font
+	if g.size() < 2:
+		grafik.draw_string(font, Vector2(12, h * 0.5), "Grafik için biraz zaman geçmeli (5 yılda bir ölçülür).", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(0.8, 0.85, 0.9))
+		return
+	var en_cok := 10
+	for o in g:
+		var say: PackedInt32Array = o[1]
+		for t in sim.turler:
+			if t["irk"] and t["no"] < say.size():
+				en_cok = maxi(en_cok, say[t["no"]])
+	var sol := 52.0
+	var alt := h - 20.0
+	var ust := 8.0
+	var y0: int = int(g[0][0])
+	var y1: int = maxi(y0 + 1, int(g[g.size() - 1][0]))
+	for n in 5:
+		var yy := alt - (alt - ust) * n / 4.0
+		grafik.draw_line(Vector2(sol, yy), Vector2(w - 8, yy), Color(1, 1, 1, 0.08))
+		grafik.draw_string(font, Vector2(4, yy + 5), str(en_cok * n / 4), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.7, 0.75, 0.8))
+	grafik.draw_string(font, Vector2(sol, h - 4), "Yıl %d" % y0, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.7, 0.75, 0.8))
+	grafik.draw_string(font, Vector2(w - 90, h - 4), "Yıl %d" % y1, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.7, 0.75, 0.8))
+	var lx := sol + 8.0
+	for t in sim.turler:
+		if not t["irk"]:
+			continue
+		var no: int = t["no"]
+		var renk: Color = (t["renk_c"] as Color).lightened(0.25)
+		var pts := PackedVector2Array()
+		var var_mi := false
+		for o in g:
+			var say: PackedInt32Array = o[1]
+			var deger: int = say[no] if no < say.size() else 0
+			if deger > 0:
+				var_mi = true
+			var x := sol + (w - 8.0 - sol) * float(int(o[0]) - y0) / (y1 - y0)
+			pts.append(Vector2(x, alt - (alt - ust) * float(deger) / en_cok))
+		if not var_mi:
+			continue
+		grafik.draw_polyline(pts, renk, 2.0, true)
+		# açıklama
+		grafik.draw_rect(Rect2(lx, ust + 2, 10, 10), renk)
+		grafik.draw_string(font, Vector2(lx + 13, ust + 12), t["ad"], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, renk)
+		lx += 20.0 + font.get_string_size(t["ad"], HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+
+
 func _menu_ac() -> void:
 	for c in menu_panel.get_children():
 		c.queue_free()
@@ -1070,6 +1282,7 @@ func _yukle(yuva: int) -> bool:
 		return false
 	harita.baglan(sim)
 	harita.secili = -1
+	son_kronik = sim.kronik.size()
 	_kamera_sigdir()
 	if yuva > 0:
 		_bildir("Yüklendi (yuva %d): %s" % [yuva, sim.tarih_yazi()])
@@ -1162,6 +1375,10 @@ func _onizleme() -> void:
 	_sekme_sec("Gözlem")
 	await _kare(klasor + "/02b_krallik_haritasi.png")
 	harita.krallik_harita = false
+	harita.huzur_harita = true
+	_sekme_sec("Gözlem")
+	await _kare(klasor + "/02c_huzur_haritasi.png")
+	harita.huzur_harita = false
 	_sekme_sec("Gözlem")
 	var en = null
 	for id in sim.koyler:
@@ -1203,6 +1420,42 @@ func _onizleme() -> void:
 		_koy_goster(en)
 		await _kare(klasor + "/08_sehir_bilgisi.png")
 		_bilgi_kapat()
+		# sel: kıyıdaki bir köyü sular basar
+		var kiyi = null
+		for id in sim.koyler:
+			var kv: Dictionary = sim.koyler[id]
+			if sim._kiyiya_yakin(kv["x"], kv["y"], 6) and (kiyi == null or kv["nufus"] > kiyi["nufus"]):
+				kiyi = kv
+		if kiyi != null:
+			sim.afet("sel", kiyi["x"], kiyi["y"], true)
+			sim.tick()
+			kamera.position = Vector2(kiyi["x"], kiyi["y"]) * KARO
+			kamera.zoom = Vector2(4, 4)
+			_sekme_sec("Afetler")
+			arac_sec("afet", "sel")
+			await _kare(klasor + "/14_sel.png")
+			arac_sec("incele", null)
+		# isyan: büyük bir krallığın başkent olmayan köyü ayaklanır
+		var asi = null
+		for id in sim.koyler:
+			var kv: Dictionary = sim.koyler[id]
+			var kr = sim.kralliklar.get(kv["krallik"])
+			if kr != null and kr["baskent"] != kv["id"] and sim.krallik_koyleri(kr["id"]).size() >= 3 and (asi == null or kv["nufus"] > asi["nufus"]):
+				asi = kv
+		if asi != null:
+			sim.isyan(asi, true)
+			# bir ticaret kervanı örneği (komşu köye)
+			var komsu = sim.koy_yakin(asi["x"] + 12, asi["y"] + 6, 40)
+			if komsu != null and komsu["id"] != asi["id"]:
+				sim.efektler.append([9, asi["x"] + 0.5, asi["y"] + 0.5, 4, komsu["x"] + 0.5, komsu["y"] + 0.5])
+			kamera.position = Vector2(asi["x"], asi["y"]) * KARO
+			kamera.zoom = Vector2(3, 3)
+			_sekme_sec("Güçler")
+			arac_sec("guc", "isyan")
+			_koy_goster(asi)
+			await _kare(klasor + "/15_isyan.png")
+			arac_sec("incele", null)
+			_bilgi_kapat()
 	_buyuk_ac("kronik")
 	await _kare(klasor + "/09_kronik.png")
 	_buyuk_ac("istatistik")

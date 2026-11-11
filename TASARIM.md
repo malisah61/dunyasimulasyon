@@ -39,7 +39,7 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 - [ ] **Deniz:** balık sürüleri, köpekbalığı, deniz canavarı.
 - [ ] **Uçanlar:** kartal, akbaba.
 - [ ] **Efsanevi:** ejderha, dev solucan, anka kuşu. Çok nadir doğarlar ya da tanrı tarafından konurlar.
-- [ ] Besin zinciri: otlar büyür → otoburlar yer ve çoğalır → avcılar otoburları avlar. Avcı biterse otoburlar her şeyi yer ve kıtlık olur.
+- ✅ Besin zinciri: otlar büyür → otoburlar yer ve çoğalır → avcılar otoburları avlar. Avcı biterse otoburlar her şeyi yer ve kıtlık olur.
 - [ ] Evcilleştirme: at (binicilik), inek ve koyun (yiyecek, yün), kurt → köpek.
 - [ ] Hayvanlar da özellik taşır ve özelliklerini yavrularına aktarır.
 
@@ -61,12 +61,12 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 - [ ] Eş bulma; Karizmatik/İtici gibi özellikler buna etki eder. Aileler ve soy ağacı tutulur.
 - ✅ Kalıtım: her özellik ebeveynden %30 olasılıkla geçer (Güçlü Kalıtım bu oranı artırır). %2 mutasyon olasılığı yeni bir özellik getirir.
 - ✅ Ölüm nedenleri: yaşlılık, açlık, hastalık, savaş, afet, hayvan saldırısı, kaza. İstatistikleri tutulur.
-- [ ] Nüfus grafiği: ırk ve krallık bazında, yıllara göre.
+- ✅ Nüfus grafiği: ırk ve krallık bazında, yıllara göre. (Irk bazında İstatistik panelinde; krallık bazında henüz yok.)
 
 ## 6. Ekonomi: kaynaklar ve altın
 - [ ] Kaynaklar: yiyecek, odun, taş, demir, **altın**, gümüş, değerli taş, yün, at.
 - ✅ Altın madenleri haritada sabit yerlerde bulunur; o topraklar için savaş çıkar.
-- [ ] Altının kullanımı: bina, silah, paralı asker, rüşvet ve diplomasi, kralın sarayı. Vergi sistemi; yüksek vergi isyana yol açar.
+- ✅ Altının kullanımı: bina, silah, paralı asker, rüşvet ve diplomasi, kralın sarayı. Vergi sistemi; yüksek vergi isyana yol açar. (Rüşvet/diplomasi henüz yok.)
 - [ ] Ticaret yolları (karadan ve denizden), pazar binaları, tüccar kervanları. Haydutlar kervan soyar.
 - [ ] Kıtlık, enflasyon (çok altın çıkarılırsa), ekonomik çöküş.
 
@@ -98,7 +98,7 @@ Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla,
 | ✅ Deprem | Fay hatları ve dağ kenarlarında | Binalar yıkılır, arazi yarılır |
 | ✅ Volkan | Volkanik dağlarda | Lav akar, kül ekinleri öldürür, yeni kara oluşur |
 | ✅ Tsunami | Depremden sonra kıyılarda | Kıyı şehirlerini yutar |
-| [ ] Sel | Uzun yağmurlardan sonra nehir kenarlarında | Tarlalar ve evler sular altında kalır |
+| ✅ Sel | Uzun yağmurlardan sonra nehir kenarlarında | Tarlalar ve evler sular altında kalır |
 | ✅ Kuraklık | Yaz mevsiminde, çöl kenarında | Kıtlık, göç |
 | ✅ Kasırga / hortum | Yazın açık ovada | Yolundaki her şeyi savurur |
 | ✅ Orman yangını | Kuraklık ve yıldırım | Yayılır; söndürmek için yağmur gerekir |
@@ -260,3 +260,19 @@ Gece geliştirmelerinde ortaya çıkan, tasarıma eklenen fikirler (✅ = oyunda
 - ✅ **Ekosistem:** yok olmaya yüz tutan yabani türlere dışarıdan küçük sürüler göç eder; köyler azalmış türleri avlamaz ve yalnızca ambar bir yıldan azsa avlanır.
 - ✅ **Krallık haritası:** Gözlem sekmesinde, toprakları ve sınırları gösteren katman.
 - Fikir: haraç ve vasal krallıklar; iç savaş/isyan (yüksek vergi, Hırslı vali); din savaşlarına "kutsal savaş" kronik başlığı; köy kademesine göre taş sur ve kale binası; nüfus grafiği; sel afeti.
+
+### 2026-11-11
+- ✅ **Vergi ve hazine:** köyler vergi öder (Düşük %12 / Orta %25 / Yüksek %45); hükümdar vergiyi hazine durumuna ve karakterine göre belirler (Açgözlü, Hırslı, Kana Susamış ↑; Cömert, Kanaatkâr, Bilge ↓). Hazinenin bakım gideri ve %2 yolsuzluğu var.
+- ✅ **Kıtlık yardımı:** hazine aç köylere tahıl satın alır.
+- ✅ **Ticaret kervanları:** pazarlı ve yiyeceği fazla olan köy, aç bir köye kervan yollar; altın kazanır. Krallıklar arası ilk kervan kroniğe yazılır; ticaret ortakları birbirine daha zor savaş açar. Haritada kervan arabası yürür.
+- ✅ **Paralı asker ve zırh:** savaşta hazinenin %25'i orduya gider, silah gücü ×1.6'ya kadar artar.
+- ✅ **Savaş skoru, barış antlaşması ve haraç:** öldürmeler ve fetihler puan getirir; açık farkla kazanan 10 yıl haraç alır. Haraç ödeyen huzursuzlanır, "haraçtan kurtulmak" için savaş açabilir.
+- ✅ **Kale (taş sur):** Orta Çağ'daki şehirler hazineden kale yaptırır; kalesi olan şehrin düşmesi ~3 kat zorlaşır, kuşatanlar önce surları yıkar.
+- ✅ **Huzur ve isyan / iç savaş:** her köyün huzuru (vergi, kıtlık, salgın, savaş yorgunluğu, başkente uzaklık, farklı ırk, krallığın büyüklüğü, tapınak, hükümdarın liderliği). Huzur 20'nin altına düşen köy ayaklanır, çevresindeki huzursuz köylerle "Özgür …" krallığını kurar ve iç savaş başlar. Tanrı gücü "İsyan çıkar"; Gözlem'de "Huzur haritası".
+- ✅ **Sel ve alüvyon:** baharda kıyı köylerini sel basar; tarlalar boğulur, evler yıkılabilir; sular çekilince 5 yıl %25 bereket. Tanrı aracı "Sel".
+- ✅ **Besin zinciri:** otlak kapasitesi (boş ova/bozkır/orman/tepe) otobur sayısını, otobur sayısı avcı sayısını belirler. Avcılar tok kalmazsa ölür, sürü izi sürer; avcı biterse sürüler aşırı otlatır (ova → bozkır → çöl).
+- ✅ **Önemli olay bildirimi ve "Git":** savaş, isyan, din, krallık yıkılışı ekranda belirir; dokununca olay yerine gidilir. Kronikte 📍 olan satırlar da tıklanabilir.
+- ✅ **Soy ağacında gezinme:** canlı kartında Anne / Baba / Hükümdar düğmeleri; köy kartında hükümdara ve başkente git.
+- ✅ **Nüfus grafiği** (İstatistik).
+- Fikir: haydutlar kervan soyar; deniz ticareti (liman); darbe (Hırslı general); rüşvet ile savaş durdurma; krallık bazında nüfus/altın grafikleri; isyancılar kazanırsa eski krallığın başkentini alıp hanedan değiştirme; nehirler (sel için gerçek nehir kenarları).
+
