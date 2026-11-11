@@ -1106,7 +1106,10 @@ func _yakin_dusman(i: int, r: int) -> int:
 	var ki := _krallik_no(i)
 	if ki < 0:
 		return -1
-	var savas: Dictionary = kralliklar[ki]["savas"]
+	var kri = kralliklar.get(ki)
+	if kri == null:
+		return -1
+	var savas: Dictionary = kri["savas"]
 	if savas.is_empty():
 		return -1
 	# hız: karolar birer atlanarak taranır (kaydırma her çağrıda değişir); kalabalık cephede yine hedef bulunur
@@ -1255,7 +1258,8 @@ func _dusman(i: int, j: int) -> bool:
 	var kj := _krallik_no(j)
 	if ki < 0 or kj < 0 or ki == kj:
 		return false
-	return kralliklar[ki]["savas"].has(kj)
+	var kri = kralliklar.get(ki)
+	return kri != null and kri["savas"].has(kj)
 
 
 func _silah(i: int) -> float:
@@ -1378,7 +1382,10 @@ func _kusatma(i: int, v: Dictionary, hv: Dictionary) -> void:
 					_kronik("%s surları yıkıldı!" % hv["ad"], 1, hv["x"], hv["y"])
 					break
 	if rng.randf() < p:
-		var sk = kralliklar[v["krallik"]].get("skor")
+		var kkr = kralliklar.get(v["krallik"])
+		if kkr == null:
+			return
+		var sk = kkr.get("skor")
 		if sk != null:
 			sk[hv["krallik"]] = int(sk.get(hv["krallik"], 0)) + 15
 		_fethet(v["krallik"], hv)
@@ -1403,6 +1410,8 @@ func _fethet(kid: int, hv: Dictionary) -> void:
 		hv["hedef"] = -1
 		hv["savasta"] = true
 		_bayrak(hv)
+		for k in hv["yapilar"]:
+			degisen.append(k)   # çatılar yeni krallığın rengine boyanır
 	_kk_ay = -1
 	for id in koyler:
 		if koyler[id]["hedef"] == hv["id"]:
@@ -2324,7 +2333,11 @@ func _baris_satin_al(kr: Dictionary, dusman: Dictionary, kral: int) -> bool:
 ## Bir krallığın tüm köylerini başka bir krallığa katar (yeniden birleşme, gönüllü katılma).
 func _krallik_kat(kucuk: Dictionary, buyuk: Dictionary) -> void:
 	var kid: int = kucuk["id"]
-	for v in krallik_koyleri(kid):
+	# önbellek yerine tüm köyler taranır: bu ay el değiştirmiş bir köy sahipsiz krallıkta kalmasın
+	for id in koyler:
+		var v: Dictionary = koyler[id]
+		if v["krallik"] != kid:
+			continue
 		v["krallik"] = buyuk["id"]
 		v["hedef"] = -1
 		v["huzur"] = maxf(float(v.get("huzur", 70.0)), 55.0)
