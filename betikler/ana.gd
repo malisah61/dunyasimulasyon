@@ -2037,6 +2037,14 @@ func _savas_kareleri(klasor: String) -> void:
 			if kk != null and int(kk.get("general", -1)) >= 0 and sim.c_var[int(kk["general"])] == 1 and sim.c_durum[int(kk["general"])] == SimS.D_ASKER:
 				g = int(kk["general"])
 				break
+		if g < 0:
+			# cephedeki iki krallığın generali yoksa (düştü ya da düşmana geçti) savaştaki herhangi bir general
+			for kid in sim.kralliklar:
+				var kk: Dictionary = sim.kralliklar[kid]
+				var gg: int = int(kk.get("general", -1))
+				if gg >= 0 and gg < sim.ust and sim.c_var[gg] == 1 and not kk["savas"].is_empty():
+					g = gg
+					break
 		if g >= 0:
 			kamera.position = Vector2(sim.c_x[g], sim.c_y[g]) * KARO
 			kamera.zoom = Vector2(11, 11)
