@@ -11,20 +11,26 @@ WARNING: All audio drivers failed, falling back to the dummy driver.
 
 ONIZLEME basladi
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/01_baslangic.png
-ONIZLEME 150 yil: 1449 ms, nufus=3923 koy=77 krallik=14
+ONIZLEME 150 yil: 1201 ms, nufus=3218 koy=78 krallik=15
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02_150_yil.png
-ONIZLEME FPS uzak: 30.8 ms/kare (33 FPS), canli=4394
+ONIZLEME FPS uzak: 25.8 ms/kare (39 FPS), canli=3710
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02b_krallik_haritasi.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02c_huzur_haritasi.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02d_irk_haritasi.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/20_mevsim_ilkbahar.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/21_mevsim_yaz.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/22_mevsim_sonbahar.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/23_mevsim_kis.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/22b_sonbahar_yakin.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/16_savas_uzak.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/17_kusatma.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18_asker_yakin.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18d_mancinik_atli.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18b_tufekli_askerler.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/18c_lazerli_askerler.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/19_savaslar_paneli.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/03_koy_yakin.png
-ONIZLEME FPS yakin: 34.6 ms/kare (29 FPS), canli=4430
+ONIZLEME FPS yakin: 29.4 ms/kare (34 FPS), canli=3857
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/03b_orta_uzaklik.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/03c_binalar_yakin.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/04_canli_karti.png
@@ -35,7 +41,10 @@ kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/08_sehir_bilgis
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/14_sel.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/15_isyan.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/09_kronik.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/09b_tarih_kitabi.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/10_istatistik.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/10b_altin_grafigi.png
+kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/10c_teknoloji_grafigi.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/11_menu.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/12_bos_dunya.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/13_bos_dunya_yakin.png
