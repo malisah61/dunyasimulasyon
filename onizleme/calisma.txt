@@ -11,13 +11,13 @@ WARNING: All audio drivers failed, falling back to the dummy driver.
 
 ONIZLEME basladi
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/01_baslangic.png
-ONIZLEME 150 yil: 1337 ms, nufus=4316 koy=84 krallik=11
+ONIZLEME 150 yil: 1489 ms, nufus=4316 koy=84 krallik=11
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02_150_yil.png
-ONIZLEME FPS uzak: 16.4 ms/kare (61 FPS), canli=4776
+ONIZLEME FPS uzak: 21.3 ms/kare (47 FPS), canli=4776
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02b_krallik_haritasi.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/02c_huzur_haritasi.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/03_koy_yakin.png
-ONIZLEME FPS yakin: 22.8 ms/kare (44 FPS), canli=4774
+ONIZLEME FPS yakin: 31.2 ms/kare (32 FPS), canli=4774
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/04_canli_karti.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/05_ozellikler.png
 kare: /home/runner/work/dunyasimulasyon/dunyasimulasyon/onizleme/06_canli_sil.png
