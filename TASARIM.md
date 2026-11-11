@@ -12,7 +12,7 @@ Platformlar: **PC (tarayıcıda HTML + Windows .exe)** ve **Android (APK)**. Mot
 - ✅ Simülasyonun 1 adımı = **1 ay**. 12 ay = 1 yıl. Hedef süre **5000 yıl (60.000 ay)**.
 - ✅ Ekranda tarih gösterilsin: `Yıl 1247, 5. ay (İlkbahar)`.
 - ✅ Hız ayarları: ⏸ Duraklat · 1x (1 ay/sn) · 5x · 20x · 100x · 500x. 500x'te 5000 yıl yaklaşık 2 dakikada geçer. Hızlı modda birimlerin ayrıntılı hareketi yerine toplu hesap yapılsın ki oyun takılmasın.
-- [ ] Mevsimler (İlkbahar, Yaz, Sonbahar, Kış): ekin, göç, salgın ve savaşı etkilesin. Kışın kuzeyde kar, güneyde kuraklık olsun.
+- [x] ✅ Mevsimler (İlkbahar, Yaz, Sonbahar, Kış): ekin, göç, salgın ve savaşı etkilesin. Kışın kuzeyde kar, güneyde kuraklık olsun. *(Gece 4: doğumlar baharda, salgın kışın, orman yangını yazın artar; savaşlar baharda açılır; kışın kuzeyde kar örtüsü, yürüyüş ve kuşatma yavaşlar, kuşatan ordu soğuktan erir. Harita mevsime göre renk değiştirir.)*
 - ✅ Çağlar: Taş → Tunç → Demir → Orta Çağ → Barut → Sanayi → (Uzaylı teknolojisi). Her ırk ve krallık kendi hızında ilerler.
 - ✅ **Tarih kaydı (Kronik):** krallıkların kuruluşu ve yıkılışı, savaşlar, ünlü kişiler, afetler, ilk icatlar. Bunlar oyunda okunabilir bir zaman çizelgesi olarak tutulsun.
 
@@ -68,7 +68,7 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 - ✅ Altın madenleri haritada sabit yerlerde bulunur; o topraklar için savaş çıkar.
 - ✅ Altının kullanımı: bina, silah, paralı asker, rüşvet ve diplomasi, kralın sarayı. Vergi sistemi; yüksek vergi isyana yol açar. (Gece 3: savaşı kaybeden taraf altınla barışı satın alabiliyor.)
 - [ ] Ticaret yolları (karadan ve denizden), pazar binaları, tüccar kervanları. Haydutlar kervan soyar.
-- [ ] Kıtlık, enflasyon (çok altın çıkarılırsa), ekonomik çöküş.
+- [ ] Kıtlık, enflasyon (çok altın çıkarılırsa), ekonomik çöküş. *(Gece 4: altının değeri dünyadaki altın miktarına göre değişir (enflasyon); savaşta hazinesi tükenen krallık iflas eder.)*
 
 ## 7. Binalar (çağa göre açılır)
 - [ ] **Taş Çağı:** çadır, kulübe, ateş başı, avcı kampı.
@@ -81,7 +81,7 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 ## 8. Silahlar, ordular ve savaş
 - [ ] Çağa göre silahlar: sopa → taş balta → mızrak → tunç kılıç → demir kılıç / yay → çelik kılıç, arbalet, mancınık → tüfek, top → (uzaylı lazer silahı). *(Gece 3: askerin elinde çağa göre sopa, mızrak, kılıç/yay, çelik kılıç/arbalet, tüfek, lazer çiziliyor; okçu ve tüfekliler uzaktan vuruyor. Taş balta, mancınık ve top henüz yok.)*
 - [ ] Zırhlar: deri → tunç → zincir → plaka. *(Gece 3: görsel olarak göğüslük, miğfer ve kalkan çağa göre; ayrı zırh değeri henüz yok.)*
-- [ ] Ordu birimleri: piyade, okçu, atlı, kuşatma makinesi, gemi. Generaller özelliklerine göre savaşır (Stratejist, Korkak...). *(Gece 3: piyade, okçu, tüfekli, lazerli ve sancaktar var; atlı, kuşatma makinesi, gemi ve general henüz yok.)*
+- [ ] Ordu birimleri: piyade, okçu, atlı, kuşatma makinesi, gemi. Generaller özelliklerine göre savaşır (Stratejist, Korkak...). *(Gece 3: piyade, okçu, tüfekli, lazerli ve sancaktar. Gece 4: atlı (goblinlerde kurt binicisi), mancınık (Orta Çağ) ve top (Barut/Sanayi) eklendi; gemi ve general henüz yok.)*
 - ✅ Savaş sebepleri: toprak, altın, din, intikam, ırk düşmanlığı, Kana Susamış bir kral.
 - ✅ Kuşatmalar, barış antlaşmaları, ittifaklar, haraç, iç savaş, isyan, darbe.
 
@@ -117,7 +117,7 @@ Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla,
 - [ ] **Afetler:** yukarıdaki tablonun tamamı.
 - [ ] **Kutsama / lanet:** bir şehre bolluk, bir krallığa kıtlık. Tek canlıya özellik ver veya al.
 - ✅ **Müdahale:** iki krallığa savaş ilan ettir, barış yaptır, kral değiştir (Darbe yaptır), isyan çıkar.
-- [ ] **Bilgi araçları:** krallık haritası, ırk haritası, nüfus/altın/teknoloji grafikleri, kronik. *(Krallık haritası, ırk haritası, huzur haritası, savaşlar paneli, nüfus grafiği ve kronik var; altın/teknoloji grafikleri henüz yok.)*
+- [ ] **Bilgi araçları:** krallık haritası, ırk haritası, nüfus/altın/teknoloji grafikleri, kronik. *(Krallık haritası, ırk haritası, huzur haritası, savaşlar paneli, nüfus grafiği, kronik; Gece 4: altın, teknoloji ve toprak grafikleri, tarih kitabı.)*
 
 ## 12. Din ve kültür
 - ✅ Krallıklar kendi dinlerini kurar (doğa, ateş, ata, güneş). Din savaşları, misyonerler (Hatip, Rahip özellikleri).
@@ -295,3 +295,12 @@ Gece geliştirmelerinde ortaya çıkan, tasarıma eklenen fikirler (✅ = oyunda
 - ✅ **Bahar selleri gerçekten oluyor:** önce 300 yılda hiç kendiliğinden sel olmuyordu (rastgele tek köy deneniyordu); artık kıyı köyü aranıyor (300 yılda ~10 sel).
 - ✅ **Gerçek hız göstergesi:** istenen hıza yetişilemiyorsa üst çubukta ulaşılan hız yazılır.
 - Fikir (sonraki geceler): simülasyonu ayrı iş parçacığında çalıştırmak (PC/Android; tarayıcıda yedek yol), atlı birlikler ve mancınık, generaller, vasallık, altın/teknoloji grafikleri, çağa göre müzik, ejderhanın kendiliğinden doğması ve ejderha avcısı kahramanlar, binaların ırka göre işlev farkı.
+
+### 2026-11-11 (Gece 4)
+- ✅ **Mevsimler (§1):** doğumlar baharda (×1.35) toplanır, kışın azalır; salgın kışın daha sık başlar ve yayılır; yazın orman/ot kurur, yangın hızlı yayılır; savaşlar baharda ve yazın açılır, kışın pek açılmaz. Kışın kuzey kuşağı karla kaplanır: canlılar karda yavaş yürür, kuşatma yavaşlar ve kuşatan askerler soğuktan can kaybeder. Harita ekran kartında mevsime göre boyanır (bahar çiçekleri, sararan yaz, sarı-turuncu-kızıl güz ormanları, kuzeyde benekli kar ve buz tutan sığ sular). Üst çubukta tarih mevsim renginde.
+- ✅ **Atlılar ve kuşatma makineleri (§8):** Demir Çağı'ndan itibaren her yedi askerden biri atlı (hızlı, hücumda ×1.3; goblinler kurda biner, devler ve uzaylılar ata binmez). Orta Çağ'da mancınık, Barut/Sanayi'de top: 7 karodan taş/gülle atar (yay çizerek uçar, düştüğü yerde toz/patlama), surları 4 kat hızlı yıkar, kuşatmayı hızlandırır. Canlı kartında askerin birimi yazar.
+- ✅ **Altın, teknoloji ve toprak grafikleri (§11):** İstatistik'te sekmeler: Nüfus / Altın (hazine) / Teknoloji (çağ eşikleriyle) / Toprak (köy sayısı). En büyük 8 krallık kendi renginde; yıkılan krallığın çizgisi çarpıyla biter.
+- ✅ **Tarih kitabı:** önemli olaylar (önem ≥ 2) kronik kısaltılsa da saklanır; Kronik → "Tarih kitabı" sekmesinde yüzyıllara bölünmüş olarak okunur.
+- ✅ **Altının değeri (enflasyon) ve iflas:** dünyada kişi başına düşen altın arttıkça altın değer kaybeder; kıtlıkta alınan tahıl, paralı asker, saray ve kale fiyatı buna göre değişir. Savaşta hazinesi yıllarca boş kalan krallık iflas eder: ordu zayıflar, halk huzursuzlanır.
+- ✅ **Cüce dağ evleri:** cüceler ve devler dağın içine ev kurabilir (önce dağlarda ev kuramadıkları için cüce nüfusu 300 yılda 10–30'da kalıyordu; şimdi yüzlerce).
+- Fikir (sonraki geceler): gemi ve deniz savaşı, generaller, mevsime göre hayvan göçü, kışın donan nehirden geçiş, haydutların kervan soyması, simülasyonu ayrı iş parçacığına almak.

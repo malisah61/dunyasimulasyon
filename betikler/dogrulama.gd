@@ -93,6 +93,20 @@ func _init() -> void:
 	print("HUZUR: ortalama %.1f, huzursuz koy %d / %d" % [huzur / maxi(1, s.koyler.size()), huzursuz, s.koyler.size()])
 	print("OLAYLAR (kronikte kalan): ", olay)
 	print("EKOSISTEM: ", s.ekosistem_durumu(), " gecmis ornek=", s.nufus_gecmis.size())
+	# mevsimler, birlikler, altın, tarih kitabı
+	var ms: PackedInt32Array = s.mevsim_say
+	print("MEVSIM: dogum (kis/bahar/yaz/guz) %d/%d/%d/%d, savas ilani %d/%d/%d/%d" % [ms[0], ms[1], ms[2], ms[3], ms[4], ms[5], ms[6], ms[7]])
+	var birimler := [0, 0, 0, 0, 0, 0, 0]
+	for i in s.ust:
+		if s.c_var[i] == 1 and s.c_durum[i] == s.D_ASKER:
+			birimler[s.birim(i)] += 1
+	print("BIRIMLER (piyade/okcu/tufekli/lazerli/atli/mancinik/top): ", birimler)
+	var iflas := 0
+	var enf := 0
+	for k in s.kronik:
+		if (k[1] as String).begins_with("İFLAS"): iflas += 1
+		if (k[1] as String).begins_with("ENFLASYON"): enf += 1
+	print("ALTIN: deger %%%d, iflas %d, enflasyon olayi %d | TARIH KITABI: %d olay, kronik %d | KRALLIK GECMISI: %d ornek" % [int(s.altin_deger * 100), iflas, enf, s.tarih.size(), s.kronik.size(), s.gecmis_kr.size()])
 	print("PERFORMANS: %d yil %d ms (%.1f yil/sn), en yavas yil %d ms, en yuksek canli %d (sinir %s)" % [yil, sure, yil * 1000.0 / maxi(1, sure), azami_ms, azami_nufus, "yok" if sinir <= 0 else str(sinir)])
 	var ou: PackedInt64Array = s.olc_us
 	print("DAGILIM (ms): canli yillik %d, hareket %d, koy %d, krallik %d, afet+diger %d | en yavas tek ay %.1f ms" % [ou[0] / 1000, ou[1] / 1000, ou[2] / 1000, ou[3] / 1000, ou[4] / 1000, ou[5] / 1000.0])

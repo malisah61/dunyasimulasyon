@@ -114,7 +114,10 @@ var olay_btn: Button               # önemli olay bildirimi: dokununca olay yeri
 var olay_yer := Vector2i(-1, -1)
 var olay_sure := 0.0
 var son_kronik := 0
-var grafik: Control                # istatistik: nüfus grafiği
+var grafik: Control                # istatistik: nüfus / altın / teknoloji / toprak grafiği
+var graf_mod := 0                  # 0 nüfus (ırklar), 1 hazine, 2 teknoloji, 3 köy sayısı (krallıklar)
+var kronik_mod := 0                # 0 son olaylar, 1 tarih kitabı (tüm önemli olaylar)
+var mod_satir: HBoxContainer       # büyük panelde sekme düğmeleri (grafik türü / kronik görünümü)
 var son_sim_ms := 0.0              # önceki karede simülasyona giden süre (kare bütçesi için)
 var hiz_ay := 0                    # son saniyede işlenen ay sayısı
 var hiz_sure := 0.0
@@ -329,6 +332,9 @@ func _canliya_git(i: int) -> void:
 	_bilgi_ac()
 
 
+const MEVSIM_RENK := [Color("cfe6ff"), Color("b8f0a0"), Color("ffe08a"), Color("ffb070")]
+
+
 func _ust_bar() -> void:
 	tarih_lbl.text = sim.tarih_yazi()
 	# sayım ve çağ taraması her karede değil, saniyede birkaç kez yapılır
@@ -348,6 +354,7 @@ func _ust_bar() -> void:
 	if hiz >= 20 and gercek_hiz > 0.0 and gercek_hiz < hiz * 0.85:
 		hz = "  ·  hız ~%dx" % int(gercek_hiz)
 	nufus_lbl.text = "Nüfus %d  ·  Köy %d  ·  Krallık %d%s%s%s" % [sim.irk_nufus, sim.koyler.size(), sim.kralliklar.size(), sv, cag, hz]
+	tarih_lbl.add_theme_color_override("font_color", MEVSIM_RENK[SimS.MEVSIM[sim.ay % 12]])
 
 
 func _kamera_klavye(delta: float) -> void:
@@ -792,6 +799,9 @@ func _arayuz_kur() -> void:
 	buyuk_baslik.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	yh.add_child(buyuk_baslik)
 	_dugme("Kapat", func(): buyuk_panel.visible = false, yh)
+	mod_satir = HBoxContainer.new()
+	mod_satir.add_theme_constant_override("separation", 6)
+	yv.add_child(mod_satir)
 	grafik = Control.new()
 	grafik.custom_minimum_size = Vector2(0, 200 if platform_mobil else 170)
 	grafik.draw.connect(_grafik_ciz)
@@ -975,7 +985,10 @@ func _bilgi_yaz() -> void:
 	elif t["irk"]:
 		s += "Köyü yok (gezgin)\n"
 	var durum := ["Geziyor", "Asker", "Göç ediyor", "Kaçıyor"]
-	s += "Durum: %s\n" % durum[sim.c_durum[i]]
+	if sim.c_durum[i] == SimS.D_ASKER:
+		s += "Durum: Asker — [color=#ffb060]%s[/color]\n" % SimS.BIRIM_AD[sim.birim(i)]
+	else:
+		s += "Durum: %s\n" % durum[sim.c_durum[i]]
 	if sim.c_oldurme[i] > 0:
 		s += "Öldürdüğü: %d\n" % sim.c_oldurme[i]
 	if sim.c_cocuk[i] > 0:
@@ -1187,6 +1200,35 @@ func _buyuk_ac(tur: String) -> void:
 	buyuk_panel.offset_bottom = -(alt_panel.size.y + 6.0)   # alt çubuğun üstüne taşmasın
 	buyuk_panel.visible = true
 	menu_panel.visible = false
+	_mod_satiri_kur()
+	_buyuk_yaz()
+
+
+## Büyük panelin sekme satırı: istatistikte grafik türü, kronikte "son olaylar / tarih kitabı".
+func _mod_satiri_kur() -> void:
+	for c in mod_satir.get_children():
+		c.queue_free()
+	var secenek: Array = []
+	var secili := 0
+	if buyuk_tur == "istatistik":
+		secenek = ["Nüfus", "Altın (hazine)", "Teknoloji", "Toprak (köy)"]
+		secili = graf_mod
+	elif buyuk_tur == "kronik":
+		secenek = ["Son olaylar", "Tarih kitabı"]
+		secili = kronik_mod
+	mod_satir.visible = not secenek.is_empty()
+	for n in secenek.size():
+		var b := _dugme(secenek[n], _mod_sec.bind(n), mod_satir, true)
+		b.button_pressed = n == secili
+		b.custom_minimum_size = Vector2(0, 48 if platform_mobil else 32)
+
+
+func _mod_sec(n: int) -> void:
+	if buyuk_tur == "istatistik":
+		graf_mod = n
+	else:
+		kronik_mod = n
+	_mod_satiri_kur()
 	_buyuk_yaz()
 
 
@@ -1196,10 +1238,22 @@ func _buyuk_yaz() -> void:
 	if grafik.visible:
 		grafik.queue_redraw()
 	if buyuk_tur == "kronik":
-		buyuk_baslik.text = "Dünya Kroniği  (➤ olan satıra dokun: oraya git)"
+		var liste: Array = sim.kronik
+		if kronik_mod == 1:
+			liste = sim.tarih
+			buyuk_baslik.text = "Tarih Kitabı: dünyanın tüm önemli olayları (%d)  ·  ➤ dokun: oraya git" % liste.size()
+		else:
+			buyuk_baslik.text = "Dünya Kroniği  (➤ olan satıra dokun: oraya git)"
 		var n := 0
-		for m in range(sim.kronik.size() - 1, -1, -1):
-			var k: Array = sim.kronik[m]
+		var son_yuzyil := -1
+		for m in range(liste.size() - 1, -1, -1):
+			var k: Array = liste[m]
+			if kronik_mod == 1:
+				# tarih kitabı yüzyıllara bölünür
+				var yz: int = (int(k[0]) / 12) / 100
+				if yz != son_yuzyil:
+					son_yuzyil = yz
+					s += "\n[b][color=#ffd23a]— %d. yüzyıl (Yıl %d–%d) —[/color][/b]\n" % [yz + 1, yz * 100 + 1, yz * 100 + 100]
 			var renk := "#c8d0d8"
 			if k[2] >= 3: renk = "#ffd23a"
 			elif k[2] == 2: renk = "#ffffff"
@@ -1208,7 +1262,7 @@ func _buyuk_yaz() -> void:
 			else:
 				s += "[color=#89a]Yıl %d:[/color] [color=%s]%s[/color]\n" % [k[0] / 12 + 1, renk, k[1]]
 			n += 1
-			if n >= 300:
+			if n >= (600 if kronik_mod == 1 else 300):
 				break
 	elif buyuk_tur == "savaslar":
 		buyuk_baslik.text = "Süren savaşlar  (➤ olan satıra dokun: cepheye git)"
@@ -1256,7 +1310,8 @@ func _buyuk_yaz() -> void:
 				break
 	else:
 		buyuk_baslik.text = "Dünya İstatistikleri — " + sim.tarih_yazi()
-		s += "[color=#9ab]Yukarıdaki grafik: ırkların nüfusu (5 yılda bir ölçülür).[/color]\n\n"
+		s += "[color=#9ab]Yukarıdaki grafik: %s (5 yılda bir ölçülür).[/color]\n" % ["ırkların nüfusu", "en zengin krallıkların hazinesi", "krallıkların teknolojisi (kesik çizgiler: çağ eşikleri)", "krallıkların köy sayısı"][graf_mod]
+		s += "Altının değeri: [color=%s]%%%d[/color]%s\n\n" % ["#7be07b" if sim.altin_deger >= 0.75 else "#ffb060", int(sim.altin_deger * 100.0), "  (enflasyon: fiyatlar yüksek)" if sim.altin_deger < 0.6 else ""]
 		s += "[b]Canlılar[/b]\n"
 		var d: Dictionary = sim.irk_sayilari()
 		for ad in d:
@@ -1328,6 +1383,9 @@ func _buyuk_yaz() -> void:
 # ------------------------------------------------------------ menü
 ## Nüfus grafiği: her ırkın nüfusu zamanla (5 yılda bir örnek).
 func _grafik_ciz() -> void:
+	if graf_mod > 0:
+		_krallik_grafik_ciz()
+		return
 	var g: Array = sim.nufus_gecmis
 	var w := grafik.size.x
 	var h := grafik.size.y
@@ -1375,6 +1433,84 @@ func _grafik_ciz() -> void:
 		grafik.draw_rect(Rect2(lx, ust + 2, 10, 10), renk)
 		grafik.draw_string(font, Vector2(lx + 13, ust + 12), t["ad"], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, renk)
 		lx += 20.0 + font.get_string_size(t["ad"], HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+
+
+## Krallık grafikleri: hazine, teknoloji ya da köy sayısı; en büyük 8 krallık kendi renginde (yıkılanlar da görünür).
+func _krallik_grafik_ciz() -> void:
+	var g: Array = sim.gecmis_kr
+	var w := grafik.size.x
+	var h := grafik.size.y
+	grafik.draw_rect(Rect2(0, 0, w, h), Color(0, 0, 0, 0.3))
+	var font := ThemeDB.fallback_font
+	if g.size() < 2:
+		grafik.draw_string(font, Vector2(12, h * 0.5), "Grafik için biraz zaman geçmeli (5 yılda bir ölçülür).", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(0.8, 0.85, 0.9))
+		return
+	var alan: int = [0, 0, 1, 3][graf_mod]
+	# en yüksek değere ulaşmış 8 krallık
+	var tepe := {}
+	var en_cok := 1.0
+	for o in g:
+		var kd: Dictionary = o[1]
+		for kid in kd:
+			var dg: float = (kd[kid] as PackedFloat32Array)[alan]
+			tepe[kid] = maxf(float(tepe.get(kid, 0.0)), dg)
+			en_cok = maxf(en_cok, dg)
+	var sirali := tepe.keys()
+	sirali.sort_custom(func(a, b): return tepe[a] > tepe[b])
+	sirali = sirali.slice(0, 8)
+	var tek := graf_mod == 2
+	var olc := func(dg: float) -> float:
+		return sqrt(dg / en_cok) if tek else dg / en_cok
+	var sol := 52.0
+	var alt := h - 20.0
+	var ust := 22.0
+	var y0: int = int(g[0][0])
+	var y1: int = maxi(y0 + 1, int(g[g.size() - 1][0]))
+	var gri := Color(0.7, 0.75, 0.8)
+	if tek:
+		# çağ eşikleri (karekök ölçek: erken çağlar da okunur)
+		for c in range(1, SimS.CAG_ESIK.size()):
+			var e: float = SimS.CAG_ESIK[c]
+			if e > en_cok * 1.05:
+				break
+			var yy: float = alt - (alt - ust) * olc.call(e)
+			grafik.draw_dashed_line(Vector2(sol, yy), Vector2(w - 8, yy), Color(1, 0.85, 0.4, 0.25), 1.0, 5.0)
+			grafik.draw_string(font, Vector2(4, yy + 4), SimS.CAG_AD[c].split(" ")[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 0.85, 0.4, 0.8))
+	else:
+		for n in 5:
+			var yy := alt - (alt - ust) * n / 4.0
+			grafik.draw_line(Vector2(sol, yy), Vector2(w - 8, yy), Color(1, 1, 1, 0.08))
+			grafik.draw_string(font, Vector2(4, yy + 5), str(int(en_cok * n / 4.0)), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, gri)
+	grafik.draw_string(font, Vector2(sol, h - 4), "Yıl %d" % y0, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, gri)
+	grafik.draw_string(font, Vector2(w - 90, h - 4), "Yıl %d" % y1, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, gri)
+	var lx := sol + 4.0
+	for kid in sirali:
+		var bilgi = sim.kr_renk_gecmis.get(kid)
+		var renk := Color(bilgi[0]).lightened(0.2) if bilgi != null else Color.WHITE
+		var pts := PackedVector2Array()
+		for o in g:
+			var kd: Dictionary = o[1]
+			var x := sol + (w - 8.0 - sol) * float(int(o[0]) - y0) / (y1 - y0)
+			if kd.has(kid):
+				pts.append(Vector2(x, alt - (alt - ust) * olc.call((kd[kid] as PackedFloat32Array)[alan])))
+			elif pts.size() > 0:
+				break     # krallık yıkıldı: çizgi biter
+		if pts.size() >= 2:
+			grafik.draw_polyline(pts, renk, 2.0, true)
+		if pts.size() > 0 and not sim.kralliklar.has(kid):
+			_carpi(pts[pts.size() - 1], renk)
+		var ad: String = bilgi[1] if bilgi != null else "?"
+		var parca := ad.split(" ")
+		ad = parca[1] if parca.size() > 1 and parca[0] == "Özgür" else parca[0]
+		if lx + font.get_string_size(ad, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x < w - 10:
+			grafik.draw_rect(Rect2(lx, 5, 9, 9), renk)
+			grafik.draw_string(font, Vector2(lx + 12, 14), ad, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, renk)
+			lx += 20.0 + font.get_string_size(ad, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+
+
+func _carpi(p: Vector2, c: Color) -> void:
+	grafik.draw_line(p + Vector2(-4, -4), p + Vector2(4, 4), c, 2.0)
+	grafik.draw_line(p + Vector2(4, -4), p + Vector2(-4, 4), c, 2.0)
 
 
 func _menu_ac() -> void:
@@ -1608,6 +1744,26 @@ func _onizleme() -> void:
 	await _kare(klasor + "/02d_irk_haritasi.png")
 	harita.irk_harita = false
 	_sekme_sec("Gözlem")
+	# mevsimler: aynı dünya dört mevsimde (bahar çiçekleri, sararan yaz, kızıl güz, kuzeyde kar)
+	var asil_ay: int = sim.ay
+	hiz_ayarla(0)
+	for ms in [[3, "20_mevsim_ilkbahar"], [6, "21_mevsim_yaz"], [9, "22_mevsim_sonbahar"], [0, "23_mevsim_kis"]]:
+		sim.ay = (asil_ay / 12) * 12 + int(ms[0])
+		harita.alfa = 0.5
+		_kamera_sigdir()
+		await _kare(klasor + "/" + ms[1] + ".png")
+	var orman_koy = null
+	for id in sim.koyler:
+		var kv: Dictionary = sim.koyler[id]
+		if orman_koy == null or float(kv["orman"]) > float(orman_koy["orman"]):
+			orman_koy = kv
+	if orman_koy != null:
+		kamera.position = Vector2(orman_koy["x"], orman_koy["y"]) * KARO
+		kamera.zoom = Vector2(2.5, 2.5)
+		sim.ay = (asil_ay / 12) * 12 + 9
+		await _kare(klasor + "/22b_sonbahar_yakin.png")
+	sim.ay = asil_ay
+	hiz_ayarla(1)
 	await _savas_kareleri(klasor)
 	var en = null
 	for id in sim.koyler:
@@ -1692,8 +1848,16 @@ func _onizleme() -> void:
 			_bilgi_kapat()
 	_buyuk_ac("kronik")
 	await _kare(klasor + "/09_kronik.png")
+	_mod_sec(1)
+	await _kare(klasor + "/09b_tarih_kitabi.png")
+	_mod_sec(0)
 	_buyuk_ac("istatistik")
 	await _kare(klasor + "/10_istatistik.png")
+	_mod_sec(1)
+	await _kare(klasor + "/10b_altin_grafigi.png")
+	_mod_sec(2)
+	await _kare(klasor + "/10c_teknoloji_grafigi.png")
+	_mod_sec(0)
 	buyuk_panel.visible = false
 	_menu_ac()
 	await _kare(klasor + "/11_menu.png")
@@ -1781,17 +1945,26 @@ func _savas_kareleri(klasor: String) -> void:
 			var v: Dictionary = sim.koyler[id]
 			if v["savasta"]:
 				eski_cag[id] = v["cag"]
-		for cag in [4, 6]:
+		for cag in [3, 4, 6]:
 			for id in eski_cag:
 				if sim.koyler.has(id):
 					sim.koyler[id]["cag"] = cag
 					sim._bayrak(sim.koyler[id])
 			for n in 2:
 				sim.tick()
-			if sim.c_var[asker] == 1:
-				kamera.position = Vector2(sim.c_x[asker], sim.c_y[asker]) * KARO
+			var odak := asker
+			if cag < 6:
+				# kuşatma makinesi (mancınık / top) ya da atlı olan bir asker varsa ona yaklaş
+				var en_m := 1.0e9
+				for i in sim.ust:
+					if sim.c_var[i] == 1 and sim.c_durum[i] == SimS.D_ASKER and sim.birim(i) >= 4:
+						var d2: float = Vector2(sim.c_x[i] - cephe["x"], sim.c_y[i] - cephe["y"]).length() - (20.0 if sim.birim(i) >= 5 else 0.0)
+						if d2 < en_m:
+							en_m = d2; odak = i
+			if sim.c_var[odak] == 1:
+				kamera.position = Vector2(sim.c_x[odak], sim.c_y[odak]) * KARO
 			kamera.zoom = Vector2(9, 9)
-			await _kare(klasor + ("/18b_tufekli_askerler.png" if cag == 4 else "/18c_lazerli_askerler.png"))
+			await _kare(klasor + ["/18d_mancinik_atli.png", "/18b_tufekli_askerler.png", "/18c_lazerli_askerler.png"][[3, 4, 6].find(cag)])
 		for id in eski_cag:
 			if sim.koyler.has(id):
 				sim.koyler[id]["cag"] = eski_cag[id]
@@ -1825,10 +1998,16 @@ func _kare(yol: String) -> void:
 func _olcum() -> void:
 	var senaryo := [["az", 1, 12345, 40], ["orta", 1, 12345, 160], ["cok", 3, 5, 170]]
 	var kisa := OS.get_cmdline_user_args().has("kisa")
+	# süzgeç (hızlı deneme için): -- olcum sadece=orta gorunum=yakin
+	var sadece := ""
+	var yalniz_gor := ""
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("sadece="): sadece = a.substr(7)
+		if a.begins_with("gorunum="): yalniz_gor = a.substr(8)
 	print("OLCUM basladi (kare süreleri ms; yazılım çizimi, yalnızca gece gece karşılaştırma için)")
 	print("OLCUM | nufus | gorunum | hiz | canli | ort kare | en yavas | sim | cizim | doku | ay/sn")
 	for sn in senaryo:
-		if kisa and sn[0] == "cok":
+		if (kisa and sn[0] == "cok") or (sadece != "" and sn[0] != sadece):
 			continue
 		yeni_dunya(sn[1], sn[2])
 		sim.hareket_adim = 12
@@ -1836,8 +2015,10 @@ func _olcum() -> void:
 			sim.tick()
 		sim.hareket_adim = 1
 		sim.kaydet("user://olcum.kayit")
-		for gorunum in ["uzak", "yakin"]:
+		for gorunum in ["uzak", "yakin", "cokyakin"]:
 			for h in [1, 3, 4, 5]:
+				if (gorunum == "cokyakin" and h != 1 and h != 4) or (yalniz_gor != "" and gorunum != yalniz_gor):
+					continue
 				# her satır aynı dünyadan başlar (nüfus satırlar arasında kaymasın)
 				sim.yukle("user://olcum.kayit")
 				harita.baglan(sim)
@@ -1849,7 +2030,7 @@ func _olcum() -> void:
 					_kamera_sigdir()
 				elif en != null:
 					kamera.position = Vector2(en["x"], en["y"]) * KARO
-					kamera.zoom = Vector2(4, 4)
+					kamera.zoom = Vector2(4, 4) if gorunum == "yakin" else Vector2(7, 7)
 				hiz_ayarla(h)
 				birikim = 0.0
 				for n in 12:

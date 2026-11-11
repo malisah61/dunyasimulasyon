@@ -72,8 +72,14 @@ const GIYSI := [Color("8a5a3a"), Color("b8a070"), Color("5a7a9a"), Color("9a4a3a
 const SAC := [Color("3a2a1a"), Color("5a3a20"), Color("1a1a1a"), Color("8a6a3a"), Color("6a2a1a")]
 const SAC_ELF := [Color("e8d890"), Color("d8e0e8"), Color("b89050")]
 const SILAH_RENK := [Color("7a5028"), Color("d8a860"), Color("dfe4ea"), Color("f4f8ff"), Color("2a2a30"), Color("2a2a30"), Color("60ffb0")]
+const BINEK_RENK := [Color("8a5a32"), Color("6a6a70")]   # at, kurt
 const MIGFER := [Color("8a6a4a"), Color("b08a50"), Color("9aa0aa"), Color("d0d6e0"), Color("5a6048"), Color("4a5040"), Color("80e8ff")]
 var bina_katman: Node2D        # yakın görünümde ayrıntılı binalar (çizim komutları saklanır)
+var canli_katman: Node2D       # canlılar (atlas resimleri: en yakın mip düzeyi, titremesiz)
+var ust_katman: Node2D         # savaş özeti, seçim, efektler (canlıların üstünde)
+var ck: CanvasItem             # o an çizilen katman
+var canli_atlas: ImageTexture  # canlı figürleri: ırk başına gövde (3 kare), baş (2), saç (2)
+var mevsim_mat: ShaderMaterial
 var bina_atlas: ImageTexture
 var bina_kutu := Rect2()       # komutların kurulduğu bölge (karo)
 var bina_kirli := false
@@ -84,16 +90,61 @@ var koy_halka: Array = []      # [x, y, yarıçap, renk]
 var kusatmalar: Array = []     # [x, y, kuşatan rengi]
 var yuruyusler: Array = []     # [x1, y1, x2, y2, renk] sefere çıkan köy → hedef
 
+## Harita parçalarının gölgelendiricisi: suda parıltı + MEVSİMLER (ekran kartında, haritayı yeniden çizmeden):
+## ilkbaharda taze yeşil ve çiçekler, yazın sararan otlar, sonbaharda kızıl-turuncu ormanlar,
+## kışın kuzeyde kar örtüsü ve donan sığ sular (kar sınırı yumuşak ve benekli).
 const SU_SHADER := """
 shader_type canvas_item;
+uniform float bahar = 0.0;
+uniform float yaz = 0.0;
+uniform float guz = 0.0;
+uniform float kis = 0.0;
+uniform float kar_y = -1.0;
+varying vec2 dunya;
+float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+void vertex() {
+	dunya = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy;
+}
 void fragment() {
 	vec4 c = texture(TEXTURE, UV);
 	float su = step(0.12, c.b - c.r) * step(c.g, c.b + 0.02);
-	vec2 px = floor(UV * vec2(textureSize(TEXTURE, 0)));
-	vec2 karo = floor(px / 4.0);
-	float d = sin(TIME * 1.7 + karo.x * 0.9 + karo.y * 0.55) * sin(TIME * 1.1 - karo.y * 0.8 + karo.x * 0.3);
-	float isik = step(0.82, d) * step(0.5, fract(sin(dot(px, vec2(12.9898, 78.233))) * 43758.5453));
-	c.rgb += su * isik * 0.10;
+	vec2 wp = floor(dunya);
+	float hp = h(wp);
+	if (su > 0.5) {
+		vec2 karo = floor(wp / 4.0);
+		float d = sin(TIME * 1.7 + karo.x * 0.9 + karo.y * 0.55) * sin(TIME * 1.1 - karo.y * 0.8 + karo.x * 0.3);
+		c.rgb += step(0.82, d) * step(0.5, hp) * 0.10;
+	}
+	float bitki = step(0.035, c.g - max(c.r, c.b));
+	if (bitki > 0.5) {
+		float orman = step(c.g, 0.62);
+		float ot = 1.0 - orman;
+		if (bahar > 0.0) {
+			// ilkbahar: taze yeşil, ovada seyrek çiçek
+			c.rgb = mix(c.rgb, c.rgb * vec3(0.92, 1.10, 0.92), bahar * 0.6);
+			float cicek = ot * step(0.985, fract(hp * 7.31)) * bahar;
+			c.rgb = mix(c.rgb, mix(vec3(1.0, 0.85, 0.3), vec3(0.95, 0.55, 0.75), step(0.5, fract(hp * 3.7))), cicek);
+		}
+		if (yaz > 0.0) {
+			// yaz: otlar sararır
+			c.rgb = mix(c.rgb, c.rgb * vec3(1.16, 1.02, 0.70), yaz * ot * 0.55);
+		}
+		if (guz > 0.0) {
+			// sonbahar: ormanlar sarı-turuncu-kızıl (karo karo farklı tonda; bazı ağaçlar yeşil kalır), otlar solar
+			float ton = h(floor(wp / 4.0) + 11.0);
+			vec3 guz_r = mix(mix(vec3(0.95, 0.72, 0.18), vec3(0.93, 0.48, 0.12), smoothstep(0.2, 0.6, ton)), vec3(0.78, 0.24, 0.12), smoothstep(0.6, 1.0, ton)) * (0.72 + c.g * 0.5);
+			c.rgb = mix(c.rgb, guz_r, guz * orman * step(0.18, ton) * (0.45 + 0.4 * ton));
+			c.rgb = mix(c.rgb, c.rgb * vec3(1.1, 0.95, 0.75), guz * ot * 0.4);
+		}
+	}
+	// kış: kar sınırının kuzeyi beyaza döner, sığ sular buz tutar
+	if (kis > 0.0 && dunya.y < kar_y + 30.0) {
+		float g = smoothstep(kar_y, kar_y - 60.0, dunya.y + (h(floor(wp / 4.0)) - 0.5) * 40.0) * kis;
+		float benek = 0.75 + 0.25 * fract(hp * 5.3);
+		vec3 kar = vec3(0.93, 0.96, 1.0) * (0.9 + 0.1 * hp);
+		c.rgb = mix(c.rgb, kar, g * (1.0 - su) * benek * 0.85);
+		c.rgb = mix(c.rgb, vec3(0.78, 0.88, 0.96), g * su * step(0.42, c.g) * 0.7);
+	}
 	COLOR = c;
 }
 """
@@ -124,6 +175,14 @@ func baglan(s) -> void:
 		bina_katman.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		bina_katman.draw.connect(_binalari_ciz)
 		add_child(bina_katman)
+		canli_katman = Node2D.new()
+		canli_katman.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		canli_katman.draw.connect(_canlilari_ciz)
+		add_child(canli_katman)
+		ust_katman = Node2D.new()
+		ust_katman.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		ust_katman.draw.connect(_ust_ciz)
+		add_child(ust_katman)
 	tur_renk.clear(); tur_ten.clear(); tur_boy.clear(); tur_yet.clear(); tur_kod.clear()
 	var kodlar := {"elf": 1, "ork": 2, "cuce": 3, "dev": 4, "goblin": 5, "kertenkele": 6, "uzayli": 7}
 	for t in sim.turler:
@@ -132,6 +191,7 @@ func baglan(s) -> void:
 		tur_boy.append(float(t["boy"]))
 		tur_yet.append(int(t["yetiskin"]) * 12)
 		tur_kod.append(int(kodlar.get(t["id"], 0)))
+	_canli_atlas_kur()
 	resim = Image.create(sim.gen * KARO, sim.yuk * KARO, false, Image.FORMAT_RGB8)
 	_parcalari_kur()
 	_hepsini_ciz()
@@ -223,6 +283,9 @@ func guncelle() -> void:
 	_guncelle_ic()
 	olc_doku_us += Time.get_ticks_usec() - olc_bas
 	queue_redraw()
+	if canli_katman != null:
+		canli_katman.queue_redraw()
+		ust_katman.queue_redraw()
 
 
 func _guncelle_ic() -> void:
@@ -716,6 +779,23 @@ func _ciz() -> void:
 	if huzur_harita:
 		_huzur_ciz()
 	_mevsim_ortu()
+	_koy_halkalari(olcek)
+
+
+## Canlılar ayrı katmanda çizilir (canli_katman): yakında hazır resim atlasından (az çizim çağrısı),
+## orta uzaklıkta sade figür, uzakta toplu nokta listesi.
+func _canlilari_ciz() -> void:
+	if sim == null or sim.gen == 0:
+		return
+	var olc_bas := Time.get_ticks_usec()
+	ck = canli_katman
+	var tr := get_canvas_transform()
+	var ters := tr.affine_inverse()
+	var ust_sol: Vector2 = ters * Vector2.ZERO
+	var alt_sag: Vector2 = ters * get_viewport_rect().size
+	gorunur = Rect2(ust_sol / KARO, (alt_sag - ust_sol) / KARO).grow(2)
+	var olcek: float = tr.get_scale().x
+	var detay := olcek >= 1.6
 	var a := alfa if ara_deger else 1.0
 	var yayik: bool = sim.yayik
 	var gx := gorunur.position.x
@@ -730,7 +810,7 @@ func _ciz() -> void:
 	var t_ucan: PackedByteArray = sim.t_ucan
 	var simdi_ms := Time.get_ticks_msec()
 	if not detay:
-		# uzak görünüm: her canlı tek nokta; tek çizim çağrısı (draw_multiline_colors) ile toplu çizilir.
+		# uzak görünüm: her canlı tek nokta; tek çizim çağrısı (ck.draw_multiline_colors) ile toplu çizilir.
 		# Nokta listesi her karede değil, yalnızca simülasyon ilerleyince (en çok saniyede ~8 kez) yeniden kurulur.
 		var imza: int = sim.ay * 31 + sim.son_uid * 7 + sim.bos.size()
 		if nokta_ay != imza and (simdi_ms - nokta_zaman >= 120 or nokta_ay < 0):
@@ -752,10 +832,8 @@ func _ciz() -> void:
 			noktalar.resize(m * 2)
 			nokta_renk.resize(m)
 		if noktalar.size() > 0:
-			draw_multiline_colors(noktalar, nokta_renk, 3.0)
-		_ozet_ciz(olcek)
-		_secili_ciz()
-		_efektleri_ciz()
+			ck.draw_multiline_colors(noktalar, nokta_renk, 3.0)
+		olc_cizim_us += Time.get_ticks_usec() - olc_bas
 		return
 	# yakın görünüm: ekrandaki canlıların listesi yalnızca simülasyon ilerleyince ya da kamera kayınca yenilenir
 	var imza2: int = sim.ay * 31 + sim.son_uid * 7 + sim.bos.size()
@@ -788,7 +866,6 @@ func _ciz() -> void:
 		var kr: Dictionary = sim.kralliklar[id]
 		if kr["kral"] >= 0 and kr["kral_uid"] != 0:
 			kral[kr["kral"]] = true
-	_koy_halkalari(olcek)
 	for i in gorunen:
 		if c_var[i] == 0:
 			continue
@@ -839,159 +916,362 @@ func _ciz() -> void:
 				kr_renk = kb[1]
 				gov = kr_renk.darkened(0.15)
 			if orta:
-				draw_rect(Rect2(px - 1.0 * s, py - 1.0 * s, 2.0 * s, 2.9 * s), gov)
-				draw_rect(Rect2(px - 0.8 * s, py - 2.8 * s, 1.6 * s, 1.8 * s), ten)
+				var oy := py
 				if asker:
-					draw_line(Vector2(px + 1.3 * s, py - 2.6 * s), Vector2(px + 1.3 * s, py + 1.4 * s), SILAH_RENK[mini(cag, 6)], 0.5 * s)
+					var obr: int = sim.birim(i)
+					if obr == 4:
+						# atlı: altında at gövdesi
+						ck.draw_rect(Rect2(px - 2.2 * s, py - 0.2 * s, 4.4 * s, 1.8 * s), BINEK_RENK[sim.t_binici[tur] - 1])
+						oy = py - 1.6 * s
+					elif obr >= 5:
+						# kuşatma makinesi: yanında ahşap/demir gövde
+						ck.draw_rect(Rect2(px + 1.6 * s, py - 0.6 * s, 3.6 * s, 2.0 * s), Color("6a4a28") if obr == 5 else Color("2a2a30"))
+				ck.draw_rect(Rect2(px - 1.0 * s, oy - 1.0 * s, 2.0 * s, 2.9 * s), gov)
+				ck.draw_rect(Rect2(px - 0.8 * s, oy - 2.8 * s, 1.6 * s, 1.8 * s), ten)
+				if asker:
+					ck.draw_line(Vector2(px + 1.3 * s, oy - 2.6 * s), Vector2(px + 1.3 * s, oy + 1.4 * s), SILAH_RENK[mini(cag, 6)], 0.5 * s)
 				if kral.has(i):
-					draw_rect(Rect2(px - 0.8 * s, py - 3.5 * s, 1.6 * s, 0.7 * s), TAC)
+					ck.draw_rect(Rect2(px - 0.8 * s, oy - 3.5 * s, 1.6 * s, 0.7 * s), TAC)
 				continue
-			# gölge
-			if ince:
-				draw_rect(Rect2(px - 1.2 * s, py + 1.6 * s, 2.4 * s, 0.7 * s), GOLGE)
-			# yürürken bacaklar sırayla
-			var adim_f := 0.0
-			if hareketli:
-				adim_f = 0.5 * s if ((zaman / 140 + i) % 2 == 0) else -0.5 * s
-			# giysi: sivillerde ırk rengi kişiye göre tonlanır (herkes aynı görünmesin), askerde krallık rengi
-			var uid: int = sim.c_uid[i]
-			if not asker:
-				gov = renk.lerp(GIYSI[uid % 6], 0.5)
-			if hareketli or ince:
-				draw_rect(Rect2(px - 0.9 * s, py + 1.0 * s, 0.7 * s, 0.9 * s + adim_f), gov.darkened(0.4))
-				draw_rect(Rect2(px + 0.2 * s, py + 1.0 * s, 0.7 * s, 0.9 * s - adim_f), gov.darkened(0.4))
-			else:
-				draw_rect(Rect2(px - 0.9 * s, py + 1.0 * s, 1.8 * s, 0.9 * s), gov.darkened(0.4))
-			draw_rect(Rect2(px - 1.0 * s, py - 1.0 * s, 2.0 * s, 2.2 * s), gov)
-			if ince:
-				draw_rect(Rect2(px - 1.0 * s, py + 0.35 * s, 2.0 * s, 0.3 * s), gov.darkened(0.3))   # kuşak
-			draw_rect(Rect2(px - 0.8 * s, py - 2.8 * s, 1.6 * s, 1.8 * s), ten)
+			# yakın: atlas resimleri (gövde krallık/giysi rengiyle boyanır, baş ırka göre hazır, saç boyanır)
 			var kod: int = tur_kod[tur]
+			var uid: int = sim.c_uid[i]
+			var br := -1
+			if asker:
+				br = sim.birim(i)
+			else:
+				gov = renk.lerp(GIYSI[uid % 6], 0.5)
+			var hx := px
+			var hy := py
+			if br == 4:
+				# atlı: önce at (goblinde kurt), binici yukarıda
+				_binek_ciz(px, py, s, hareketli, zaman + i * 37, sim.t_binici[tur] == 2, kr_renk)
+				hy = py - 1.6 * s
+			elif br >= 5:
+				_makine_ciz(px, py, s, br, zaman + i * 53, kr_renk)
+			var kare := 0
+			if hareketli and br != 4:
+				kare = 1 + ((zaman / 140 + i) % 2)
+			var sac := Color.WHITE
 			if kod != 5 and kod != 6 and kod != 7:
 				# saç: yaşlılarda ağarır; kadınlarda omuza iner
-				var sac: Color = SAC[uid % 5] if sim.c_yas[i] < sim.s_omur[i] * 0.7 else Color("d8d8d8")
+				sac = SAC[uid % 5] if sim.c_yas[i] < sim.s_omur[i] * 0.7 else Color("d8d8d8")
 				if kod == 1:
 					sac = SAC_ELF[uid % 3]
-				draw_rect(Rect2(px - 0.9 * s, py - 3.0 * s, 1.8 * s, 0.6 * s), sac)
-				if ince and sim.c_cins[i] == 0:
-					draw_rect(Rect2(px - 1.0 * s, py - 2.9 * s, 0.35 * s, 1.7 * s), sac)
-					draw_rect(Rect2(px + 0.65 * s, py - 2.9 * s, 0.35 * s, 1.7 * s), sac)
-			if olcek >= 6.0:
-				# gözler
-				draw_rect(Rect2(px - 0.5 * s, py - 2.1 * s, 0.3 * s, 0.3 * s), GOZ)
-				draw_rect(Rect2(px + 0.2 * s, py - 2.1 * s, 0.3 * s, 0.3 * s), GOZ)
-			match kod if (ince or kod == 3 or kod == 6) else 0:
-				1:  # elf: sivri kulak
-					draw_rect(Rect2(px - 1.2 * s, py - 2.5 * s, 0.4 * s, 0.6 * s), ten)
-					draw_rect(Rect2(px + 0.8 * s, py - 2.5 * s, 0.4 * s, 0.6 * s), ten)
-				2:  # ork: diş
-					draw_rect(Rect2(px - 0.5 * s, py - 1.3 * s, 0.3 * s, 0.4 * s), Color.WHITE)
-					draw_rect(Rect2(px + 0.2 * s, py - 1.3 * s, 0.3 * s, 0.4 * s), Color.WHITE)
-				3:  # cüce: sakal
-					draw_rect(Rect2(px - 0.8 * s, py - 1.6 * s, 1.6 * s, 1.2 * s), SAKAL)
-				5:  # goblin: büyük kulak
-					draw_rect(Rect2(px - 1.5 * s, py - 2.6 * s, 0.7 * s, 0.5 * s), ten)
-					draw_rect(Rect2(px + 0.8 * s, py - 2.6 * s, 0.7 * s, 0.5 * s), ten)
-				6:  # kertenkele: kuyruk
-					draw_line(Vector2(px + 0.8 * s, py + 1.2 * s), Vector2(px + 2.2 * s, py + 1.8 * s), renk, 0.6 * s)
-				7:  # uzaylı: anten
-					draw_line(Vector2(px - 0.4 * s, py - 2.8 * s), Vector2(px - 0.8 * s, py - 3.8 * s), ten, 0.3 * s)
-					draw_line(Vector2(px + 0.4 * s, py - 2.8 * s), Vector2(px + 0.8 * s, py - 3.8 * s), ten, 0.3 * s)
+			if ince:
+				# çok yakın: hazır resimler (12 dikdörtgen yerine 3 resim); her katman yalnızca dolu bölgesiyle çizilir
+				var hp := Vector2(hx, hy)
+				var ab := 0 if olcek * s >= 7.0 else 1      # ekranda küçükse küçük atlas (titremesin)
+				var atl: Texture2D = canli_atlaslar[ab]
+				ab *= 56
+				ck.draw_texture_rect_region(atl, Rect2(hp + KUTU_GOVDE.position * s, KUTU_GOVDE.size * s), atl_src[ab + kare * 8 + kod], gov)
+				var kb: Rect2 = KUTU_BAS[kod]
+				ck.draw_texture_rect_region(atl, Rect2(hp + kb.position * s, kb.size * s), atl_src[ab + (4 if olcek >= 6.0 else 3) * 8 + kod])
+				if kod != 5 and kod != 6 and kod != 7:
+					ck.draw_texture_rect_region(atl, Rect2(hp + KUTU_SAC.position * s, KUTU_SAC.size * s), atl_src[ab + (6 - sim.c_cins[i]) * 8 + kod], sac)
+			else:
+				# yakın (orta-yakın): figür birkaç düz dikdörtgen (yazılım çiziminde resimden ucuz)
+				var adim_f := 0.0
+				if kare > 0:
+					adim_f = 0.5 * s if kare == 1 else -0.5 * s
+					ck.draw_rect(Rect2(hx - 0.9 * s, hy + 1.0 * s, 0.7 * s, 0.9 * s + adim_f), gov.darkened(0.4))
+					ck.draw_rect(Rect2(hx + 0.2 * s, hy + 1.0 * s, 0.7 * s, 0.9 * s - adim_f), gov.darkened(0.4))
+				else:
+					ck.draw_rect(Rect2(hx - 0.9 * s, hy + 1.0 * s, 1.8 * s, 0.9 * s), gov.darkened(0.4))
+				ck.draw_rect(Rect2(hx - 1.0 * s, hy - 1.0 * s, 2.0 * s, 2.2 * s), gov)
+				ck.draw_rect(Rect2(hx - 0.8 * s, hy - 2.8 * s, 1.6 * s, 1.8 * s), ten)
+				if kod != 5 and kod != 6 and kod != 7:
+					ck.draw_rect(Rect2(hx - 0.9 * s, hy - 3.0 * s, 1.8 * s, 0.6 * s), sac)
+				if kod == 3:
+					ck.draw_rect(Rect2(hx - 0.8 * s, hy - 1.6 * s, 1.6 * s, 1.2 * s), SAKAL)
+				elif kod == 6:
+					ck.draw_line(Vector2(hx + 0.8 * s, hy + 1.2 * s), Vector2(hx + 2.2 * s, hy + 1.8 * s), renk, 0.6 * s)
 			if kral.has(i):
-				draw_rect(Rect2(px - 0.8 * s, py - 3.4 * s, 1.6 * s, 0.6 * s), TAC)
-				draw_rect(Rect2(px - 0.8 * s, py - 3.8 * s, 0.4 * s, 0.4 * s), TAC)
-				draw_rect(Rect2(px + 0.4 * s, py - 3.8 * s, 0.4 * s, 0.4 * s), TAC)
+				ck.draw_rect(Rect2(hx - 0.8 * s, hy - 3.4 * s, 1.6 * s, 0.6 * s), TAC)
+				ck.draw_rect(Rect2(hx - 0.8 * s, hy - 3.8 * s, 0.4 * s, 0.4 * s), TAC)
+				ck.draw_rect(Rect2(hx + 0.4 * s, hy - 3.8 * s, 0.4 * s, 0.4 * s), TAC)
 			if asker:
 				if ince:
-					_asker_ciz(i, px, py, s, cag, kr_renk, zaman)
+					_asker_ciz(i, hx, hy, s, cag, kr_renk, zaman, br)
 				else:
 					# sade donanım: silah çizgisi (çağın rengi) ve kalkan
-					draw_line(Vector2(px + 1.3 * s, py - 2.8 * s), Vector2(px + 1.3 * s, py + 1.2 * s), SILAH_RENK[mini(cag, 6)], 0.5 * s)
-					if cag >= 1:
-						draw_rect(Rect2(px - 1.9 * s, py - 0.8 * s, 1.0 * s, 1.6 * s), kr_renk.lightened(0.25))
+					ck.draw_line(Vector2(hx + 1.3 * s, hy - 2.8 * s), Vector2(hx + 1.3 * s, hy + 1.2 * s), SILAH_RENK[mini(cag, 6)], 0.5 * s)
+					if cag >= 1 and br != 5 and br != 6:
+						ck.draw_rect(Rect2(hx - 1.9 * s, hy - 0.8 * s, 1.0 * s, 1.6 * s), kr_renk.lightened(0.25))
 		elif t_ucan[tur] == 1:
 			var kanat := sin(zaman * 0.008 + i) * 2.0 * boy
-			draw_rect(Rect2(px - 1.5 * boy, py + 3.0 * boy, 3.0 * boy, 0.8 * boy), GOLGE)
-			draw_rect(Rect2(px - 2.0 * boy, py - 1.0 * boy, 4.0 * boy, 2.0 * boy), renk)
-			draw_line(Vector2(px - 1.5 * boy, py - 0.5 * boy), Vector2(px - 4.0 * boy, py - 1.0 * boy - kanat), renk.lightened(0.2), 1.2)
-			draw_line(Vector2(px + 1.5 * boy, py - 0.5 * boy), Vector2(px + 4.0 * boy, py - 1.0 * boy - kanat), renk.lightened(0.2), 1.2)
-			draw_rect(Rect2(px + 1.6 * boy, py - 1.6 * boy, 1.4 * boy, 1.2 * boy), ten)
+			ck.draw_rect(Rect2(px - 1.5 * boy, py + 3.0 * boy, 3.0 * boy, 0.8 * boy), GOLGE)
+			ck.draw_rect(Rect2(px - 2.0 * boy, py - 1.0 * boy, 4.0 * boy, 2.0 * boy), renk)
+			ck.draw_line(Vector2(px - 1.5 * boy, py - 0.5 * boy), Vector2(px - 4.0 * boy, py - 1.0 * boy - kanat), renk.lightened(0.2), 1.2)
+			ck.draw_line(Vector2(px + 1.5 * boy, py - 0.5 * boy), Vector2(px + 4.0 * boy, py - 1.0 * boy - kanat), renk.lightened(0.2), 1.2)
+			ck.draw_rect(Rect2(px + 1.6 * boy, py - 1.6 * boy, 1.4 * boy, 1.2 * boy), ten)
 		elif orta:
-			draw_rect(Rect2(px - 1.6 * boy, py - 1.0 * boy, 3.2 * boy, 2.4 * boy), renk)
-			draw_rect(Rect2(px + 1.0 * boy, py - 1.6 * boy, 1.2 * boy, 1.2 * boy), ten)
+			ck.draw_rect(Rect2(px - 1.6 * boy, py - 1.0 * boy, 3.2 * boy, 2.4 * boy), renk)
+			ck.draw_rect(Rect2(px + 1.0 * boy, py - 1.6 * boy, 1.2 * boy, 1.2 * boy), ten)
 		else:
-			draw_rect(Rect2(px - 1.6 * boy, py + 1.0 * boy, 3.2 * boy, 0.6 * boy), GOLGE)
+			ck.draw_rect(Rect2(px - 1.6 * boy, py + 1.0 * boy, 3.2 * boy, 0.6 * boy), GOLGE)
 			var bacak := 0.0
 			if hareketli:
 				bacak = 0.4 * boy if ((zaman / 160 + i) % 2 == 0) else 0.0
-			draw_rect(Rect2(px - 1.3 * boy, py + 0.8 * boy, 0.6 * boy, 0.7 * boy - bacak), renk.darkened(0.3))
-			draw_rect(Rect2(px + 0.7 * boy, py + 0.8 * boy, 0.6 * boy, 0.3 * boy + bacak), renk.darkened(0.3))
-			draw_rect(Rect2(px - 1.6 * boy, py - 1.0 * boy, 3.2 * boy, 2.0 * boy), renk)
-			draw_rect(Rect2(px + 1.0 * boy, py - 1.6 * boy, 1.2 * boy, 1.2 * boy), ten)
-	_ozet_ciz(olcek)
+			ck.draw_rect(Rect2(px - 1.3 * boy, py + 0.8 * boy, 0.6 * boy, 0.7 * boy - bacak), renk.darkened(0.3))
+			ck.draw_rect(Rect2(px + 0.7 * boy, py + 0.8 * boy, 0.6 * boy, 0.3 * boy + bacak), renk.darkened(0.3))
+			ck.draw_rect(Rect2(px - 1.6 * boy, py - 1.0 * boy, 3.2 * boy, 2.0 * boy), renk)
+			ck.draw_rect(Rect2(px + 1.0 * boy, py - 1.6 * boy, 1.2 * boy, 1.2 * boy), ten)
+
+
+	olc_cizim_us += Time.get_ticks_usec() - olc_bas
+
+
+## Üst katman: savaş özeti, seçili canlı, efektler (canlıların üstünde).
+func _ust_ciz() -> void:
+	if sim == null or sim.gen == 0:
+		return
+	var olc_bas := Time.get_ticks_usec()
+	ck = ust_katman
+	_ozet_ciz(get_canvas_transform().get_scale().x)
 	_secili_ciz()
 	_efektleri_ciz()
+	olc_cizim_us += Time.get_ticks_usec() - olc_bas
 
 
 ## Askerin donanımı: çağa göre silah (sopa → mızrak → kılıç/yay → çelik kılıç/arbalet → tüfek → lazer),
 ## kalkan ve miğfer; her dokuz askerden biri krallık sancağı taşır.
-func _asker_ciz(i: int, px: float, py: float, s: float, cag: int, kr_renk: Color, zaman: int) -> void:
-	var br: int = sim.birim(i)
+func _asker_ciz(i: int, px: float, py: float, s: float, cag: int, kr_renk: Color, zaman: int, br: int) -> void:
 	var el := Vector2(px + 1.3 * s, py)
 	# miğfer (Demir Çağı'ndan itibaren), Orta Çağ'da tepelikli
 	if cag >= 2:
-		draw_rect(Rect2(px - 0.9 * s, py - 3.1 * s, 1.8 * s, 0.8 * s), MIGFER[mini(cag, 6)])
+		ck.draw_rect(Rect2(px - 0.9 * s, py - 3.1 * s, 1.8 * s, 0.8 * s), MIGFER[mini(cag, 6)])
 		if cag == 3:
-			draw_rect(Rect2(px - 0.2 * s, py - 3.6 * s, 0.4 * s, 0.5 * s), kr_renk.lightened(0.3))
+			ck.draw_rect(Rect2(px - 0.2 * s, py - 3.6 * s, 0.4 * s, 0.5 * s), kr_renk.lightened(0.3))
 	# zırh: Tunç'tan itibaren göğüslük şeridi
 	if cag >= 1:
-		draw_rect(Rect2(px - 1.0 * s, py - 0.6 * s, 2.0 * s, 0.5 * s), MIGFER[mini(maxi(cag, 2), 6)].darkened(0.15))
+		ck.draw_rect(Rect2(px - 1.0 * s, py - 0.6 * s, 2.0 * s, 0.5 * s), MIGFER[mini(maxi(cag, 2), 6)].darkened(0.15))
 	match br:
 		0:
 			# piyade: kalkan solda (Tunç Çağı'ndan itibaren)
 			if cag >= 1:
-				draw_rect(Rect2(px - 1.9 * s, py - 0.8 * s, 1.0 * s, 1.6 * s), kr_renk.lightened(0.25))
-				draw_rect(Rect2(px - 1.6 * s, py - 0.2 * s, 0.4 * s, 0.4 * s), TAC)
+				ck.draw_rect(Rect2(px - 1.9 * s, py - 0.8 * s, 1.0 * s, 1.6 * s), kr_renk.lightened(0.25))
+				ck.draw_rect(Rect2(px - 1.6 * s, py - 0.2 * s, 0.4 * s, 0.4 * s), TAC)
 			if cag == 0:
 				# sopa
-				draw_line(el + Vector2(0, 1.2 * s), el + Vector2(0.3 * s, -1.8 * s), Color("7a5028"), 0.5 * s)
-				draw_rect(Rect2(el.x - 0.2 * s, el.y - 2.6 * s, 0.9 * s, 0.9 * s), Color("5a3a18"))
+				ck.draw_line(el + Vector2(0, 1.2 * s), el + Vector2(0.3 * s, -1.8 * s), Color("7a5028"), 0.5 * s)
+				ck.draw_rect(Rect2(el.x - 0.2 * s, el.y - 2.6 * s, 0.9 * s, 0.9 * s), Color("5a3a18"))
 			elif cag == 1:
 				# mızrak
-				draw_line(el + Vector2(0, 1.6 * s), el + Vector2(0, -3.2 * s), Color("8a6030"), 0.35 * s)
-				draw_colored_polygon(PackedVector2Array([el + Vector2(-0.4 * s, -3.2 * s), el + Vector2(0.4 * s, -3.2 * s), el + Vector2(0, -4.2 * s)]), Color("d8a860"))
+				ck.draw_line(el + Vector2(0, 1.6 * s), el + Vector2(0, -3.2 * s), Color("8a6030"), 0.35 * s)
+				ck.draw_colored_polygon(PackedVector2Array([el + Vector2(-0.4 * s, -3.2 * s), el + Vector2(0.4 * s, -3.2 * s), el + Vector2(0, -4.2 * s)]), Color("d8a860"))
 			else:
 				# kılıç (Orta Çağ'da daha uzun, parlak çelik)
 				var uz := 2.4 if cag == 2 else 3.0
-				draw_line(el + Vector2(0, 0.4 * s), el + Vector2(0, -uz * s), Color("dfe4ea") if cag == 2 else Color("f4f8ff"), 0.5 * s)
-				draw_line(el + Vector2(-0.6 * s, 0.2 * s), el + Vector2(0.6 * s, 0.2 * s), Color("8a6030") if cag == 2 else TAC, 0.4 * s)
+				ck.draw_line(el + Vector2(0, 0.4 * s), el + Vector2(0, -uz * s), Color("dfe4ea") if cag == 2 else Color("f4f8ff"), 0.5 * s)
+				ck.draw_line(el + Vector2(-0.6 * s, 0.2 * s), el + Vector2(0.6 * s, 0.2 * s), Color("8a6030") if cag == 2 else TAC, 0.4 * s)
 		1:
 			if cag >= 3:
 				# arbalet
-				draw_line(el + Vector2(-0.9 * s, -0.6 * s), el + Vector2(0.9 * s, -0.6 * s), Color("6a4a28"), 0.4 * s)
-				draw_line(el + Vector2(0, -1.4 * s), el + Vector2(0, 0.6 * s), Color("8a6030"), 0.4 * s)
+				ck.draw_line(el + Vector2(-0.9 * s, -0.6 * s), el + Vector2(0.9 * s, -0.6 * s), Color("6a4a28"), 0.4 * s)
+				ck.draw_line(el + Vector2(0, -1.4 * s), el + Vector2(0, 0.6 * s), Color("8a6030"), 0.4 * s)
 			else:
 				# yay ve kiriş
-				draw_arc(el + Vector2(-0.4 * s, -0.6 * s), 1.5 * s, -1.2, 1.2, 6, Color("8a6030"), 0.35 * s)
-				draw_line(el + Vector2(0.15 * s, -2.0 * s), el + Vector2(0.15 * s, 0.8 * s), Color("e8e0c8"), 0.15 * s)
+				ck.draw_arc(el + Vector2(-0.4 * s, -0.6 * s), 1.5 * s, -1.2, 1.2, 6, Color("8a6030"), 0.35 * s)
+				ck.draw_line(el + Vector2(0.15 * s, -2.0 * s), el + Vector2(0.15 * s, 0.8 * s), Color("e8e0c8"), 0.15 * s)
 			# sadak
-			draw_rect(Rect2(px - 1.5 * s, py - 1.6 * s, 0.5 * s, 1.6 * s), Color("6a4a28"))
+			ck.draw_rect(Rect2(px - 1.5 * s, py - 1.6 * s, 0.5 * s, 1.6 * s), Color("6a4a28"))
 		2:
 			# tüfek (süngülü)
-			draw_line(el + Vector2(-0.5 * s, 0.9 * s), el + Vector2(0.9 * s, -2.4 * s), Color("2a2a30"), 0.45 * s)
-			draw_line(el + Vector2(-0.7 * s, 1.3 * s), el + Vector2(-0.2 * s, 0.2 * s), Color("7a5028"), 0.6 * s)
-			draw_line(el + Vector2(0.9 * s, -2.4 * s), el + Vector2(1.1 * s, -3.0 * s), Color("d8dce4"), 0.2 * s)
+			ck.draw_line(el + Vector2(-0.5 * s, 0.9 * s), el + Vector2(0.9 * s, -2.4 * s), Color("2a2a30"), 0.45 * s)
+			ck.draw_line(el + Vector2(-0.7 * s, 1.3 * s), el + Vector2(-0.2 * s, 0.2 * s), Color("7a5028"), 0.6 * s)
+			ck.draw_line(el + Vector2(0.9 * s, -2.4 * s), el + Vector2(1.1 * s, -3.0 * s), Color("d8dce4"), 0.2 * s)
 		3:
 			# lazer silahı
-			draw_line(el + Vector2(-0.5 * s, 0.4 * s), el + Vector2(1.0 * s, -1.4 * s), Color("b8c0d0"), 0.5 * s)
-			draw_circle(el + Vector2(1.0 * s, -1.4 * s), 0.35 * s, Color("60ffb0"))
+			ck.draw_line(el + Vector2(-0.5 * s, 0.4 * s), el + Vector2(1.0 * s, -1.4 * s), Color("b8c0d0"), 0.5 * s)
+			ck.draw_circle(el + Vector2(1.0 * s, -1.4 * s), 0.35 * s, Color("60ffb0"))
+		4:
+			# atlı: öne uzanan uzun mızrak (Orta Çağ'da kargı) ve küçük kalkan
+			var uc := el + Vector2(3.2 * s, -2.2 * s)
+			ck.draw_line(el + Vector2(-1.2 * s, 0.8 * s), uc, Color("8a6030"), 0.35 * s)
+			ck.draw_colored_polygon(PackedVector2Array([uc, uc + Vector2(-0.9 * s, 0.2 * s), uc + Vector2(-0.5 * s, 0.7 * s)]), Color("dfe4ea"))
+			if cag >= 3:
+				ck.draw_rect(Rect2(uc.x - 0.6 * s, uc.y + 0.2 * s, 0.5 * s, 0.9 * s), kr_renk.lightened(0.2))   # kargı flaması
+			ck.draw_rect(Rect2(px - 1.8 * s, py - 0.7 * s, 0.9 * s, 1.3 * s), kr_renk.lightened(0.25))
+		5, 6:
+			# kuşatma ustası: elinde tokmak ya da fitil
+			ck.draw_line(el + Vector2(0, 1.0 * s), el + Vector2(0.4 * s, -1.6 * s), Color("7a5028"), 0.35 * s)
+			if br == 6:
+				ck.draw_circle(el + Vector2(0.4 * s, -1.8 * s), 0.3 * s, Color(1, 0.6 + 0.3 * sin(zaman * 0.02), 0.2))
 	if sim.c_uid[i] % 9 == 0:
 		# sancaktar
 		var dip := Vector2(px - 1.3 * s, py + 1.2 * s)
 		var tepe := dip + Vector2(0, -5.2 * s)
 		var dalga := sin(zaman * 0.006 + i) * 0.3 * s
-		draw_line(dip, tepe, Color("5a3a20"), 0.3 * s)
-		draw_colored_polygon(PackedVector2Array([tepe, tepe + Vector2(2.2 * s, 0.5 * s + dalga), tepe + Vector2(0, 1.4 * s)]), kr_renk.lightened(0.15))
+		ck.draw_line(dip, tepe, Color("5a3a20"), 0.3 * s)
+		ck.draw_colored_polygon(PackedVector2Array([tepe, tepe + Vector2(2.2 * s, 0.5 * s + dalga), tepe + Vector2(0, 1.4 * s)]), kr_renk.lightened(0.15))
+
+
+
+# ------------------------------------------------------------ canlı atlası, binekler, kuşatma makineleri
+## Atlas hücresi (canlı boyu birimi s cinsinden): x −2.5…2.5, y −4.5…2.5; birim başına ATL_T doku pikseli.
+const ATL_W := 5.0
+const ATL_H := 7.0
+const ATL_OX := 2.5
+const ATL_OY := 4.5
+const ATL_TS := [12, 5]    # iki boy: yakın (12 piksel/birim) ve orta-yakın (5) — ekrana ~1:1 düşsün, titremesin
+var atl_t := 12
+const KUTU_GOVDE := Rect2(-1.3, -1.1, 2.6, 3.5)
+const KUTU_SAC := Rect2(-1.1, -3.1, 2.2, 2.0)
+const KUTU_BAS := [Rect2(-1.0, -3.0, 2.0, 2.2), Rect2(-1.3, -3.0, 2.6, 2.2), Rect2(-1.0, -3.0, 2.0, 2.2), Rect2(-1.0, -3.0, 2.0, 2.7),
+	Rect2(-1.0, -3.0, 2.0, 2.2), Rect2(-1.6, -3.0, 3.2, 2.2), Rect2(-1.0, -3.0, 3.6, 5.2), Rect2(-1.1, -4.0, 2.2, 3.2)]
+var atl_src: Array = []        # [boy*56 + sütun*8 + ırk kodu] → atlastaki dolu bölge
+var canli_atlaslar: Array = []
+
+
+func _atl_dolgu(img: Image, sut: int, sat: int, rx: float, ry: float, rw: float, rh: float, c: Color) -> void:
+	var bx := sut * int(ATL_W * atl_t)
+	var by := sat * int(ATL_H * atl_t)
+	var x0 := int(round((rx + ATL_OX) * atl_t))
+	var y0 := int(round((ry + ATL_OY) * atl_t))
+	var x1 := int(round((rx + rw + ATL_OX) * atl_t))
+	var y1 := int(round((ry + rh + ATL_OY) * atl_t))
+	if x1 > x0 and y1 > y0:
+		img.fill_rect(Rect2i(bx + x0, by + y0, x1 - x0, y1 - y0), c)
+
+
+func _atl_cizgi(img: Image, sut: int, sat: int, a: Vector2, b: Vector2, kal: float, c: Color) -> void:
+	for n in 13:
+		var p := a.lerp(b, n / 12.0)
+		_atl_dolgu(img, sut, sat, p.x - kal * 0.5, p.y - kal * 0.5, kal, kal, c)
+
+
+## Irk başına 7 hücre: 0 duran gövde, 1-2 yürüyüş, 3 baş, 4 gözlü baş, 5 kısa saç, 6 uzun saç.
+## Gövde ve saç beyaz/gri çizilir, çizerken giysi (asker: krallık) ve saç rengiyle boyanır; baş ırkın kendi renginde.
+## Böylece yakın görünümde bir canlı ~12 dikdörtgen yerine 3 resimle çizilir.
+func _canli_atlas_kur() -> void:
+	atl_src.clear()
+	canli_atlaslar.clear()
+	for t in ATL_TS:
+		atl_t = t
+		_canli_atlas_tek()
+	canli_atlas = canli_atlaslar[0]
+
+
+func _canli_atlas_tek() -> void:
+	var img := Image.create(int(7 * ATL_W * atl_t), int(8 * ATL_H * atl_t), false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var ten_kod := []
+	var renk_kod := []
+	for k in 8:
+		ten_kod.append(Color("e0b090"))
+		renk_kod.append(Color("8a6a4a"))
+	for t in tur_kod.size():
+		if sim.t_irk[t] == 1:
+			ten_kod[tur_kod[t]] = tur_ten[t]
+			renk_kod[tur_kod[t]] = tur_renk[t]
+	var gri := Color(0.6, 0.6, 0.6)
+	for kod in 8:
+		for kare in 3:
+			_atl_dolgu(img, kare, kod, -1.2, 1.6, 2.4, 0.7, GOLGE)
+			var f: float = [0.0, 0.5, -0.5][kare]
+			_atl_dolgu(img, kare, kod, -0.9, 1.0, 0.7, 0.9 + f, gri)
+			_atl_dolgu(img, kare, kod, 0.2, 1.0, 0.7, 0.9 - f, gri)
+			_atl_dolgu(img, kare, kod, -1.0, -1.0, 2.0, 2.2, Color.WHITE)
+			_atl_dolgu(img, kare, kod, -1.0, 0.35, 2.0, 0.3, Color(0.7, 0.7, 0.7))
+		var ten: Color = ten_kod[kod]
+		for sut in [3, 4]:
+			if kod == 6:
+				_atl_cizgi(img, sut, kod, Vector2(0.8, 1.2), Vector2(2.2, 1.8), 0.6, renk_kod[kod])
+			_atl_dolgu(img, sut, kod, -0.8, -2.8, 1.6, 1.8, ten)
+			match kod:
+				1:
+					_atl_dolgu(img, sut, kod, -1.2, -2.5, 0.4, 0.6, ten)
+					_atl_dolgu(img, sut, kod, 0.8, -2.5, 0.4, 0.6, ten)
+				2:
+					_atl_dolgu(img, sut, kod, -0.5, -1.3, 0.3, 0.4, Color.WHITE)
+					_atl_dolgu(img, sut, kod, 0.2, -1.3, 0.3, 0.4, Color.WHITE)
+				3:
+					_atl_dolgu(img, sut, kod, -0.8, -1.6, 1.6, 1.2, SAKAL)
+				5:
+					_atl_dolgu(img, sut, kod, -1.5, -2.6, 0.7, 0.5, ten)
+					_atl_dolgu(img, sut, kod, 0.8, -2.6, 0.7, 0.5, ten)
+				7:
+					_atl_cizgi(img, sut, kod, Vector2(-0.4, -2.8), Vector2(-0.8, -3.8), 0.3, ten)
+					_atl_cizgi(img, sut, kod, Vector2(0.4, -2.8), Vector2(0.8, -3.8), 0.3, ten)
+			if sut == 4:
+				_atl_dolgu(img, sut, kod, -0.5, -2.1, 0.3, 0.3, GOZ)
+				_atl_dolgu(img, sut, kod, 0.2, -2.1, 0.3, 0.3, GOZ)
+		_atl_dolgu(img, 5, kod, -0.9, -3.0, 1.8, 0.6, Color.WHITE)
+		_atl_dolgu(img, 6, kod, -0.9, -3.0, 1.8, 0.6, Color.WHITE)
+		_atl_dolgu(img, 6, kod, -1.0, -2.9, 0.35, 1.7, Color.WHITE)
+		_atl_dolgu(img, 6, kod, 0.65, -2.9, 0.35, 1.7, Color.WHITE)
+	canli_atlaslar.append(ImageTexture.create_from_image(img))
+	for sut in 7:
+		for kod in 8:
+			var kutu: Rect2 = KUTU_GOVDE if sut <= 2 else (KUTU_BAS[kod] if sut <= 4 else KUTU_SAC)
+			atl_src.append(Rect2(sut * ATL_W * atl_t + (kutu.position.x + ATL_OX) * atl_t, kod * ATL_H * atl_t + (kutu.position.y + ATL_OY) * atl_t, kutu.size.x * atl_t, kutu.size.y * atl_t))
+
+
+## Atlının bineği: at (goblinlerde kurt), krallık renkli eyer örtüsü; yürürken bacaklar oynar.
+func _binek_ciz(px: float, py: float, s: float, hareketli: bool, zaman: int, kurt: bool, kr_renk: Color) -> void:
+	var c: Color = BINEK_RENK[1 if kurt else 0]
+	ck.draw_rect(Rect2(px - 2.4 * s, py + 2.1 * s, 5.0 * s, 0.6 * s), GOLGE)
+	var faz := 0.0
+	if hareketli:
+		faz = 0.4 * s if ((zaman / 110) % 2 == 0) else -0.4 * s
+	var koyu := c.darkened(0.25)
+	for n in 4:
+		var lx: float = [-1.9, -1.1, 1.0, 1.7][n]
+		var uz := 1.2 * s + (faz if n % 2 == 0 else -faz)
+		ck.draw_rect(Rect2(px + lx * s, py + 1.1 * s, 0.45 * s, uz), koyu if n % 2 == 0 else c)
+	ck.draw_rect(Rect2(px - 2.2 * s, py - 0.3 * s, 4.4 * s, 1.6 * s), c)
+	if kurt:
+		ck.draw_rect(Rect2(px + 1.8 * s, py - 1.0 * s, 1.4 * s, 1.1 * s), c)
+		ck.draw_rect(Rect2(px + 3.0 * s, py - 0.6 * s, 0.7 * s, 0.5 * s), c)
+		ck.draw_rect(Rect2(px + 1.9 * s, py - 1.5 * s, 0.35 * s, 0.6 * s), koyu)
+		ck.draw_line(Vector2(px - 2.2 * s, py), Vector2(px - 3.2 * s, py - 0.6 * s), c, 0.5 * s)
+	else:
+		ck.draw_rect(Rect2(px + 1.5 * s, py - 1.7 * s, 0.9 * s, 1.8 * s), c)
+		ck.draw_rect(Rect2(px + 1.9 * s, py - 2.0 * s, 1.5 * s, 0.8 * s), c)
+		ck.draw_rect(Rect2(px + 1.4 * s, py - 1.9 * s, 0.4 * s, 1.4 * s), Color("3a2414"))   # yele
+		ck.draw_line(Vector2(px - 2.2 * s, py - 0.1 * s), Vector2(px - 2.8 * s, py + 1.3 * s), Color("3a2414"), 0.45 * s)
+	ck.draw_rect(Rect2(px - 1.0 * s, py - 0.5 * s, 2.0 * s, 1.2 * s), kr_renk.lightened(0.1))
+	ck.draw_rect(Rect2(px - 1.0 * s, py + 0.5 * s, 2.0 * s, 0.2 * s), TAC)
+
+
+## Kuşatma makinesi askerin yanında: mancınık (Orta Çağ) kolunu savurur, top (Barut/Sanayi) ateşlenince duman çıkarır.
+func _makine_ciz(px: float, py: float, s0: float, br: int, zaman: int, kr_renk: Color) -> void:
+	var s := s0 * 1.6        # makine askerden büyük
+	px -= 1.2 * s0
+	py -= 0.6 * s0
+	var o := Vector2(px, py)
+	var tahta := Color("7a5230")
+	var koyu := Color("3a2616")
+	ck.draw_rect(Rect2(px + 1.4 * s, py + 1.9 * s, 4.6 * s, 0.6 * s), GOLGE)
+	var faz := fmod(zaman * 0.0007, 1.0)
+	if br == 5:
+		ck.draw_rect(Rect2(px + 1.8 * s, py + 0.8 * s, 3.8 * s, 0.6 * s), tahta)
+		ck.draw_line(o + Vector2(2.6, 0.9) * s, o + Vector2(3.6, -1.4) * s, tahta, 0.4 * s)
+		ck.draw_line(o + Vector2(4.6, 0.9) * s, o + Vector2(3.6, -1.4) * s, tahta, 0.4 * s)
+		# kol: dinlenirken geride, atışta öne savrulur
+		var ac := lerpf(2.6, -0.9, clampf(faz / 0.12, 0.0, 1.0)) if faz < 0.5 else lerpf(-0.9, 2.6, clampf((faz - 0.5) / 0.5, 0.0, 1.0))
+		var pivot := o + Vector2(3.6, -1.4) * s
+		var uc := pivot + Vector2(-cos(ac), -sin(ac)) * 3.0 * s
+		ck.draw_line(pivot - (uc - pivot) * 0.35, uc, Color("8a6030"), 0.35 * s)
+		if faz > 0.15:
+			ck.draw_circle(uc, 0.45 * s, Color("8a8680"))
+		ck.draw_circle(o + Vector2(2.4, 1.6) * s, 0.6 * s, koyu)
+		ck.draw_circle(o + Vector2(5.0, 1.6) * s, 0.6 * s, koyu)
+		ck.draw_rect(Rect2(px + 3.2 * s, py + 0.3 * s, 0.8 * s, 0.5 * s), kr_renk)
+	else:
+		ck.draw_rect(Rect2(px + 2.0 * s, py + 0.5 * s, 2.8 * s, 0.7 * s), tahta)
+		ck.draw_line(o + Vector2(2.3, 0.5) * s, o + Vector2(5.9, -0.7) * s, Color("26262c"), 0.95 * s)
+		ck.draw_circle(o + Vector2(5.9, -0.7) * s, 0.55 * s, Color("3a3a42"))
+		ck.draw_circle(o + Vector2(2.5, 1.4) * s, 0.85 * s, koyu)
+		ck.draw_circle(o + Vector2(4.3, 1.4) * s, 0.85 * s, koyu)
+		ck.draw_circle(o + Vector2(2.5, 1.4) * s, 0.35 * s, tahta)
+		ck.draw_circle(o + Vector2(4.3, 1.4) * s, 0.35 * s, tahta)
+		if faz < 0.25:
+			var t := faz / 0.25
+			if t < 0.3:
+				ck.draw_circle(o + Vector2(6.5, -0.9) * s, 0.8 * s, Color(1, 0.85, 0.35, 0.95))
+			ck.draw_circle(o + Vector2(6.6 + t * 1.5, -1.2 - t * 2.0) * s, (0.6 + t * 1.4) * s, Color(0.85, 0.85, 0.85, 0.6 * (1.0 - t)))
 
 
 ## Yakın görünümde köy sınırı: krallık renginde ince halka.
@@ -1042,33 +1322,33 @@ func _ozet_ciz(olcek: float) -> void:
 		var p := Vector2(y[0], y[1]) * KARO
 		var q := Vector2(y[2], y[3]) * KARO
 		var c: Color = y[4]
-		draw_dashed_line(p, q, Color(c.lightened(0.2), 0.85), 2.0 * b, 7.0 * b)
+		ck.draw_dashed_line(p, q, Color(c.lightened(0.2), 0.85), 2.0 * b, 7.0 * b)
 		var yon := (q - p).normalized()
 		var uc := q - yon * 10.0 * b
 		var dik := Vector2(-yon.y, yon.x)
-		draw_colored_polygon(PackedVector2Array([uc + yon * 9.0 * b, uc + dik * 5.0 * b, uc - dik * 5.0 * b]), Color(c.lightened(0.2), 0.95))
+		ck.draw_colored_polygon(PackedVector2Array([uc + yon * 9.0 * b, uc + dik * 5.0 * b, uc - dik * 5.0 * b]), Color(c.lightened(0.2), 0.95))
 	for k in kusatmalar:
 		var p := Vector2(k[0], k[1]) * KARO - Vector2(0, 9.0 * b)
 		var nab := 1.0 + 0.18 * sin(zaman * 6.0)
-		draw_circle(p, 11.0 * b * nab, Color(0.75, 0.08, 0.05, 0.75))
-		draw_arc(p, 11.0 * b * nab, 0, TAU, 24, Color(1, 0.9, 0.5), 1.5 * b)
+		ck.draw_circle(p, 11.0 * b * nab, Color(0.75, 0.08, 0.05, 0.75))
+		ck.draw_arc(p, 11.0 * b * nab, 0, TAU, 24, Color(1, 0.9, 0.5), 1.5 * b)
 		_kilic_ciz(p, 7.0 * b, 2.0 * b)
 
 
 ## Çapraz iki kılıç simgesi.
 func _kilic_ciz(p: Vector2, r: float, kal: float) -> void:
-	draw_line(p + Vector2(-r, r), p + Vector2(r, -r), Color("f4f8ff"), kal)
-	draw_line(p + Vector2(r, r), p + Vector2(-r, -r), Color("f4f8ff"), kal)
-	draw_line(p + Vector2(-r * 0.9, r * 0.3), p + Vector2(-r * 0.3, r * 0.9), TAC, kal)
-	draw_line(p + Vector2(r * 0.9, r * 0.3), p + Vector2(r * 0.3, r * 0.9), TAC, kal)
+	ck.draw_line(p + Vector2(-r, r), p + Vector2(r, -r), Color("f4f8ff"), kal)
+	ck.draw_line(p + Vector2(r, r), p + Vector2(-r, -r), Color("f4f8ff"), kal)
+	ck.draw_line(p + Vector2(-r * 0.9, r * 0.3), p + Vector2(-r * 0.3, r * 0.9), TAC, kal)
+	ck.draw_line(p + Vector2(r * 0.9, r * 0.3), p + Vector2(r * 0.3, r * 0.9), TAC, kal)
 
 
 func _secili_ciz() -> void:
 	if secili >= 0 and sim.c_var[secili] == 1:
 		var p := Vector2(sim.c_x[secili], sim.c_y[secili]) * KARO
-		draw_arc(p + Vector2(0, -1), 5.0, 0, TAU, 20, Color(1, 1, 0.3), 0.8)
+		ck.draw_arc(p + Vector2(0, -1), 5.0, 0, TAU, 20, Color(1, 1, 0.3), 0.8)
 	if imlec.x >= 0.0 and imlec_r > 0.0:
-		draw_arc(imlec * KARO, imlec_r * KARO, 0, TAU, 40, imlec_renk, 1.0 / maxf(0.2, get_canvas_transform().get_scale().x) * 2.0)
+		ck.draw_arc(imlec * KARO, imlec_r * KARO, 0, TAU, 40, imlec_renk, 1.0 / maxf(0.2, get_canvas_transform().get_scale().x) * 2.0)
 
 
 ## Krallık haritası: her kara karosu en yakın köyün krallığına boyanır, sınırlar koyu çizilir.
@@ -1182,11 +1462,10 @@ func _toprak_adim(butce_us: int) -> void:
 
 ## Mevsim örtüsü: kışın kuzey kuşağı karla örtülür (yumuşak geçişli), kara kışta tüm dünya soğur.
 func _mevsim_ortu() -> void:
-	var ay: int = sim.ay % 12
-	var kis := ay == 11 or ay <= 1
+	_mevsim_ayarla()
 	var gen_px: float = sim.gen * KARO
 	var yuk_px: float = sim.yuk * KARO
-	if kis or sim.kis_ay > 0:
+	if sim.kis_ay > 0:
 		var bant: float = yuk_px * (0.28 if sim.kis_ay == 0 else 0.42)
 		var ust := Color(0.95, 0.97, 1.0, 0.38)
 		var alt := Color(0.95, 0.97, 1.0, 0.0)
@@ -1196,6 +1475,30 @@ func _mevsim_ortu() -> void:
 		draw_rect(Rect2(0, 0, gen_px, yuk_px), Color(0.6, 0.75, 1.0, 0.10))
 	if sim.kuraklik_ay > 0:
 		draw_rect(Rect2(0, 0, gen_px, yuk_px), Color(1.0, 0.75, 0.3, 0.08))
+
+
+## Mevsim ağırlıkları ayın içinde yumuşakça geçer (kış merkezi Ocak, bahar Nisan, yaz Temmuz, güz Ekim).
+func _mevsim_ayarla() -> void:
+	if su_mat == null:
+		return
+	var m := fmod(float(sim.ay % 12) + (alfa if ara_deger else 0.5), 12.0)
+	var agirlik := []
+	for merkez in [0.5, 3.5, 6.5, 9.5]:
+		var d := absf(m - merkez)
+		d = minf(d, 12.0 - d)
+		agirlik.append(clampf(1.25 - d / 1.6, 0.0, 1.0))
+	var kis: float = agirlik[0]
+	var kar_y := -1.0
+	if sim.kis_ay > 0:
+		kis = 1.0
+		kar_y = sim.yuk * KARO * 0.42
+	elif kis > 0.0:
+		kar_y = sim.yuk * KARO * 0.28
+	su_mat.set_shader_parameter("kis", kis)
+	su_mat.set_shader_parameter("kar_y", kar_y)
+	su_mat.set_shader_parameter("bahar", agirlik[1])
+	su_mat.set_shader_parameter("yaz", agirlik[2])
+	su_mat.set_shader_parameter("guz", agirlik[3])
 
 
 ## Huzur haritası: her köy huzuruna göre yeşil (huzurlu) → kırmızı (isyana yakın) halka.
@@ -1216,115 +1519,134 @@ func _efektleri_ciz() -> void:
 		var p := Vector2(e[1], e[2]) * KARO
 		match int(e[0]):
 			0:
-				draw_rect(Rect2(p - Vector2(1, 3), Vector2(2, 2)), Color(1, 0.2, 0.2, 0.9))
+				ck.draw_rect(Rect2(p - Vector2(1, 3), Vector2(2, 2)), Color(1, 0.2, 0.2, 0.9))
 			1:
 				var ust := p - Vector2(0, 60)
 				var onceki := ust
 				for n in 6:
 					var nk := ust.lerp(p, (n + 1) / 6.0) + Vector2(randf_range(-4, 4), 0)
-					draw_line(onceki, nk, Color(1, 1, 0.6), 1.5)
+					ck.draw_line(onceki, nk, Color(1, 1, 0.6), 1.5)
 					onceki = nk
 			2:
 				for n in 3:
-					draw_arc(p, 8.0 + n * 9.0 + fmod(zaman * 30.0, 9.0), 0, TAU, 32, Color(0.6, 0.4, 0.2, 0.6), 1.5)
+					ck.draw_arc(p, 8.0 + n * 9.0 + fmod(zaman * 30.0, 9.0), 0, TAU, 32, Color(0.6, 0.4, 0.2, 0.6), 1.5)
 			3:
-				draw_circle(p, 6.0 + fmod(zaman * 10.0, 4.0), Color(1, 0.4, 0.1, 0.6))
+				ck.draw_circle(p, 6.0 + fmod(zaman * 10.0, 4.0), Color(1, 0.4, 0.1, 0.6))
 			4:
-				draw_circle(p, 12.0, Color(1, 0.8, 0.3, 0.5))
-				draw_circle(p, 6.0, Color(1, 1, 0.8, 0.8))
+				ck.draw_circle(p, 12.0, Color(1, 0.8, 0.3, 0.5))
+				ck.draw_circle(p, 6.0, Color(1, 1, 0.8, 0.8))
 			5:
-				draw_arc(p, 20.0 + fmod(zaman * 40.0, 40.0), 0, TAU, 40, Color(0.5, 0.8, 1, 0.8), 3.0)
+				ck.draw_arc(p, 20.0 + fmod(zaman * 40.0, 40.0), 0, TAU, 40, Color(0.5, 0.8, 1, 0.8), 3.0)
 			6:
 				for n in 30:
 					var q := p + Vector2(randf_range(-24, 24), randf_range(-24, 24))
-					draw_line(q, q + Vector2(-1, 3), Color(0.6, 0.8, 1, 0.8), 0.6)
+					ck.draw_line(q, q + Vector2(-1, 3), Color(0.6, 0.8, 1, 0.8), 0.6)
 			7:
-				draw_line(p - Vector2(0, 30), p, Color(0.5, 1, 0.6, 0.7), 4.0)
+				ck.draw_line(p - Vector2(0, 30), p, Color(0.5, 1, 0.6, 0.7), 4.0)
 			8:
 				# tanrı silgisi: kırmızı halka söner
-				draw_arc(p, float(e[4]) * KARO, 0, TAU, 40, Color(1, 0.3, 0.25, 0.25 * e[3]), 2.0)
+				ck.draw_arc(p, float(e[4]) * KARO, 0, TAU, 40, Color(1, 0.3, 0.25, 0.25 * e[3]), 2.0)
 			9:
 				# ticaret kervanı: yol çizgisi ve yürüyen araba
 				var q := Vector2(e[4], e[5]) * KARO
 				var t := clampf(1.0 - float(e[3]) / 8.0 + fmod(zaman * 0.15, 0.125), 0.0, 1.0)
-				draw_dashed_line(p, q, Color(1.0, 0.85, 0.45, 0.45), 1.0, 4.0)
+				ck.draw_dashed_line(p, q, Color(1.0, 0.85, 0.45, 0.45), 1.0, 4.0)
 				var a := p.lerp(q, t)
-				draw_rect(Rect2(a - Vector2(2.5, 2.0), Vector2(5, 3)), Color("8a5a2a"))
-				draw_rect(Rect2(a - Vector2(2.0, 3.5), Vector2(4, 1.6)), Color("f0e0c0"))
-				draw_circle(a + Vector2(-1.5, 1.2), 0.9, Color("3a2a1a"))
-				draw_circle(a + Vector2(1.5, 1.2), 0.9, Color("3a2a1a"))
+				ck.draw_rect(Rect2(a - Vector2(2.5, 2.0), Vector2(5, 3)), Color("8a5a2a"))
+				ck.draw_rect(Rect2(a - Vector2(2.0, 3.5), Vector2(4, 1.6)), Color("f0e0c0"))
+				ck.draw_circle(a + Vector2(-1.5, 1.2), 0.9, Color("3a2a1a"))
+				ck.draw_circle(a + Vector2(1.5, 1.2), 0.9, Color("3a2a1a"))
 			10:
 				# isyan: kırmızı bayrak ve öfke halkası
 				var nab := 1.0 + 0.25 * sin(zaman * 8.0)
-				draw_arc(p, 14.0 * nab, 0, TAU, 32, Color(1, 0.2, 0.15, 0.8), 2.0)
-				draw_line(p + Vector2(0, 2), p - Vector2(0, 14), Color("5a3a20"), 1.2)
-				draw_colored_polygon(PackedVector2Array([p - Vector2(0, 14), p - Vector2(-8, 11.5 + sin(zaman * 6.0)), p - Vector2(0, 9)]), Color(0.9, 0.1, 0.1))
+				ck.draw_arc(p, 14.0 * nab, 0, TAU, 32, Color(1, 0.2, 0.15, 0.8), 2.0)
+				ck.draw_line(p + Vector2(0, 2), p - Vector2(0, 14), Color("5a3a20"), 1.2)
+				ck.draw_colored_polygon(PackedVector2Array([p - Vector2(0, 14), p - Vector2(-8, 11.5 + sin(zaman * 6.0)), p - Vector2(0, 9)]), Color(0.9, 0.1, 0.1))
 			11:
 				# sel: genişleyen su halkaları
 				for n in 3:
-					draw_arc(p, 6.0 + n * 10.0 + fmod(zaman * 16.0, 10.0), 0, TAU, 32, Color(0.35, 0.6, 0.85, 0.55), 2.0)
+					ck.draw_arc(p, 6.0 + n * 10.0 + fmod(zaman * 16.0, 10.0), 0, TAU, 32, Color(0.35, 0.6, 0.85, 0.55), 2.0)
 			12:
 				# ok: yaydan hedefe uçar
 				var q := Vector2(e[4], e[5]) * KARO
 				var t := fmod(zaman * 2.2 + e[1] * 0.37, 1.0)
 				var yon := (q - p).normalized()
 				var a := p.lerp(q, t) - Vector2(0, sin(t * PI) * 5.0)
-				draw_line(a - yon * 3.0, a, Color("e8dcc0"), 0.6)
-				draw_line(a, a + yon * 1.0, Color("b0b0b8"), 0.9)
+				ck.draw_line(a - yon * 3.0, a, Color("e8dcc0"), 0.6)
+				ck.draw_line(a, a + yon * 1.0, Color("b0b0b8"), 0.9)
 			13:
 				# tüfek atışı: namlu alevi, duman ve mermi izi
 				var q := Vector2(e[4], e[5]) * KARO
 				var t := fmod(zaman * 3.0 + e[1] * 0.37, 1.0)
 				if t < 0.35:
-					draw_circle(p - Vector2(0, 2), 1.6, Color(1, 0.9, 0.4, 0.95))
-					draw_line(p - Vector2(0, 2), q - Vector2(0, 1), Color(1, 1, 0.8, 0.5), 0.4)
-				draw_circle(p - Vector2(0, 3.0 + t * 4.0), 1.2 + t * 2.0, Color(0.8, 0.8, 0.8, 0.5 * (1.0 - t)))
+					ck.draw_circle(p - Vector2(0, 2), 1.6, Color(1, 0.9, 0.4, 0.95))
+					ck.draw_line(p - Vector2(0, 2), q - Vector2(0, 1), Color(1, 1, 0.8, 0.5), 0.4)
+				ck.draw_circle(p - Vector2(0, 3.0 + t * 4.0), 1.2 + t * 2.0, Color(0.8, 0.8, 0.8, 0.5 * (1.0 - t)))
 			14:
 				# lazer ışını
 				var q := Vector2(e[4], e[5]) * KARO
-				draw_line(p - Vector2(0, 2), q - Vector2(0, 1), Color(0.4, 1.0, 0.7, 0.45), 2.2)
-				draw_line(p - Vector2(0, 2), q - Vector2(0, 1), Color(0.9, 1.0, 0.95), 0.7)
-				draw_circle(q - Vector2(0, 1), 1.6 + sin(zaman * 30.0) * 0.5, Color(0.6, 1.0, 0.8, 0.8))
+				ck.draw_line(p - Vector2(0, 2), q - Vector2(0, 1), Color(0.4, 1.0, 0.7, 0.45), 2.2)
+				ck.draw_line(p - Vector2(0, 2), q - Vector2(0, 1), Color(0.9, 1.0, 0.95), 0.7)
+				ck.draw_circle(q - Vector2(0, 1), 1.6 + sin(zaman * 30.0) * 0.5, Color(0.6, 1.0, 0.8, 0.8))
+			15, 20:
+				# 15 mancınık taşı (yüksek yay), 20 top güllesi (alçak yay, namlu alevi); düştüğü yerde toz/patlama
+				var q := Vector2(e[4], e[5]) * KARO
+				var gulle: bool = int(e[0]) == 20
+				var t := fmod(zaman * (1.4 if gulle else 0.9) + e[1] * 0.37, 1.0)
+				var yuk_p := (q - p).length() * (0.18 if gulle else 0.55) + 6.0
+				var a := p.lerp(q, t) - Vector2(0, sin(t * PI) * yuk_p)
+				if gulle and t < 0.15:
+					ck.draw_circle(p - Vector2(0, 2), 2.2, Color(1, 0.85, 0.35, 0.9))
+				if t < 0.85:
+					ck.draw_circle(a, 0.55 if gulle else 0.75, Color("1e1e22") if gulle else Color("8a8680"))
+					if gulle:
+						ck.draw_line(a, p.lerp(q, maxf(0.0, t - 0.06)) - Vector2(0, sin(maxf(0.0, t - 0.06) * PI) * yuk_p), Color(0.8, 0.8, 0.8, 0.35), 1.0)
+				else:
+					var u := (t - 0.85) / 0.15
+					ck.draw_circle(q, 2.0 + u * 5.0, Color(1, 0.55, 0.15, 0.8 * (1.0 - u)) if gulle else Color(0.55, 0.45, 0.32, 0.7 * (1.0 - u)))
+					for n in 4:
+						var ac: float = n * 1.57 + e[1]
+						ck.draw_circle(q + Vector2(cos(ac), sin(ac) * 0.6) * (2.0 + u * 5.0), 0.8, Color(0.4, 0.35, 0.3, 0.8 * (1.0 - u)))
 			16:
 				# kılıç çarpışması: kıvılcım
 				var faz := int(zaman * 12.0 + e[1] * 7.0)
 				for n in 4:
 					var ac := float((faz * 37 + n * 97) % 360) * 0.01745
 					var d := Vector2(cos(ac), sin(ac))
-					draw_line(p - Vector2(0, 1.5) + d * 0.8, p - Vector2(0, 1.5) + d * (2.2 + (faz + n) % 2), Color(1, 0.95, 0.5) if n % 2 == 0 else Color(1, 1, 1), 0.5)
+					ck.draw_line(p - Vector2(0, 1.5) + d * 0.8, p - Vector2(0, 1.5) + d * (2.2 + (faz + n) % 2), Color(1, 0.95, 0.5) if n % 2 == 0 else Color(1, 1, 1), 0.5)
 			17:
 				# ölüm: kan lekesi ve yükselen ruh
 				var sn := clampf(float(e[3]) / 4.0, 0.0, 1.0)
-				draw_circle(p + Vector2(0, 1), 1.8, Color(0.6, 0.05, 0.05, 0.75 * sn))
-				draw_circle(p + Vector2(1.5, 1.6), 0.9, Color(0.6, 0.05, 0.05, 0.6 * sn))
+				ck.draw_circle(p + Vector2(0, 1), 1.8, Color(0.6, 0.05, 0.05, 0.75 * sn))
+				ck.draw_circle(p + Vector2(1.5, 1.6), 0.9, Color(0.6, 0.05, 0.05, 0.6 * sn))
 				var ry := p - Vector2(0, 4.0 + fmod(zaman * 5.0, 6.0))
-				draw_line(ry - Vector2(0, 1.6), ry + Vector2(0, 1.8), Color(1, 1, 1, 0.75 * sn), 0.6)
-				draw_line(ry - Vector2(1.2, 0.4), ry + Vector2(1.2, -0.4), Color(1, 1, 1, 0.75 * sn), 0.6)
+				ck.draw_line(ry - Vector2(0, 1.6), ry + Vector2(0, 1.8), Color(1, 1, 1, 0.75 * sn), 0.6)
+				ck.draw_line(ry - Vector2(1.2, 0.4), ry + Vector2(1.2, -0.4), Color(1, 1, 1, 0.75 * sn), 0.6)
 			18:
 				# kuşatma ateşi ve duman
 				var tit := sin(zaman * 14.0 + e[1]) * 0.8
-				draw_colored_polygon(PackedVector2Array([p + Vector2(-2.5, 1), p + Vector2(2.5, 1), p + Vector2(tit, -5.0)]), Color(1, 0.45, 0.1, 0.9))
-				draw_colored_polygon(PackedVector2Array([p + Vector2(-1.3, 1), p + Vector2(1.3, 1), p + Vector2(-tit * 0.5, -2.8)]), Color(1, 0.9, 0.3, 0.95))
+				ck.draw_colored_polygon(PackedVector2Array([p + Vector2(-2.5, 1), p + Vector2(2.5, 1), p + Vector2(tit, -5.0)]), Color(1, 0.45, 0.1, 0.9))
+				ck.draw_colored_polygon(PackedVector2Array([p + Vector2(-1.3, 1), p + Vector2(1.3, 1), p + Vector2(-tit * 0.5, -2.8)]), Color(1, 0.9, 0.3, 0.95))
 				for n in 3:
 					var dy := fmod(zaman * 6.0 + n * 3.0, 9.0)
-					draw_circle(p + Vector2(sin(dy + n) * 1.5, -5.0 - dy), 1.2 + dy * 0.25, Color(0.25, 0.25, 0.25, 0.45 * (1.0 - dy / 9.0)))
+					ck.draw_circle(p + Vector2(sin(dy + n) * 1.5, -5.0 - dy), 1.2 + dy * 0.25, Color(0.25, 0.25, 0.25, 0.45 * (1.0 - dy / 9.0)))
 			19:
 				# savaş ilanı: atan kırmızı halka ve çapraz kılıçlar (ekranda sabit boy)
 				var bb := 1.0 / maxf(0.2, get_canvas_transform().get_scale().x)
 				var nab2 := fmod(zaman * 1.2, 1.0)
-				draw_arc(p, (14.0 + nab2 * 30.0) * bb, 0, TAU, 40, Color(1, 0.2, 0.15, 1.0 - nab2), 3.0 * bb)
-				draw_circle(p - Vector2(0, 16.0 * bb), 13.0 * bb, Color(0.8, 0.1, 0.05, 0.9))
+				ck.draw_arc(p, (14.0 + nab2 * 30.0) * bb, 0, TAU, 40, Color(1, 0.2, 0.15, 1.0 - nab2), 3.0 * bb)
+				ck.draw_circle(p - Vector2(0, 16.0 * bb), 13.0 * bb, Color(0.8, 0.1, 0.05, 0.9))
 				_kilic_ciz(p - Vector2(0, 16.0 * bb), 8.0 * bb, 2.2 * bb)
 	for h in sim.hortumlar:
 		var p := Vector2(h[0], h[1]) * KARO
 		for n in 5:
 			var r := 2.0 + n * 1.6
-			draw_arc(p - Vector2(0, n * 3.0), r, zaman * 8.0, zaman * 8.0 + 4.5, 10, Color(0.75, 0.75, 0.8, 0.8), 1.0)
+			ck.draw_arc(p - Vector2(0, n * 3.0), r, zaman * 8.0, zaman * 8.0 + 4.5, 10, Color(0.75, 0.75, 0.8, 0.8), 1.0)
 	for u in sim.ufolar:
 		var p := Vector2(u["x"], u["y"]) * KARO - Vector2(0, 16)
-		draw_circle(p, 6.0, Color(0.7, 0.75, 0.8))
-		draw_rect(Rect2(p - Vector2(9, 1), Vector2(18, 3)), Color(0.5, 0.55, 0.6))
-		draw_circle(p - Vector2(0, 2), 3.0, Color(0.4, 1, 0.6))
+		ck.draw_circle(p, 6.0, Color(0.7, 0.75, 0.8))
+		ck.draw_rect(Rect2(p - Vector2(9, 1), Vector2(18, 3)), Color(0.5, 0.55, 0.6))
+		ck.draw_circle(p - Vector2(0, 2), 3.0, Color(0.4, 1, 0.6))
 
 
 

@@ -21,7 +21,7 @@
    "biyom":[9,10,8],"renk":"8a8a9a","ten":"b8b0a8","krallik_eki":"Devleri",
    "egilim":{"Dev Cüsseli":1.0,"Yavaş":0.2,"Aptal":0.2},
    "hece":["grom","bor","thund","hrim","jor","ymir","skar","brag","ulf","mag","tor","hald"]},
-  {"id":"goblin","ad":"Goblin","irk":true,"omur":30,"yetiskin":6,"dogur":0.28,"guc":6,"can":55,"hiz":1.2,"zeka":85,"saldirgan":0.60,"yemek":0.6,"boy":0.4,
+  {"id":"goblin","ad":"Goblin","irk":true,"omur":30,"yetiskin":6,"dogur":0.25,"guc":6,"can":55,"hiz":1.2,"zeka":85,"saldirgan":0.60,"yemek":0.7,"boy":0.4,
    "biyom":[7,8,4],"renk":"7a9a20","ten":"a8c840","krallik_eki":"Çetesi",
    "egilim":{"Kurnaz":0.3,"Korkak":0.35,"Ufak Tefek":0.6,"Doğurgan":0.2,"Hain":0.1},
    "hece":["snik","grib","zit","nok","pik","skab","rat","glim","vex","nib","krik","mub"]},

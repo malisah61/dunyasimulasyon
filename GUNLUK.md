@@ -1,5 +1,86 @@
 # Gece günlüğü
 
+## 2026-11-11 (3. çalışma) — Gece 4: mevsimler, atlılar ve kuşatma makineleri, altın/teknoloji grafikleri, tarih kitabı
+
+### Analiz bulguları (dogrulama 256x160 tohum 3 ve 512x320 tohum 5, 300 yıl, sınırsız nüfus)
+- **Cüceler neredeyse yok oluyordu:** küçük haritada 300 yılda 9–31 cüce (ölüm yok denecek kadar az, doğum da yok). Sebep: dağa bina kurulamıyordu; dağdaki cüce köyünün evi olmadığı için kapasitesi 12'de takılıyor, doğum duruyordu.
+- **Goblinler büyük haritayı kaplıyordu:** 512x320'de 30,7 bin canlının 17 bini goblin.
+- **Mevsim yalnızca isimdi:** takvimde "Kış/Yaz" yazıyordu ama doğum, salgın, savaş, yürüyüş mevsimden etkilenmiyordu; kış örtüsü haritaya düz bir beyaz bant çiziyordu.
+- **Kronik 3000 satırla sınırlı:** uzun oyunda ilk yüzyılların savaşları siliniyordu.
+- **Altın sınırsız birikiyordu**, fiyatlar hiç değişmiyordu; hazinesi tükenen krallığın başına bir şey gelmiyordu.
+- **Hız:** 500x'te tek ay 10 bin canlıda 4,0 ms; bunun 1,27 ms'si köyünde gezinen sivillerin yürümesi.
+
+### Kasma ölçümü (önce → sonra; aynı makine, Gece 3 kodu ile bu gecenin kodu art arda; yazılım çizimi)
+Yeni satır: **çok yakın** görünüm (yakınlık 7). "Sonra" dünyaları cücelerin hayatta kalması yüzünden biraz daha kalabalık.
+
+| Nüfus | Görünüm | Hız | Canlı (önce → sonra) | Ort. kare ms | En yavaş kare ms | Canlı çizimi ms | Ulaşılan hız (ay/sn) |
+|---|---|---|---|---|---|---|---|
+| az | uzak | 500x | 3234 → 2774 | 41.6 → **37.1** | 71.1 → **58.2** | 0.5 → 0.4 | 254 → **346** |
+| az | çok yakın | 100x | 1151 → 966 | 26.6 → **21.2** | 66.7 → **32.3** | 0.6 → 0.4 | 100 → 99 |
+| orta | uzak | 1x | 4435 → 4885 | 31.0 → **27.7** | 60.4 → **40.2** | 0.5 → 0.5 | 1 → 1 |
+| orta | uzak | 100x | 5061 → 6170 | 44.7 → **37.7** | 69.6 → **52.9** | 1.0 → 0.8 | 83 → **99** |
+| orta | yakın | 1x | 4435 → 4885 | 31.5 → **26.2** | 45.1 → **35.7** | 3.3 → **2.2** | 1 → 1 |
+| orta | yakın | 20x | 4521 → 5017 | 38.6 → **29.7** | 58.6 → **40.1** | 3.5 → **2.4** | 20 → 20 |
+| orta | yakın | 100x | 5055 → 6222 | 53.6 → **39.9** | 70.3 → **60.1** | 3.9 → **2.8** | 72 → **98** |
+| orta | yakın | 500x | 5438 → 6204 | 56.5 → **50.0** | 78.6 → 93.2 | 4.8 → **3.4** | 83 → **103** |
+| orta | çok yakın | 1x | 4435 → 4885 | 33.2 → **27.9** | 46.1 → **41.2** | 2.9 → **2.1** | 1 → 1 |
+| orta | çok yakın | 100x | 5266 → 6159 | 53.5 → **46.2** | 70.8 → **67.7** | 3.9 → **3.0** | 70 → **87** |
+| çok (Dev) | uzak | 1x | 9783 → 9815 | 40.3 → **33.9** | 55.8 → **47.0** | 1.8 → 1.0 | 1 → 1 |
+| çok (Dev) | uzak | 100x | 11289 → 11701 | 58.8 → **56.3** | 86.1 → **76.7** | 2.3 → 2.4 | 30 → **36** |
+| çok (Dev) | yakın | 1x | 9696 → 9788 | 52.7 → **38.1** | 82.9 → **62.6** | 6.7 → **3.8** | 1 → 1 |
+| çok (Dev) | yakın | 20x | 10646 → 10607 | 65.0 → **53.7** | 91.4 → **76.4** | 6.3 → **4.4** | 15 → **19** |
+| çok (Dev) | yakın | 500x | 11607 → 12135 | 71.2 → **57.8** | 104.9 → **79.3** | 6.8 → **4.5** | 31 → **42** |
+| çok (Dev) | çok yakın | 1x | 9783 → 9815 | 41.0 → **30.1** | 57.3 → 61.1 | 3.8 → **1.8** | 1 → 1 |
+| çok (Dev) | çok yakın | 100x | 11378 → 11800 | 60.7 → **50.7** | 76.6 → **66.6** | 4.7 → **3.0** | 30 → **39** |
+
+Ekransız (dogrulama, 256x160 tohum 3, ~10 bin canlı): 500x'te tek ay **4,00 → 3,41 ms** (hareket 1,27 → 0,92 ms), 100x'te 5,54 → 5,66 ms (aynı), en yavaş tek ay **19,1 → 9,2 ms**; 300 yıl 7,8 → 7,2 sn.
+
+Not: ölçüm sırasında bir deneme yanlış çıktı ve geri alındı — tüm canlıları mip-haritalı atlas resimleriyle çizmek CPU'yu hafifletmedi, yazılım çiziminde kareyi ~10 ms ağırlaştırdı. Son hâli: orta-yakında düz dikdörtgen, çok yakında (12 dikdörtgen yerine) 3 resim, iki boy atlas, mipmap yok.
+
+### Performans (yapılanlar)
+- **Seyrek sivil yürüyüşü (100x–500x):** köyünde gezinen siviller ve otlayan hayvanlar iki ayda bir, iki kat adımla yürür; askerler, avcılar, göçenler her adımda. Toplam yol aynı, hareket işi ~%30 az.
+- **Canlı katmanı ayrıldı:** canlılar ve efektler haritanın alt düğümlerinde çizilir; çok yakında bir canlı 3 hazır resimle (gövde/baş/saç) çizilir, her resim yalnızca dolu bölgesiyle (boş saydam alan yok). İki boy atlas: ekrana ~1:1 düşer, titremez.
+- **Mevsim boyaması ekran kartında:** harita yeniden çizilmeden, gölgelendiricide; işi olmayan dallar atlanır (kış yoksa kar hesabı yapılmaz).
+- `olcum` moduna "çok yakın" satırları ve `sadece=… gorunum=…` süzgeci eklendi (tek satırı 20 saniyede ölçmek için).
+
+### Görünürlük
+- **Atlılar** (atın/kurdun üstünde, krallık renkli eyer örtüsü, uzun mızrak ve flama), **mancınık** (kolunu savurur, taş fırlatır) ve **top** (namlu alevi, duman, gülle). Taş ve gülle yay çizerek uçar; düştüğü yerde toz/patlama. Orta uzaklıkta da at ve makine gövdesi seçilir.
+- **Mevsimler haritada:** bahar çiçekleri, sararan yaz otları, sarı-turuncu-kızıl güz ormanları (bazı çamlar yeşil kalır), kışın kuzeyde benekli kar ve buz tutan sığ sular. Kara kışta kar kuşağı güneye iner.
+- Üst çubukta tarih mevsim renginde (kış buz mavisi, bahar yeşil, yaz sarı, güz turuncu).
+
+### Oynanabilirlik
+- **İstatistik sekmeleri:** Nüfus / Altın (hazine) / Teknoloji / Toprak (köy) grafikleri. Teknoloji grafiğinde çağ eşikleri kesik çizgi; yıkılan krallığın çizgisi çarpıyla biter. Altının değeri yazılır.
+- **Tarih kitabı** (Kronik → Tarih kitabı): dünyanın bütün önemli olayları yüzyıl yüzyıl; satıra dokun → oraya git.
+- Canlı kartında askerin birimi yazar ("Asker — Atlı", "Mancınık"…).
+
+### Mantık
+- **Mevsimler:** doğumlar baharda, salgın kışın, yangın yazın; savaşlar baharda açılır (kış ×0.4, bahar ×1.5). Ölçüm (300 yıl): doğum kış/bahar/yaz/güz 6716/10970/8145/7304; savaş ilanı 36/67/50/63. Kuzeyde kışın yürüyüş yavaş, kuşatma ×0.45 ve kuşatan askerler soğuktan can kaybeder.
+- **Kuşatma makineleri** surları 4 kat hızlı yıkar ve kuşatmayı hızlandırır; atlı hücumu ×1.3.
+- **Irk dengesi:** cüceler ve devler dağa ev kurabilir; goblin doğurganlığı 0.28 → 0.25, yemek 0.6 → 0.7. Tohum 3, 300 yıl: Cüce **11 → 485**, Kertenkele 932 → 477, Goblin 2309 → 1921; hiçbir ırk yok olmuyor.
+- **Ekonomi:** altının değeri kişi başına altına göre (%35–%160); kıtlıkta tahıl, paralı asker, saray ve kale fiyatı buna bağlı. Savaşta hazinesi 4 yıl boş kalan (3+ köylü) krallık **iflas eder**: ordu ×0.75, köylerde huzur −12 (10 yıl).
+
+### Görsel kalite ve detay
+- Binek ve kuşatma makinesi çizimleri, iki yeni mermi efekti, mevsim renkleri; yakın planda canlılar keskin piksel resimler.
+
+### Derinleştirilen 3 özellik
+1. **Savaş:** atlı birlikler, kış kuşatması, sefer mevsimi, kuşatma makineleri ile surların düşmesi.
+2. **Ekonomi:** altının değeri (enflasyon), fiyatlar, iflas.
+3. **Kronik:** kalıcı tarih kitabı (önceden 3000 satırdan sonra eski olaylar siliniyordu).
+
+### Eklenen yeni sistemler (TASARIM.md)
+1. **Mevsimler** (§1).
+2. **Atlılar ve kuşatma makineleri: mancınık, top** (§8).
+3. **Altın / teknoloji / toprak grafikleri** (§11).
+- Ek: **cüce dağ evleri** (§7 ırka özel binalar), **goblin kurt binicileri**.
+
+### Kayıt
+- `KAYIT_SURUMU` 5: krallık geçmişi, tarih kitabı, altının değeri. Eski kayıtta tarih kitabı kroniğin önemli olaylarından kurulur.
+
+### Sorunlar / sonraki gece
+- Yazılım çiziminde (bulut) haritanın kendisini çizmek karenin çoğunu alıyor; gerçek cihazda ölçülemedi. Mevsim gölgelendiricisi telefonda hafif bir ek iş; yavaşlarsa söyle.
+- 500x'te Dev haritada ulaşılan hız hâlâ ~40 ay/sn: sıradaki adım simülasyonu ayrı iş parçacığına almak.
+- Krallık sayısı arttı (tohum 3: 17 → 39), çünkü cüce ve dev krallıkları artık yaşıyor; çok sayıda küçük krallık birleşmeli mi bakılacak.
+
 ## 2026-11-11 (2. çalışma) — Gece 3: kasma avı, görünür savaşlar, ayrıntılı binalar, darbe, ses
 
 ### Analiz bulguları (dogrulama 256x160 tohum 3/7/11/21/33, 512x320 tohum 5; 300–1000 yıl, sınırsız nüfus; yeni `olcum` modu)
