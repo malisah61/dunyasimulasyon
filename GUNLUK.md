@@ -57,7 +57,8 @@
 - İsyanlarla krallık sayısı 300 yılda 20-40'a çıkabiliyor (önce 9-15). Tarih daha hareketli ama "Özgür …" krallıkları kalabalıklaşıyor; isyancıların geri fethedilmesi/birleşme (hanedan evliliği, vasallık) eklenmeli.
 - Irk dengesi hâlâ tohuma göre çok değişiyor (bir dünyada Kertenkele 1300, başkasında 130).
 - Avcılar küçük haritada zaman zaman tükenip göçle geri geliyor.
-- Önizleme kare süreleri yazılım çiziminde ölçülüyor; gerçek cihazı yansıtmaz.
+- Önizleme kare süreleri yazılım çiziminde ölçülüyor; gerçek cihazı yansıtmaz. Bu gece CI önizlemesinde kare süresi yükseldi (uzak 12.5 → 16.4 ms, yakın 14.8 → 22.8 ms; ~4.8 bin canlı). Su parıltısı shader'ı yerelde kapatılıp denendi, fark ölçüm gürültüsü içinde; sebep sonraki gece araştırılacak (canlı çizimini MultiMesh'e taşımak planlı).
+- GitHub Pages hâlâ kapalı: pages işi "Ensure GitHub Pages has been enabled" ile düşüyor (derleme, APK, Windows ve önizleme başarılı).
 
 ## 2026-11-10 — Gece 1: sınırsız nüfus, boş dünya, canlı sil, din, ittifak, şehirler
 
