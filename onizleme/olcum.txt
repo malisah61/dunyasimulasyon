@@ -1,0 +1,27 @@
+OLCUM basladi (kare süreleri ms; yazılım çizimi, yalnızca gece gece karşılaştırma için)
+OLCUM | nufus | gorunum | hiz | canli | ort kare | en yavas | sim | cizim | doku | ay/sn
+OLCUM | az | uzak | 1x | 945 | 12.3 | 13.7 | 0.0 | 0.1 | 0.0 | 1
+OLCUM | az | uzak | 20x | 779 | 11.9 | 14.6 | 0.3 | 0.2 | 0.2 | 19
+OLCUM | az | uzak | 100x | 1014 | 12.6 | 15.0 | 0.8 | 0.1 | 0.3 | 99
+OLCUM | az | uzak | 500x | 3031 | 22.7 | 34.0 | 7.2 | 0.3 | 2.4 | 488
+OLCUM | az | yakin | 1x | 945 | 11.1 | 13.2 | 0.0 | 0.5 | 0.0 | 1
+OLCUM | az | yakin | 20x | 784 | 11.6 | 13.7 | 0.2 | 0.5 | 0.2 | 20
+OLCUM | az | yakin | 100x | 990 | 11.9 | 13.0 | 0.7 | 0.4 | 0.3 | 99
+OLCUM | az | yakin | 500x | 3227 | 26.9 | 38.3 | 8.1 | 1.0 | 2.6 | 438
+OLCUM | orta | uzak | 1x | 4444 | 14.7 | 18.7 | 0.1 | 0.2 | 0.0 | 1
+OLCUM | orta | uzak | 20x | 4375 | 16.1 | 20.9 | 1.1 | 0.4 | 0.2 | 20
+OLCUM | orta | uzak | 100x | 4802 | 21.7 | 27.9 | 4.8 | 0.6 | 0.9 | 100
+OLCUM | orta | uzak | 500x | 5668 | 32.7 | 40.7 | 11.6 | 1.0 | 3.3 | 207
+OLCUM | orta | yakin | 1x | 4444 | 18.6 | 22.3 | 0.1 | 2.8 | 0.0 | 1
+OLCUM | orta | yakin | 20x | 4420 | 20.3 | 24.6 | 1.3 | 2.6 | 0.2 | 20
+OLCUM | orta | yakin | 100x | 4990 | 29.9 | 37.0 | 6.6 | 2.9 | 1.6 | 100
+OLCUM | orta | yakin | 500x | 5610 | 37.8 | 48.4 | 10.8 | 3.5 | 3.0 | 163
+OLCUM | cok | uzak | 1x | 9836 | 23.3 | 34.2 | 0.4 | 1.0 | 0.2 | 1
+OLCUM | cok | uzak | 20x | 9904 | 30.9 | 42.7 | 6.1 | 1.5 | 1.7 | 20
+OLCUM | cok | uzak | 100x | 11724 | 38.2 | 51.6 | 11.9 | 1.6 | 3.4 | 54
+OLCUM | cok | uzak | 500x | 12294 | 39.9 | 54.0 | 13.4 | 1.6 | 3.4 | 71
+OLCUM | cok | yakin | 1x | 9834 | 33.1 | 45.8 | 0.5 | 5.4 | 0.2 | 1
+OLCUM | cok | yakin | 20x | 10295 | 45.4 | 63.5 | 8.9 | 5.5 | 2.4 | 20
+OLCUM | cok | yakin | 100x | 11724 | 48.4 | 72.5 | 12.0 | 5.6 | 3.4 | 43
+OLCUM | cok | yakin | 500x | 12229 | 48.6 | 56.7 | 13.1 | 5.7 | 3.3 | 57
+OLCUM bitti
