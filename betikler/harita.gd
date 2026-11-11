@@ -74,6 +74,7 @@ const SAC_ELF := [Color("e8d890"), Color("d8e0e8"), Color("b89050")]
 const SILAH_RENK := [Color("7a5028"), Color("d8a860"), Color("dfe4ea"), Color("f4f8ff"), Color("2a2a30"), Color("2a2a30"), Color("60ffb0")]
 const BINEK_RENK := [Color("8a5a32"), Color("6a6a70")]   # at, kurt
 const MIGFER := [Color("8a6a4a"), Color("b08a50"), Color("9aa0aa"), Color("d0d6e0"), Color("5a6048"), Color("4a5040"), Color("80e8ff")]
+var generaller: Array = []     # [canlı, krallık rengi] — savaştaki ordu komutanları (yarım saniyede bir)
 var bina_katman: Node2D        # yakın görünümde ayrıntılı binalar (çizim komutları saklanır)
 var canli_katman: Node2D       # canlılar (atlas resimleri: en yakın mip düzeyi, titremesiz)
 var ust_katman: Node2D         # savaş özeti, seçim, efektler (canlıların üstünde)
@@ -930,6 +931,10 @@ func _canlilari_ciz() -> void:
 				ck.draw_rect(Rect2(px - 0.8 * s, oy - 2.8 * s, 1.6 * s, 1.8 * s), ten)
 				if asker:
 					ck.draw_line(Vector2(px + 1.3 * s, oy - 2.6 * s), Vector2(px + 1.3 * s, oy + 1.4 * s), SILAH_RENK[mini(cag, 6)], 0.5 * s)
+					if sim.c_bit[i] & 8:
+						# general: altın tüylü miğfer ve pelerin
+						ck.draw_rect(Rect2(px - 1.4 * s, oy - 1.0 * s, 0.5 * s, 3.0 * s), kr_renk.darkened(0.35))
+						ck.draw_rect(Rect2(px - 0.5 * s, oy - 4.2 * s, 1.0 * s, 1.5 * s), TAC)
 				if kral.has(i):
 					ck.draw_rect(Rect2(px - 0.8 * s, oy - 3.5 * s, 1.6 * s, 0.7 * s), TAC)
 				continue
@@ -952,6 +957,13 @@ func _canlilari_ciz() -> void:
 			var kare := 0
 			if hareketli and br != 4:
 				kare = 1 + ((zaman / 140 + i) % 2)
+			var general: bool = asker and (sim.c_bit[i] & 8) != 0
+			if general:
+				# generalin pelerini (gövdenin arkasında, rüzgârda dalgalanır), altın kenarlı
+				var dal := sin(zaman * 0.005 + i) * 0.35 * s
+				var pel := PackedVector2Array([Vector2(hx - 1.3 * s, hy - 1.3 * s), Vector2(hx + 1.3 * s, hy - 1.3 * s), Vector2(hx + 2.0 * s + dal, hy + 2.4 * s), Vector2(hx - 2.0 * s + dal, hy + 2.4 * s)])
+				ck.draw_colored_polygon(pel, kr_renk.darkened(0.45))
+				ck.draw_line(pel[2], pel[3], TAC, 0.35 * s)
 			var sac := Color.WHITE
 			if kod != 5 and kod != 6 and kod != 7:
 				# saç: yaşlılarda ağarır; kadınlarda omuza iner
@@ -990,6 +1002,12 @@ func _canlilari_ciz() -> void:
 				ck.draw_rect(Rect2(hx - 0.8 * s, hy - 3.4 * s, 1.6 * s, 0.6 * s), TAC)
 				ck.draw_rect(Rect2(hx - 0.8 * s, hy - 3.8 * s, 0.4 * s, 0.4 * s), TAC)
 				ck.draw_rect(Rect2(hx + 0.4 * s, hy - 3.8 * s, 0.4 * s, 0.4 * s), TAC)
+			if general:
+				# tüylü miğfer ve altın kuşak: uzaktan da "komutan" diye seçilsin
+				ck.draw_rect(Rect2(hx - 1.0 * s, hy - 0.2 * s, 2.0 * s, 0.45 * s), TAC)
+				var tuy := sin(zaman * 0.007 + i) * 0.3 * s
+				ck.draw_colored_polygon(PackedVector2Array([Vector2(hx - 0.3 * s, hy - 3.3 * s), Vector2(hx + 0.3 * s, hy - 3.3 * s), Vector2(hx + 0.9 * s + tuy, hy - 5.6 * s), Vector2(hx + 0.1 * s + tuy, hy - 5.4 * s)]), Color("e83a2a"))
+				ck.draw_rect(Rect2(hx - 0.4 * s, hy - 3.6 * s, 0.8 * s, 0.4 * s), TAC)
 			if asker:
 				if ince:
 					_asker_ciz(i, hx, hy, s, cag, kr_renk, zaman, br)
@@ -1043,9 +1061,23 @@ func _asker_ciz(i: int, px: float, py: float, s: float, cag: int, kr_renk: Color
 		ck.draw_rect(Rect2(px - 0.9 * s, py - 3.1 * s, 1.8 * s, 0.8 * s), MIGFER[mini(cag, 6)])
 		if cag == 3:
 			ck.draw_rect(Rect2(px - 0.2 * s, py - 3.6 * s, 0.4 * s, 0.5 * s), kr_renk.lightened(0.3))
-	# zırh: Tunç'tan itibaren göğüslük şeridi
-	if cag >= 1:
+	# zırh: Taş Çağı deri, Tunç göğüslük, Demir zincir (benekli), Orta Çağ plaka (omuzluklar, parlak),
+	# Barut/Sanayi çelik yelek, Uzay enerji kalkanı
+	if cag == 0:
+		ck.draw_rect(Rect2(px - 1.0 * s, py - 0.7 * s, 2.0 * s, 0.6 * s), Color("7a5a3a"))
+	elif cag >= 1:
 		ck.draw_rect(Rect2(px - 1.0 * s, py - 0.6 * s, 2.0 * s, 0.5 * s), MIGFER[mini(maxi(cag, 2), 6)].darkened(0.15))
+	if cag == 2:
+		for n in 3:
+			ck.draw_rect(Rect2(px - 0.8 * s + n * 0.6 * s, py + 0.1 * s, 0.3 * s, 0.3 * s), Color("b8c0c8"))
+	elif cag == 3 or cag == 4:
+		ck.draw_rect(Rect2(px - 1.4 * s, py - 1.1 * s, 0.7 * s, 0.6 * s), Color("e0e6f0"))
+		ck.draw_rect(Rect2(px + 0.7 * s, py - 1.1 * s, 0.7 * s, 0.6 * s), Color("e0e6f0"))
+		ck.draw_rect(Rect2(px - 0.3 * s, py - 0.5 * s, 0.3 * s, 1.2 * s), Color(1, 1, 1, 0.55))
+	elif cag == 5:
+		ck.draw_rect(Rect2(px - 0.9 * s, py - 0.4 * s, 1.8 * s, 1.0 * s), Color("4a5040"))
+	elif cag >= 6:
+		ck.draw_arc(Vector2(px, py - 0.8 * s), 3.0 * s, 0, TAU, 16, Color(0.5, 0.9, 1.0, 0.25 + 0.15 * sin(zaman * 0.004 + i)), 0.3 * s)
 	match br:
 		0:
 			# piyade: kalkan solda (Tunç Çağı'ndan itibaren)
@@ -1297,6 +1329,12 @@ func _ozet_onbellek() -> void:
 	koy_halka.clear()
 	kusatmalar.clear()
 	yuruyusler.clear()
+	generaller.clear()
+	for kid in sim.kralliklar:
+		var kr: Dictionary = sim.kralliklar[kid]
+		var g: int = int(kr.get("general", -1))
+		if g >= 0 and g < sim.ust and sim.c_var[g] == 1 and not kr["savas"].is_empty():
+			generaller.append([g, Color(kr["renk"]).lightened(0.1)])
 	for id in sim.koyler:
 		var v: Dictionary = sim.koyler[id]
 		var kr = sim.kralliklar.get(v["krallik"])
@@ -1327,12 +1365,30 @@ func _ozet_ciz(olcek: float) -> void:
 		var uc := q - yon * 10.0 * b
 		var dik := Vector2(-yon.y, yon.x)
 		ck.draw_colored_polygon(PackedVector2Array([uc + yon * 9.0 * b, uc + dik * 5.0 * b, uc - dik * 5.0 * b]), Color(c.lightened(0.2), 0.95))
+	# generaller: her uzaklıkta krallık renginde altın kenarlı yıldız
+	for g in generaller:
+		if g[0] >= sim.ust or sim.c_var[g[0]] == 0:
+			continue
+		var p := Vector2(sim.c_x[g[0]], sim.c_y[g[0]]) * KARO - Vector2(0, 16.0 * b)
+		ck.draw_circle(p, 10.5 * b, Color(0, 0, 0, 0.45))
+		_yildiz_ciz(p, 9.0 * b, g[1], 1.4 * b)
 	for k in kusatmalar:
 		var p := Vector2(k[0], k[1]) * KARO - Vector2(0, 9.0 * b)
 		var nab := 1.0 + 0.18 * sin(zaman * 6.0)
 		ck.draw_circle(p, 11.0 * b * nab, Color(0.75, 0.08, 0.05, 0.75))
 		ck.draw_arc(p, 11.0 * b * nab, 0, TAU, 24, Color(1, 0.9, 0.5), 1.5 * b)
 		_kilic_ciz(p, 7.0 * b, 2.0 * b)
+
+
+## Beş köşeli yıldız (generaller).
+func _yildiz_ciz(p: Vector2, r: float, c: Color, kal: float) -> void:
+	var nok := PackedVector2Array()
+	for n in 10:
+		var a := -PI / 2.0 + n * PI / 5.0
+		nok.append(p + Vector2(cos(a), sin(a)) * (r if n % 2 == 0 else r * 0.45))
+	ck.draw_colored_polygon(nok, c)
+	nok.append(nok[0])
+	ck.draw_polyline(nok, TAC, kal)
 
 
 ## Çapraz iki kılıç simgesi.
@@ -1556,6 +1612,22 @@ func _efektleri_ciz() -> void:
 				ck.draw_rect(Rect2(a - Vector2(2.0, 3.5), Vector2(4, 1.6)), Color("f0e0c0"))
 				ck.draw_circle(a + Vector2(-1.5, 1.2), 0.9, Color("3a2a1a"))
 				ck.draw_circle(a + Vector2(1.5, 1.2), 0.9, Color("3a2a1a"))
+			21:
+				# haydut baskını: devrilmiş kervan arabası, saçılan yük, bıçaklı iki karaltı, kırmızı uyarı halkası
+				var kal := float(e[3]) / 10.0
+				ck.draw_arc(p, 9.0 + (1.0 - kal) * 8.0, 0, TAU, 24, Color(1, 0.25, 0.15, 0.7 * kal), 1.5)
+				ck.draw_set_transform(p, 0.6, Vector2.ONE)
+				ck.draw_rect(Rect2(Vector2(-2.5, -2.0), Vector2(5, 3)), Color("8a5a2a"))
+				ck.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				ck.draw_circle(p + Vector2(-2.0, 2.0), 0.9, Color("3a2a1a"))
+				for n in 3:
+					ck.draw_rect(Rect2(p + Vector2(2.0 + n * 1.4, 1.5 + (n % 2)), Vector2(1, 1)), Color("e8d8a0"))
+				var sal := sin(zaman * 9.0) * 0.8
+				for n in 2:
+					var h := p + Vector2(-5.0 + n * 9.0 + sal * (1 - 2 * n), -1.0)
+					ck.draw_rect(Rect2(h - Vector2(0.8, 1.0), Vector2(1.6, 2.6)), Color("2a2622"))
+					ck.draw_rect(Rect2(h - Vector2(0.6, 2.2), Vector2(1.2, 1.2)), Color("4a3a30"))
+					ck.draw_line(h + Vector2(0.9, 0.0), h + Vector2(1.9, -1.4), Color("dfe4ea"), 0.4)
 			10:
 				# isyan: kırmızı bayrak ve öfke halkası
 				var nab := 1.0 + 0.25 * sin(zaman * 8.0)

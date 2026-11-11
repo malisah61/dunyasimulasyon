@@ -1,5 +1,87 @@
 # Gece günlüğü
 
+## 2026-11-11 (4. çalışma) — Gece 5: generaller, zırhlar, haydutlar, çağa göre müzik, göçmen kabileler
+
+### Analiz bulguları (dogrulama 256x160 tohum 7/3, 512x320 tohum 5; 300 ve 1000 yıl, sınırsız nüfus)
+- **Devler tohum 7'de 300 yıl boyunca tek kişiydi:** 14 devin 15'i ilk savaşlarda öldü, kalan tek dev eşsiz kaldı; ırk fiilen yok olmuştu ama haritada "1" olarak duruyordu.
+- **Kervan ticareti neredeyse yoktu:** 300 yılda yalnızca **5 kervan** (yalnızca aç köye tahıl taşınıyordu, alıcı rastgele tüm haritadan seçiliyor, çoğu 50 karodan uzak çıkıyordu).
+- **Askerin zırhı yalnızca resimdi:** göğüslük/miğfer çiziliyordu ama hasarı azaltmıyordu; 100 özelliğin `savas_taktik` (Stratejist), `moral_ordu` (Kahraman), `kusatma` (Sabırlı) etkileri hiçbir yerde okunmuyordu.
+- **Afetlerin sonrası boştu:** deprem, volkan, meteor köyü yıkıyor ama halkın inancına, huzuruna bir etkisi olmuyordu.
+- **Hız (ölçerek bulunan darboğazlar, 512x320, 29 bin canlı, 500x'te bir ay ~13 ms):** krallıkların savaş hedefi araması her seferinde tüm köy sözlüğünü 6 kez tarıyordu (ayda ~1 ms); kalabalık dünyada köyler her yıl 60 deneme × 8 örnekle boşuna yeni köy yeri arıyordu; her doğumda özellik etkileri sözlüklerden 8 kez okunuyordu (doğum başına ~21 µs).
+
+### Kasma ölçümü (önce → sonra)
+**Aynı kayıtlı dünya** (512x320 tohum 5, 250. yıl, ~29 bin canlı), Gece 4 kodu ve bu gecenin kodu art arda, bir ayın süresi (2–3 ölçüm ortalaması; bulut makinesi ±%15 oynuyor). "Sonra" yeni sistemlerin (generaller, 15 kat artan kervan ticareti, haydutlar) yükünü de taşıyor:
+
+| Hız | Bir ay | Hareket | Krallıklar |
+|---|---|---|---|
+| 500x (adim 12) | 13.1 → **10.4 ms** (−%21) | 3.15 → **1.75 ms** | 1.68 → **0.99 ms** |
+| 100x (adim 6) | 13.5 → 13.4 ms | 4.5 → **3.9 ms** | 1.42 → **1.13 ms** |
+| 20x (adim 2) | 28.6 → **26.7 ms** (−%7) | 18.1 → **17.1 ms** | 1.72 → **1.14 ms** |
+
+256x160 tohum 3 (~10 bin canlı, aynı kayıt): 100x'te bir ay 4.0–4.8 → **3.4–3.7 ms**, hareket 1.6–1.9 → **1.1–1.2 ms**; 500x aynı (~3.1 ms).
+
+Kare ölçümü (`olcum`, yazılım çizimi; dünyalar yeni kurallarla farklı büyüdü, "çok" senaryosu bu gece ~%20 daha az kalabalık — asıl karşılaştırma yukarıdaki aynı-dünya tablosu):
+
+| Nüfus | Görünüm | Hız | Canlı (önce → sonra) | Ort. kare ms | En yavaş kare ms | Ulaşılan hız (ay/sn) |
+|---|---|---|---|---|---|---|
+| az | uzak | 500x | 2429 → 3362 | 44.4 → **39.7** | 65.6 → **56.6** | 245 → **287** |
+| az | yakın | 100x | 1178 → 1123 | 34.0 → **29.9** | 54.4 → **46.3** | 99 → 99 |
+| orta | uzak | 100x | 6157 → 5074 | 50.4 → 46.8 | 70.6 → 69.2 | 71 → **87** |
+| orta | uzak | 500x | 6018 → 5686 | 52.5 → 47.4 | 96.0 → **63.1** | 78 → **129** |
+| orta | yakın | 500x | 6010 → 5314 | 56.8 → 56.6 | 83.9 → 75.9 | 70 → **83** |
+| orta | çok yakın | 100x | 5846 → 5244 | 53.3 → 45.5 | 77.3 → 69.9 | 68 → **87** |
+| çok (Dev) | uzak | 100x | 11488 → 9112 | 64.3 → 59.7 | 83.2 → 88.1 | 28 → **39** |
+| çok (Dev) | yakın | 100x | 11503 → 9143 | 70.6 → 65.8 | 103.6 → **88.9** | 25 → **36** |
+| çok (Dev) | yakın | 500x | 11742 → 9433 | 69.8 → 69.4 | 97.2 → 94.7 | 28 → **37** |
+| çok (Dev) | çok yakın | 100x | 11328 → 9082 | 61.6 → 55.2 | 92.2 → 79.0 | 28 → **43** |
+
+1x'te kareler değişmedi (ölçüm gürültüsü içinde; 1x'te simülasyon karenin %1'inden az, karenin çoğu yazılım çizimiyle haritanın kendisi).
+
+### Performans (yapılanlar)
+- **Krallık aramaları dizilerden:** köylerin konumu, krallığı ve kıtası ayda bir paketli dizilere yazılır; savaş hedefi, düşman köyleri, kervan alıcısı, afet çevresi bu dizilerden aranır (sözlük taraması yok). Krallık işi ayda 1.7 → 1.0 ms.
+- **Özellik etkileri önceden hesaplı:** liderlik, vuruş, okçuluk, kaçınma, önsezi/ihanet/şifa bitleri ve komutanlık puanı her özellik için bir kez diziye yazılır; doğumda ve yüklemede sözlük okunmaz. Irkların doğuştan eğilimleri de dizide.
+- **Dolu dünyada boşa arama yok:** yeni köy yeri bulamayan köy 5 yıl yeniden aramaz.
+- **100x–500x'te siviller dört kat seyrek, dört kat uzun adımla yürür** (önce iki kat). Toplam yol aynı; askerler, avcılar, göçenler her adımda.
+
+### Görünürlük
+- **Generaller:** savaşan her ordunun komutanı haritada her uzaklıkta krallık renginde, altın kenarlı ★ yıldızla görünür. Yakında: rüzgârda dalgalanan pelerin, kırmızı tüylü miğfer, altın kuşak. Orta uzaklıkta altın tüy.
+- **Zırhlar çağa göre:** Taş Çağı deri yelek, Tunç göğüslük, Demir zincir zırh (benekli), Orta Çağ plaka (parlak omuzluklar), Sanayi çelik yelek, Uzay enerji kalkanı (titreyen mavi halka).
+- **Haydut baskını efekti:** devrilmiş kervan arabası, saçılan yük, bıçaklı iki karaltı, kırmızı uyarı halkası. Kervanlar artık 15 kat sık yola çıkıyor: haritada yürüyen arabalar ticaretin nereden nereye aktığını gösteriyor.
+
+### Oynanabilirlik
+- **Savaşlar paneli:** her savaşta iki tarafın generali (komuta gücüyle); adına dokununca generale gidilir. "Son savaş olayları"nda general atamaları ve düşen generaller.
+- **Köy kartı:** "Ordu: silah · zırh (%)" satırı, "★ General" düğmesi (generale git), haydut ve tanrı öfkesi uyarıları. **Canlı kartı:** "★ General — ordunun komutanı (komuta ×1.12)", "Silah · Zırh".
+- **Müzik:** Menü → "Müzik (çağa göre)" açılıp kapanır (ayar saklanır).
+
+### Mantık
+- **Zırh hasarı keser:** kılıcı ve oku tam, kurşunu %40, gülleyi hiç; lazeri yalnızca enerji kalkanı keser. Demirhane zırhı artırır (en çok %50).
+- **Generaller** (bkz. yeni sistemler) savaşın gidişini değiştirir: usta general ×1.4'e kadar, Korkak ×0.8'e kadar.
+- **Göçmen kabile:** bir zamanlar 12+ kişiye ulaşıp 6'nın altına düşen ırka uzak diyarlardan 10 kişilik kabile gelir (yılda %7). Tamamen yok olan ırk geri gelmez, boş başlayan dünyada kendiliğinden ırk çıkmaz. Tohum 7, 300. yıl: **Dev 1 → 166**.
+- **Avcı hayvanlar:** açlıktan ölüm yılda %15 → %10, aç avcı daha geniş alanda av arar.
+
+### Görsel kalite ve detay
+- General pelerini/tüyü/kuşağı, çağa göre beş farklı zırh, haydut baskını efekti, savaş paneline ★ işaretleri.
+
+### Derinleştirilen 3 özellik
+1. **Savaş:** zırh değeri (deri → tunç → zincir → plaka → çelik yelek → enerji kalkanı), komutanlar, düşen şehirle düşen general.
+2. **Ticaret/ekonomi:** kervanlar artık yalnızca kıtlıkta değil, her yıl mal (zanaat, kumaş, demir) taşır, iki köy de kazanır; 300 yılda 5 → ~3300 kervan (tohum 3).
+3. **Din:** afet sonrası "TANRILAR KIZDI" — çevre köyler 5 yıl korkar (tapınağı olan köy daha az), tapınaksız köy önce tapınak yapar, dinsiz krallıkta inanç doğabilir, inancından yüz çeviren halk yeni inanç kurabilir.
+
+### Eklenen yeni sistemler (TASARIM.md)
+1. **Generaller (§8):** savaş başlayınca iki taraf da ordusunun başına komutan atar (liderlik, Stratejist, Kahraman, Cesur, Sabırlı, savaş deneyimi; Korkak eksi). General askerlerin vuruşunu ve kuşatmayı ×0.8–1.4 değiştirir, öldürdükçe ustalaşır. Düşen şehri savunan general çoğu zaman şehirle düşer: "GENERAL DÜŞTÜ … Ordu sarsıldı" (ordu bir yıl ×0.85, savaş yorgunluğu artar). 512x320, 300 yıl: 138 general atandı, 24'ü savaşta düştü.
+2. **Haydutlar kervan soyar (§6):** huzursuz topraklarda, savaşta, iflasta ve uzun yollarda kervanlar soyulur; gözetleme kulesi yolu korur. Soygunlar birikince krallık hazineden asker yollayıp yolları temizler; temizlemezse halk huzursuzlanır. Tohum 3: 300 yılda ~200 soygun / ~3300 kervan.
+3. **Çağa göre müzik (§14):** dosyasız, kodla üretilen üç parça — Kadim (Taş/Tunç: kemik flüt, çerçeve davulu, bordun), Orta Çağ (Demir/Orta: Hicaz makamında lavta, darbuka düm-tek, bordun), Yeni Çağ (Barut ve sonrası: çan arpeji, bas, pad). Dünyanın en ileri çağına göre yumuşak geçişle değişir. Parçalar oyun açıkken karede ≤1,5 ms'lik dilimlerle üretilir (takılma yok; ~0,6–1,2 sn toplam iş).
+- Ek: **göçmen kabile**, **tanrıların öfkesi** (§10 afet sonrası din etkisi).
+
+### Kayıt
+- `KAYIT_SURUMU` 6: krallıkta general/general_uid/komuta/haydut, köyde ofke/tapinak_iste/goc_bekle. Hepsi isteğe bağlı; eski kayıt dönüştürme gerekmeden açılır (generalsiz başlar).
+
+### Sorunlar / sonraki gece
+- 100x'te (adim 6) ayın süresi yeni sistemlerle birlikte aynı kaldı; hareketin büyük kısmı artık cephedeki askerlerin düşman taraması. Sıradaki adım: krallık başına kaba "ordu ızgarası" ile cepheden uzak askerlerin taramayı atlaması.
+- Avcı hayvanlar büyük haritada kapasitenin altında (16 / 165); köylüler kurtları avlıyor. Kurt sürüleri ve köpek evcilleştirme düşünülmeli.
+- Müzik bulutta yalnızca dalga şekliyle denetlendi (spektrum); telefonda ses düzeyi fazla gelirse Menü'den kapatılabilir.
+
+
 ## 2026-11-11 (3. çalışma) — Gece 4: mevsimler, atlılar ve kuşatma makineleri, altın/teknoloji grafikleri, tarih kitabı
 
 ### Analiz bulguları (dogrulama 256x160 tohum 3 ve 512x320 tohum 5, 300 yıl, sınırsız nüfus)

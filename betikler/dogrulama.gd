@@ -107,6 +107,32 @@ func _init() -> void:
 		if (k[1] as String).begins_with("İFLAS"): iflas += 1
 		if (k[1] as String).begins_with("ENFLASYON"): enf += 1
 	print("ALTIN: deger %%%d, iflas %d, enflasyon olayi %d | TARIH KITABI: %d olay, kronik %d | KRALLIK GECMISI: %d ornek" % [int(s.altin_deger * 100), iflas, enf, s.tarih.size(), s.kronik.size(), s.gecmis_kr.size()])
+	var gen_say := 0
+	var gen_ust := 0.0
+	for id in s.kralliklar:
+		if int(s.kralliklar[id].get("general", -1)) >= 0:
+			gen_say += 1
+			gen_ust = maxf(gen_ust, float(s.kralliklar[id].get("komuta", 1.0)))
+	var gk := 0
+	var ofke := 0
+	for e in s.kronik:
+		if str(e[1]).find("ordusunun başına General") >= 0:
+			gk += 1
+	var dustu := 0
+	var oldu := 0
+	var savasan := 0
+	for id in s.kralliklar:
+		if not s.kralliklar[id]["savas"].is_empty():
+			savasan += 1
+	for e in s.tarih:
+		if str(e[1]).begins_with("GENERAL DÜŞTÜ"):
+			dustu += 1
+	for e in s.kronik:
+		if str(e[1]).begins_with("TANRILAR KIZDI"):
+			ofke += 1
+		if str(e[1]).find("komutanı General") >= 0 and not str(e[1]).begins_with("GENERAL"):
+			oldu += 1
+	print("GENERAL: savasan krallik %d, general %d (en iyi komuta x%.2f), atanan %d, savasta dusen %d, baska sebeple olen %d | HAYDUT soygun %d / kervan %d | GOCMEN kabile %d | TANRI OFKESI %d" % [savasan, gen_say, gen_ust, gk, dustu, oldu, s.haydut_soygun, s.kervan_say, s.gocmen_kabile, ofke])
 	print("PERFORMANS: %d yil %d ms (%.1f yil/sn), en yavas yil %d ms, en yuksek canli %d (sinir %s)" % [yil, sure, yil * 1000.0 / maxi(1, sure), azami_ms, azami_nufus, "yok" if sinir <= 0 else str(sinir)])
 	var ou: PackedInt64Array = s.olc_us
 	print("DAGILIM (ms): canli yillik %d, hareket %d, koy %d, krallik %d, afet+diger %d | en yavas tek ay %.1f ms" % [ou[0] / 1000, ou[1] / 1000, ou[2] / 1000, ou[3] / 1000, ou[4] / 1000, ou[5] / 1000.0])

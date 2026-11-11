@@ -67,7 +67,7 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 - [ ] Kaynaklar: yiyecek, odun, taş, demir, **altın**, gümüş, değerli taş, yün, at.
 - ✅ Altın madenleri haritada sabit yerlerde bulunur; o topraklar için savaş çıkar.
 - ✅ Altının kullanımı: bina, silah, paralı asker, rüşvet ve diplomasi, kralın sarayı. Vergi sistemi; yüksek vergi isyana yol açar. (Gece 3: savaşı kaybeden taraf altınla barışı satın alabiliyor.)
-- [ ] Ticaret yolları (karadan ve denizden), pazar binaları, tüccar kervanları. Haydutlar kervan soyar.
+- [ ] Ticaret yolları (karadan ve denizden), pazar binaları, tüccar kervanları. ✅ Haydutlar kervan soyar (Gece 5). *(Kara kervanları var; deniz ticareti henüz yok.)*
 - [ ] Kıtlık, enflasyon (çok altın çıkarılırsa), ekonomik çöküş. *(Gece 4: altının değeri dünyadaki altın miktarına göre değişir (enflasyon); savaşta hazinesi tükenen krallık iflas eder.)*
 
 ## 7. Binalar (çağa göre açılır)
@@ -80,8 +80,8 @@ Her ırkın kendine özgü taban değerleri, sevdiği arazisi, binaları, silahl
 
 ## 8. Silahlar, ordular ve savaş
 - [ ] Çağa göre silahlar: sopa → taş balta → mızrak → tunç kılıç → demir kılıç / yay → çelik kılıç, arbalet, mancınık → tüfek, top → (uzaylı lazer silahı). *(Gece 3: askerin elinde çağa göre sopa, mızrak, kılıç/yay, çelik kılıç/arbalet, tüfek, lazer çiziliyor; okçu ve tüfekliler uzaktan vuruyor. Taş balta, mancınık ve top henüz yok.)*
-- [ ] Zırhlar: deri → tunç → zincir → plaka. *(Gece 3: görsel olarak göğüslük, miğfer ve kalkan çağa göre; ayrı zırh değeri henüz yok.)*
-- [ ] Ordu birimleri: piyade, okçu, atlı, kuşatma makinesi, gemi. Generaller özelliklerine göre savaşır (Stratejist, Korkak...). *(Gece 3: piyade, okçu, tüfekli, lazerli ve sancaktar. Gece 4: atlı (goblinlerde kurt binicisi), mancınık (Orta Çağ) ve top (Barut/Sanayi) eklendi; gemi ve general henüz yok.)*
+- [x] ✅ Zırhlar: deri → tunç → zincir → plaka. *(Gece 5: zırh hasarı keser — kılıç/ok tam, kurşun az, gülle hiç; çağa göre görünür; Sanayi çelik yelek, Uzay enerji kalkanı.)* *(Gece 3: görsel olarak göğüslük, miğfer ve kalkan çağa göre; ayrı zırh değeri henüz yok.)*
+- [ ] Ordu birimleri: piyade, okçu, atlı, kuşatma makinesi, gemi. ✅ Generaller özelliklerine göre savaşır (Stratejist, Korkak...) — Gece 5. *(Gece 3: piyade, okçu, tüfekli, lazerli ve sancaktar. Gece 4: atlı (goblinlerde kurt binicisi), mancınık (Orta Çağ) ve top (Barut/Sanayi) eklendi; gemi ve general henüz yok.)*
 - ✅ Savaş sebepleri: toprak, altın, din, intikam, ırk düşmanlığı, Kana Susamış bir kral.
 - ✅ Kuşatmalar, barış antlaşmaları, ittifaklar, haraç, iç savaş, isyan, darbe.
 
@@ -109,7 +109,7 @@ Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla,
 | ✅ Yıldırım fırtınası | Yaz yağmurlarında | Yangın çıkarır, canlı öldürür |
 
 - ✅ Kâhin özelliği taşıyan canlılar afeti önceden sezer ve halkını kaçırır.
-- [ ] Afet sonrası: göç, yeniden inşa, din etkisi ("tanrılar kızdı").
+- [ ] Afet sonrası: göç, yeniden inşa, ✅ din etkisi ("tanrılar kızdı": huzur düşer, tapınak yapılır, yeni inanç doğabilir — Gece 5).
 
 ## 11. Tanrı güçleri (oyuncu araçları)
 - [ ] **Arazi:** kara yükselt/alçalt, su, dağ, orman, çöl, kar, lav, nehir çiz.
@@ -132,7 +132,7 @@ Her afet iki yoldan gelir: **kendiliğinden** (aylık küçük bir olasılıkla,
 - [ ] 60 FPS; orta seviye telefonda 5.000+, PC'de 20.000+ canlı.
 - ✅ Kayıt/yükleme (birden çok yuva). Eski kayıtlar yeni sürümlerde de açılsın.
 - ✅ Türkçe arayüz, dokunmatik ve fare desteği, PC klavye kısayolları.
-- [ ] Ses: ortam sesleri, afet sesleri, çağa göre değişen müzik (yalnızca ücretsiz kaynaklar). *(Gece 3: kodla üretilen ortam sesi, afet sesleri, savaş borusu, isyan davulu, bildirim çanı var; müzik henüz yok.)*
+- [x] ✅ Ses: ortam sesleri, afet sesleri, çağa göre değişen müzik (yalnızca ücretsiz kaynaklar). *(Gece 3: kodla üretilen ortam sesi, afet sesleri, savaş borusu, isyan davulu, bildirim çanı. Gece 5: kodla üretilen çağa göre müzik — Kadim, Orta Çağ (Hicaz), Yeni Çağ.)*
 
 ---
 
@@ -304,3 +304,12 @@ Gece geliştirmelerinde ortaya çıkan, tasarıma eklenen fikirler (✅ = oyunda
 - ✅ **Altının değeri (enflasyon) ve iflas:** dünyada kişi başına düşen altın arttıkça altın değer kaybeder; kıtlıkta alınan tahıl, paralı asker, saray ve kale fiyatı buna göre değişir. Savaşta hazinesi yıllarca boş kalan krallık iflas eder: ordu zayıflar, halk huzursuzlanır.
 - ✅ **Cüce dağ evleri:** cüceler ve devler dağın içine ev kurabilir (önce dağlarda ev kuramadıkları için cüce nüfusu 300 yılda 10–30'da kalıyordu; şimdi yüzlerce).
 - Fikir (sonraki geceler): gemi ve deniz savaşı, generaller, mevsime göre hayvan göçü, kışın donan nehirden geçiş, haydutların kervan soyması, simülasyonu ayrı iş parçacığına almak.
+
+### 2026-11-11 (Gece 5)
+- ✅ **Generaller (§8):** savaş başlayınca iki taraf ordusunun başına komutan atar (Stratejist, Kahraman, Lider, Cesur, Sabırlı, deneyim; Korkak eksi). Vuruşu ve kuşatmayı ×0.8–1.4 değiştirir; düşen şehirle general de düşebilir, ordu sarsılır. Haritada ★ yıldız, yakında pelerin ve tüylü miğfer; Savaşlar panelinde generale git.
+- ✅ **Zırh (§8):** çağa göre deri → tunç → zincir → plaka → çelik yelek → enerji kalkanı; gerçekten hasar keser, demirhane artırır.
+- ✅ **Haydutlar (§6):** huzursuz/savaşan/iflas etmiş topraklarda kervan soyulur; gözetleme kulesi korur; krallık yolları temizlemezse huzur düşer. Kervanlar artık mal da taşır (iki köy de kazanır).
+- ✅ **Çağa göre müzik (§14):** kodla üretilen üç parça (Kadim / Orta Çağ Hicaz / Yeni Çağ), yumuşak geçiş, Menü'den kapatılabilir.
+- ✅ **Tanrıların öfkesi (§10):** büyük afetten sonra çevre köyler korkar, tapınak yapar; inanç doğabilir ya da değişebilir.
+- ✅ **Göçmen kabile:** soyu tükenmek üzere olan ırka (bir zamanlar 12+, şimdi 6'dan az) uzak diyarlardan kabile gelir.
+- Fikir (sonraki geceler): ordu ızgarası (cepheden uzak askerler düşman taramaz), kurt sürüleri ve köpek evcilleştirme, deniz ticareti ve gemiler, generalin adının haritada yazması, haydut kampları (gerçek haydut canlıları), müzikte savaş temposu.

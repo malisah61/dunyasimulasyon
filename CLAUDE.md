@@ -13,9 +13,11 @@ Ana tasarım ve yol haritası: **TASARIM.md** (biten maddeler ✅). Canlı özel
 - `betikler/ses.gd` — tüm sesler açılışta kodla üretilir (ses dosyası yok). `ana._ses("ad")` ile çalınır.
 - `betikler/dogrulama.gd` — ekransız uzun simülasyon testi: `godot --headless -s betikler/dogrulama.gd -- yil=300` (DAGILIM ve TICK satırları: tick süresinin dağılımı).
 - Kasma ölçümü: `xvfb-run godot --rendering-driver opengl3 --resolution 1280x720 -- olcum` (az/orta/çok nüfus × uzak/yakın × 1x/20x/100x/500x; CI `onizleme/olcum.txt` yazar). Her gece aynı ölçüm tekrarlanır.
-- Efekt tipleri (`sim.efektler`, `harita._efektleri_ciz`): 0 vuruş, 1 yıldırım, 2 deprem, 3 volkan, 4 meteor, 5 tsunami, 6 yağmur, 7 UFO ışını, 8 silgi, 9 kervan, 10 isyan, 11 sel, 12 ok, 13 tüfek, 14 lazer, 15 mancınık taşı, 16 kıvılcım, 17 ölüm, 18 kuşatma ateşi, 19 savaş ilanı, 20 top güllesi. Yeni efektleri `_efekt()` ile ekle (liste sınırlı).
+- Efekt tipleri (`sim.efektler`, `harita._efektleri_ciz`): 0 vuruş, 1 yıldırım, 2 deprem, 3 volkan, 4 meteor, 5 tsunami, 6 yağmur, 7 UFO ışını, 8 silgi, 9 kervan, 10 isyan, 11 sel, 12 ok, 13 tüfek, 14 lazer, 15 mancınık taşı, 16 kıvılcım, 17 ölüm, 18 kuşatma ateşi, 19 savaş ilanı, 20 top güllesi, 21 haydut baskını. Yeni efektleri `_efekt()` ile ekle (liste sınırlı).
 - Simgeler (♛ ⚔ → ■ ★ ➤): `veri/yazi/simgeler.yazi` (DejaVu Sans alt kümesi) yedek yazı tipi olarak yüklenir; tarayıcıda sistem yazı tipi olmadığı için **emoji kullanma**, bu dosyadaki işaretleri kullan.
 - Asker birimi `sim.birim(i)`: 0 piyade, 1 okçu, 2 tüfekli, 3 lazerli, 4 atlı, 5 mancınık, 6 top (çağ + uid'den). Mevsim: `sim.MEVSIM[ay % 12]` (0 kış…3 güz), `sim.kis_y` kar sınırı. Önemli olaylar `sim.tarih` (kalıcı), krallık geçmişi `sim.gecmis_kr`, altının değeri `sim.altin_deger`.
+- Generaller: `kr["general"/"general_uid"/"komuta"]`, canlıda `c_bit & 8` (stat_hesapla bu biti korur). Köy hızlı dizileri `kv_zirh` (çağ zırhı) ve `kv_komuta` (generalin çarpanı) `_vur`'da okunur. Köy önbelleği `_kk_hazirla()`: `_kx/_ky/_kkr/_kkt/_kref` paketli diziler (sözlük taramadan köy arama).
+- Müzik `ses.gd`: üç parça (`cag_ayarla`, `muzik_ayarla`), karede ≤1,5 ms'lik dilimlerle üretilir; ana her saniye `sim.muzik_cag`'ı verir.
 - `veri/turler.json` — ırklar ve hayvanlar (ömür, üreme, güç, sevdiği biyomlar, doğuştan özellik eğilimleri).
 
 ## Kurallar
