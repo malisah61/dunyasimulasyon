@@ -20,7 +20,8 @@ Az/orta/çok nüfus × uzak/yakın/çok yakın × 1x/20x/100x/500x. Yazılım ç
 | 100x (adim 6) | 13.5 → 13.4 ms | 4.5 → **3.9 ms** | 1.42 → **1.13 ms** |
 | 20x (adim 2) | 28.6 → **26.7 ms** (−%7) | 18.1 → **17.1 ms** | 1.72 → **1.14 ms** |
 
-Kare ölçümü (olcum, Dev harita): 100x'te ulaşılan hız 28 → **39 ay/sn**, 500x'te 31 → **40 ay/sn** (yeni kurallarla dünya ~%20 daha az kalabalık; asıl karşılaştırma yukarıdaki aynı-dünya tablosu).
+Derleme makinesinde (CI olcum, Gece 4 → 5): Dev harita 100x **37 → 60 ay/sn**, 500x **39 → 71 ay/sn**; orta 500x **118 → 244 ay/sn**.
+Bulut ölçümü (olcum, Dev harita): 100x'te ulaşılan hız 28 → **39 ay/sn**, 500x'te 31 → **40 ay/sn** (yeni kurallarla dünya ~%20 daha az kalabalık; asıl karşılaştırma yukarıdaki aynı-dünya tablosu).
 
 Önceki geceler (Gece 4, olcum): az/uzak/500x kare 41.6 → 37.1 ms; orta/yakın/100x 53.6 → 39.9 ms; Dev/yakın/500x 71.2 → 57.8 ms.
 Gece 3'te: parçalı harita dokusu (5–18 kat). Gece 4'te: 100x–500x'te seyrek sivil yürüyüşü, ayrı canlı katmanı. Gece 5'te: krallık aramaları sözlük yerine dizilerden, özellik etkileri önceden hesaplı, dolu dünyada boşa köy yeri aranmaz, 100x–500x'te siviller dört kat seyrek yürür.

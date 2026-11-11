@@ -35,6 +35,8 @@ Kare ölçümü (`olcum`, yazılım çizimi; dünyalar yeni kurallarla farklı b
 | çok (Dev) | yakın | 500x | 11742 → 9433 | 69.8 → 69.4 | 97.2 → 94.7 | 28 → **37** |
 | çok (Dev) | çok yakın | 100x | 11328 → 9082 | 61.6 → 55.2 | 92.2 → 79.0 | 28 → **43** |
 
+Derleme makinesinde (CI, `onizleme/olcum.txt`, Gece 4 → Gece 5): Dev harita 100x uzak **37 → 60 ay/sn** (11.7 → 13.2 bin canlı, kare 53.8 → 40.6 ms), 500x uzak **39 → 71 ay/sn**; orta 500x uzak **118 → 244 ay/sn**. (Derleme makineleri her seferinde aynı olmayabilir; yön tutarlı.)
+
 1x'te kareler değişmedi (ölçüm gürültüsü içinde; 1x'te simülasyon karenin %1'inden az, karenin çoğu yazılım çizimiyle haritanın kendisi).
 
 ### Performans (yapılanlar)
@@ -75,6 +77,8 @@ Kare ölçümü (`olcum`, yazılım çizimi; dünyalar yeni kurallarla farklı b
 
 ### Kayıt
 - `KAYIT_SURUMU` 6: krallıkta general/general_uid/komuta/haydut, köyde ofke/tapinak_iste/goc_bekle. Hepsi isteğe bağlı; eski kayıt dönüştürme gerekmeden açılır (generalsiz başlar).
+
+- Düzeltme: köyü yıkılan ya da krallık değiştiren general görevden düşer (ilk derlemenin ekran görüntüsünde köysüz bir general adada yalnız kalmıştı).
 
 ### Sorunlar / sonraki gece
 - 100x'te (adim 6) ayın süresi yeni sistemlerle birlikte aynı kaldı; hareketin büyük kısmı artık cephedeki askerlerin düşman taraması. Sıradaki adım: krallık başına kaba "ordu ızgarası" ile cepheden uzak askerlerin taramayı atlaması.

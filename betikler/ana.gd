@@ -1980,7 +1980,7 @@ func _savas_kareleri(klasor: String) -> void:
 		# general: pelerin, tüylü miğfer, altın kuşak; uzaktan yıldız işareti
 		var g := -1
 		for kk in [sim.kralliklar.get(en_a["krallik"]), sim.kralliklar.get(en_b["krallik"])]:
-			if kk != null and int(kk.get("general", -1)) >= 0 and sim.c_var[int(kk["general"])] == 1:
+			if kk != null and int(kk.get("general", -1)) >= 0 and sim.c_var[int(kk["general"])] == 1 and sim.c_durum[int(kk["general"])] == SimS.D_ASKER:
 				g = int(kk["general"])
 				break
 		if g >= 0:

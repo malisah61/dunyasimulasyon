@@ -2534,6 +2534,14 @@ func _krallik_yillik(kr: Dictionary) -> void:
 func _general_yillik(kr: Dictionary, kral: int, liste: Array, savasta: bool) -> void:
 	var g: int = int(kr.get("general", -1))
 	var gecerli: bool = g >= 0 and c_var[g] == 1 and c_uid[g] == int(kr.get("general_uid", 0))
+	if gecerli:
+		# köyü yıkılan ya da başka krallığa geçen general görevden düşer
+		var gv = koyler.get(c_koy[g])
+		if gv == null or gv["krallik"] != kr["id"]:
+			c_bit[g] &= ~8
+			gecerli = false
+			kr["general"] = -1
+			kr["general_uid"] = 0
 	if not savasta:
 		if gecerli:
 			c_bit[g] &= ~8

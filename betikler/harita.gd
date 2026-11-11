@@ -1333,7 +1333,7 @@ func _ozet_onbellek() -> void:
 	for kid in sim.kralliklar:
 		var kr: Dictionary = sim.kralliklar[kid]
 		var g: int = int(kr.get("general", -1))
-		if g >= 0 and g < sim.ust and sim.c_var[g] == 1 and not kr["savas"].is_empty():
+		if g >= 0 and g < sim.ust and sim.c_var[g] == 1 and sim.c_koy[g] >= 0 and not kr["savas"].is_empty():
 			generaller.append([g, Color(kr["renk"]).lightened(0.1)])
 	for id in sim.koyler:
 		var v: Dictionary = sim.koyler[id]
