@@ -21,7 +21,8 @@
 
 Köy işi (`_koy_yillik`, 512x320): yeni köy yeri arama ön elemesi ile ayda **2.1 → 1.35 ms**.
 dogrulama (256x160 tohum 7, 300 yıl): 4.37 → **4.09 sn**; ayın süresi (dogrulama artık oyunun gerçek adımlarıyla ölçüyor: 2/6/12) adim 12: 2.81 → **1.77 ms**.
-Kare ölçümü (`olcum`) derleme makinesinde `onizleme/olcum.txt`'ye yazılır; Gece 5 değerleri README'de.
+Kare ölçümü (`olcum`, derleme makinesi, `onizleme/olcum.txt`): bu gece derleme makinesi belirgin yavaştı — simülasyonun hiç çalışmadığı 1x satırlarında bile kare %30–37 uzun (az/uzak/1x 14.0 → 19.1 ms, Dev/uzak/1x 21.5 → 29.5 ms). Bu yüzden ulaşılan hız düştü görünüyor (Dev/uzak/100x 63 → 34 ay/sn): kare bütçesi çizime giden süre uzayınca simülasyona daha az ay bırakır. Kod karşılaştırması için yukarıdaki aynı-dünya tablosu esas.
+- Derleme sonrası ek düzeltme: yırtıcıların yıllık av araması (15x15 karo) aç kurtta birer atlanarak taranır — kurdun yıllık işi **37 → 21 µs**, ayınınki **34 → 15 µs** (512x320'de ayda ~0,15 ms).
 
 ### Performans (yapılanlar)
 - **20x'te de seyrek sivil yürüyüşü:** köyünde gezinen siviller ve otlayan hayvanlar 20x'te iki ayda bir, iki kat adımla yürür (100x–500x'te dört kat). Toplam yol aynı, 20x'te ayın hareket işi ~%20 az.
@@ -41,7 +42,7 @@ Kare ölçümü (`olcum`) derleme makinesinde `onizleme/olcum.txt`'ye yazılır;
 - **Canlı kartı:** köpekte "Sahibi: … köyü", kurtta "Sürü avcısı".
 
 ### Mantık
-- **Kurt sürüleri ve ayı:** tok kurt sürüdaşının yanında dolaşır, sürü halinde %60 sert ısırır ve avı paylaşır, kurt yavruları batın batın doğar; aç kurt köpeksiz köyün sürüsüne dadanır (köyün yiyeceği azalır); ayı ormanda, tepede, dağda ve kıyıda böğürtlen, bal ve balıkla açlıktan kurtulur. Aynı tohumla 300 yıl (30 yılda bir sayım), önce → sonra: tohum 3 kurt ortalama **25 → 32** (en düşük **1 → 23**), tohum 7 kurt **7.8 → 10.1**. Ayı sayısı değişmedi (2–16 arası, gürültü içinde) — sıradaki gece.
+- **Kurt sürüleri ve ayı:** tok kurt sürüdaşının yanında dolaşır, sürü halinde %60 sert ısırır ve avı paylaşır, kurt yavruları batın batın doğar; aç kurt köpeksiz köyün sürüsüne dadanır (köyün yiyeceği azalır); ayı ormanda, tepede, dağda ve kıyıda böğürtlen, bal ve balıkla açlıktan kurtulur. Aynı tohumla 300 yıl (30 yılda bir sayım), önce → sonra: tohum 3 kurt ortalama **25 → 30–32** (en düşük **1 → 12–23**), tohum 7 kurt **7.8 → 9.7–10.1** (iki ayrı ölçüm). Ayı sayısı değişmedi (2–16 arası, gürültü içinde) — sıradaki gece.
 - **14 özellik etkisi artık işliyor** (bkz. derinleştirilenler).
 - **Hain general düşmana geçer** (TASARIM §4).
 

@@ -1359,11 +1359,14 @@ func _yakin_av(i: int, r: int) -> int:
 	var x0 := int(c_x[i])
 	var y0 := int(c_y[i])
 	var yedek := -1
-	for oy in range(-r, r + 1):
+	# hız (Gece 6): geniş aramada karolar birer atlanarak taranır (kaydırma her yıl değişir); sürüler yine bulunur
+	var ad := 2 if r >= 7 else 1
+	var kay := ((i + ay) & 1) if ad == 2 else 0
+	for oy in range(-r + kay, r + 1, ad):
 		var yy := y0 + oy
 		if yy < 0 or yy >= yuk:
 			continue
-		for ox in range(-r, r + 1):
+		for ox in range(-r + kay, r + 1, ad):
 			var xx := x0 + ox
 			if xx < 0 or xx >= gen:
 				continue
